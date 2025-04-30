@@ -11,29 +11,83 @@
       max-width: 800px;
       margin: auto;
       transition: background 0.3s, color 0.3s;
+      /* Default to dark mode styles */
+      background: #121212;
+      color: #ddd;
     }
     .job {
-      border: 1px solid #ccc;
+      border: 1px solid #333; /* Dark mode border */
       margin: 0.5rem 0;
       padding: 0.5rem;
       border-radius: 6px;
-      background: white;
+      background: #1e1e1e; /* Dark mode job background */
     }
     .applied {
-      background: #d4edda;
+      background: #2a4832; /* Darker green for applied jobs in dark mode */
     }
     .switcher button, .controls button {
       margin: 0.3rem;
+      /* Dark mode button styles */
+      background-color: #444;
+      color: #eee;
+      border: 1px solid #555;
+    }
+    .switcher button:hover, .controls button:hover {
+        background-color: #555;
     }
     .note {
       margin-top: 0.5rem;
       width: 100%;
+      /* Dark mode input/textarea styles */
+      background: #333;
+      color: #eee;
+      border: 1px solid #555;
     }
     .meta {
       font-size: 0.85em;
       color: gray;
       margin-top: 0.3rem;
     }
+    /* Light mode styles */
+    body:not(.dark) {
+      background: white;
+      color: black;
+    }
+    body:not(.dark) .job {
+      background: white;
+      border-color: #ccc;
+    }
+    body:not(.dark) input, body:not(.dark) textarea {
+      background: white;
+      color: black;
+      border: 1px solid #ccc;
+    }
+    body:not(.dark) .applied {
+      background: #d4edda; /* Light mode applied green */
+    }
+    body:not(.dark) button {
+        background-color: #f0f0f0; /* Default light mode button */
+        color: black;
+        border: 1px solid #ccc;
+    }
+    body:not(.dark) button:hover {
+        background-color: #e0e0e0;
+    }
+    body:not(.dark) .switcher button {
+        background-color: #f0f0f0;
+    }
+    body:not(.dark) .switcher button:hover {
+        background-color: #e0e0e0;
+    }
+    body:not(.dark) a { /* Style links if any are added later */
+        color: #007bff; /* Default blue link color */
+    }
+    .loading {
+      text-align: center;
+      font-size: 1.2em;
+      margin-top: 20px;
+    }
+    /* Explicit dark class for overrides if needed, though defaults handle most */
     .dark {
       background: #121212;
       color: #ddd;
@@ -48,7 +102,7 @@
       border: 1px solid #555;
     }
     .dark .applied {
-      background: #2a4832; /* Darker green for applied jobs in dark mode */
+      background: #2a4832;
     }
     .dark button {
         background-color: #444;
@@ -64,23 +118,18 @@
     .dark .switcher button:hover {
         background-color: #444;
     }
-    .dark a { /* Style links if any are added later */
+    .dark a {
         color: #bb86fc;
-    }
-    .loading {
-      text-align: center;
-      font-size: 1.2em;
-      margin-top: 20px;
     }
   </style>
 </head>
-<body>
+<body class="dark"> <!-- Add dark class by default -->
   <h1>HN "Who is hiring?" Tracker</h1>
 
   <div class="controls">
     <input id="search" type="text" placeholder="Search jobs..." style="width:100%; padding:0.5rem; margin:0.5rem 0;" />
     <label><input type="checkbox" id="hideApplied" /> Hide Applied</label>
-    <button onclick="toggleDark()">Toggle Dark Mode</button>
+    <button onclick="toggleDark()">Toggle Light Mode</button> <!-- Changed button text -->
     <button onclick="exportData()">Export</button>
     <button onclick="importData()">Import</button>
     <input type="file" id="importFile" style="display:none" />
@@ -105,9 +154,10 @@
         const data = await res.json();
         threads = data.hits;
         renderThreadSwitcher();
-        // Check local storage for preferred mode
-        if (localStorage.getItem('darkMode') === 'enabled') {
-            document.body.classList.add('dark');
+        // Check local storage for preference - remove dark if light mode is explicitly set
+        if (localStorage.getItem('darkMode') === 'disabled') {
+            document.body.classList.remove('dark');
+            updateToggleButtonText(); // Update button text on initial load
         }
         loadThread(threads[0].objectID);
       } catch (error) {
@@ -217,14 +267,26 @@
       reader.readAsText(file);
     });
 
+    function updateToggleButtonText() {
+        const button = document.querySelector('.controls button[onclick="toggleDark()"]');
+        if (document.body.classList.contains('dark')) {
+            button.textContent = 'Toggle Light Mode';
+        } else {
+            button.textContent = 'Toggle Dark Mode';
+        }
+    }
+
     function toggleDark() {
       document.body.classList.toggle('dark');
       // Persist preference in local storage
       if (document.body.classList.contains('dark')) {
-        localStorage.setItem('darkMode', 'enabled');
-      } else {
+        // Dark mode is active (default state), remove the override setting
         localStorage.removeItem('darkMode');
+      } else {
+        // Light mode is active, set the override
+        localStorage.setItem('darkMode', 'disabled');
       }
+      updateToggleButtonText(); // Update button text after toggle
     }
 
     document.getElementById('search').addEventListener('input', () => renderJobs(allComments));
