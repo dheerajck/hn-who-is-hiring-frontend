@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HN Job Tracker</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 1rem;
+      max-width: 800px;
+      margin: auto;
+      transition: background 0.3s, color 0.3s;
+    }
+    .job {
+      border: 1px solid #ccc;
+      margin: 0.5rem 0;
+      padding: 0.5rem;
+      border-radius: 6px;
+      background: white;
+    }
+    .applied {
+      background: #d4edda;
+    }
+    .switcher button, .controls button {
+      margin: 0.3rem;
+    }
+    .note {
+      margin-top: 0.5rem;
+      width: 100%;
+    }
+    .meta {
+      font-size: 0.85em;
+      color: gray;
+      margin-top: 0.3rem;
+    }
+    .dark {
+      background: #121212;
+      color: #ddd;
+    }
+    .dark .job {
+      background: #1e1e1e;
+      border-color: #333;
+    }
+    .dark input, .dark textarea {
+      background: #333;
+      color: #eee;
+      border: 1px solid #555;
+    }
+    .loading {
+      text-align: center;
+      font-size: 1.2em;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>HN "Who is hiring?" Tracker</h1>
+
+  <div class="controls">
+    <input id="search" type="text" placeholder="Search jobs..." style="width:100%; padding:0.5rem; margin:0.5rem 0;" />
+    <label><input type="checkbox" id="hideApplied" /> Hide Applied</label>
+    <button onclick="toggleDark()">Toggle Dark Mode</button>
+    <button onclick="exportData()">Export</button>
+    <button onclick="importData()">Import</button>
+    <input type="file" id="importFile" style="display:none" />
+  </div>
+
+  <div class="switcher"></div>
+  <div id="jobs">
+    <div class="loading">Loading job listings...</div>
+  </div>
+
+  <script>
+    const appliedKey = 'appliedHNv3';
+    let applied = JSON.parse(localStorage.getItem(appliedKey) || '{}');
+    let threads = [];
+    let currentThreadId = null;
+    let allComments = [];
+
+    async function fetchHiringThreads() {
+      try {
+        // https://hn.algolia.com/?dateRange=all&page=0&prefix=true&query=%22Ask%20HN%3A%20Who%20is%20hiring%3F%22&sort=byDate&type=story
+        const res = await fetch("https://hn.algolia.com/api/v1/search_by_date?query=%22Ask%20HN%3A%20Who%20is%20hiring%3F%22&tags=story");
+        const data = await res.json();
+        threads = data.hits;
+        renderThreadSwitcher();
+        loadThread(threads[0].objectID);
+      } catch (error) {
+        document.getElementById('jobs').innerHTML = `<div class="loading">Failed to load job listings. Please try again later.</div>`;
+      }
+    }
+
+    async function loadThread(id) {
+      currentThreadId = id;
+      document.getElementById('jobs').innerHTML = `<div class="loading">Loading thread...</div>`;
+      try {
+        const res = await fetch(`https://hn.algolia.com/api/v1/items/${id}`);
+        const data = await res.json();
+        allComments = data.children;
+        renderJobs(allComments);
+      } catch (error) {
+        document.getElementById('jobs').innerHTML = `<div class="loading">Failed to load thread details. Please try again later.</div>`;
+      }
+    }
+
+    function renderThreadSwitcher() {
+      const container = document.querySelector('.switcher');
+      container.innerHTML = '';
+      threads.slice(0, 5).forEach(t => {
+        const b = document.createElement('button');
+        b.textContent = t.title;
+        b.onclick = () => loadThread(t.objectID);
+        container.appendChild(b);
+      });
+    }
+
+    function renderJobs(comments) {
+      const container = document.getElementById('jobs');
+      const query = document.getElementById('search').value.toLowerCase();
+      const hideApplied = document.getElementById('hideApplied').checked;
+      container.innerHTML = '';
+
+      comments
+        .filter(c => c.text && c.text.toLowerCase().includes(query))
+        .forEach(c => {
+          const jobStatus = applied[currentThreadId]?.[c.id];
+          if (hideApplied && jobStatus) return;
+
+          const div = document.createElement('div');
+          div.className = 'job';
+          if (jobStatus) div.classList.add('applied');
+
+          const note = jobStatus?.note || '';
+          const date = jobStatus?.date ? new Date(jobStatus.date).toLocaleString() : '';
+
+          div.innerHTML = `
+            <div><strong>${c.author}</strong></div>
+            <div>${c.text}</div>
+            <div class="meta">${date ? `Applied: ${date}` : ''}</div>
+            <textarea class="note" placeholder="Add note...">${note}</textarea>
+            <button>${jobStatus ? "Update Note" : "Mark as Applied"}</button>
+          `;
+
+          const noteEl = div.querySelector('.note');
+          div.querySelector('button').onclick = () => {
+            if (!applied[currentThreadId]) applied[currentThreadId] = {};
+            applied[currentThreadId][c.id] = {
+              note: noteEl.value.trim(),
+              date: new Date().toISOString()
+            };
+            localStorage.setItem(appliedKey, JSON.stringify(applied));
+            renderJobs(comments);
+          };
+
+          container.appendChild(div);
+        });
+    }
+
+    function exportData() {
+      const blob = new Blob([JSON.stringify(applied, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'hn-tracker.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function importData() {
+      document.getElementById('importFile').click();
+    }
+
+    document.getElementById('importFile').addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          applied = JSON.parse(reader.result);
+          localStorage.setItem(appliedKey, JSON.stringify(applied));
+          renderJobs(allComments);
+        } catch (e) {
+          alert("Invalid JSON file.");
+        }
+      };
+      reader.readAsText(file);
+    });
+
+    function toggleDark() {
+      document.body.classList.toggle('dark');
+    }
+
+    document.getElementById('search').addEventListener('input', () => renderJobs(allComments));
+    document.getElementById('hideApplied').addEventListener('change', () => renderJobs(allComments));
+
+    fetchHiringThreads();
+  </script>
+</body>
+</html>
