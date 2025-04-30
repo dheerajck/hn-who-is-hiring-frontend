@@ -434,8 +434,18 @@
 
     async function fetchHiringThreads() {
       try {
+        // Example via their frontend to test things now
         // https://hn.algolia.com/?dateRange=all&page=0&prefix=true&query=%22Ask%20HN%3A%20Who%20is%20hiring%3F%22&sort=byDate&type=story
-        const res = await fetch("https://hn.algolia.com/api/v1/search_by_date?query=%22Ask%20HN%3A%20Who%20is%20hiring%3F%22&tags=story");
+
+        // Define the search query
+        const searchQuery = '"Ask HN: Who is hiring?"';
+        // URL encode the query
+        const encodedQuery = encodeURIComponent(searchQuery);
+        // Construct the API URL
+        const apiUrl = `https://hn.algolia.com/api/v1/search_by_date?query=${encodedQuery}&tags=story`;
+
+        // Use the constructed URL in the fetch call
+        const res = await fetch(apiUrl);
         const data = await res.json();
         threads = data.hits;
         renderThreadSwitcher();
