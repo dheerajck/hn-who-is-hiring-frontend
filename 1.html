@@ -361,6 +361,8 @@
 
     <nav class="switcher" aria-label="Thread navigation"></nav>
 
+    <div id="load-time-info" style="font-size: 0.85rem; color: #999; margin-bottom: 0.5rem;"></div>
+
     <section id="jobs" class="job-listings" aria-live="polite">
       <div class="loading">
         <i class="fas fa-circle-notch" aria-hidden="true"></i>
@@ -467,12 +469,14 @@
     }
 
     async function loadThread(id) {
+      const startTime = performance.now(); // Record start time
       currentThreadId = id;
       document.getElementById('jobs').innerHTML = `
         <div class="loading">
           <i class="fas fa-circle-notch"></i>
           Loading thread...
         </div>`;
+      document.getElementById('load-time-info').textContent = ''; // Clear previous time
 
       try {
         const res = await fetch(`https://hn.algolia.com/api/v1/items/${id}`);
@@ -489,12 +493,18 @@
         });
 
         renderJobs(allComments);
+
+        const endTime = performance.now(); // Record end time
+        const duration = ((endTime - startTime) / 1000).toFixed(2); // Calculate duration in seconds
+        document.getElementById('load-time-info').textContent = `Loaded jobs in ${duration} seconds.`; // Display time
+
       } catch (error) {
         document.getElementById('jobs').innerHTML = `
           <div class="loading">
             <i class="fas fa-exclamation-circle"></i>
             Failed to load thread details. Please try again later.
           </div>`;
+        document.getElementById('load-time-info').textContent = 'Failed to load jobs.'; // Update status on error
       }
     }
 
