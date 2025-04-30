@@ -442,7 +442,7 @@
         // URL encode the query
         const encodedQuery = encodeURIComponent(searchQuery);
         // Construct the API URL
-        const apiUrl = `https://hn.algolia.com/api/v1/search_by_date?query=${encodedQuery}&tags=story`;
+        const apiUrl = `https://hn.algolia.com/api/v1/search_by_date?query=${encodedQuery}&tags=ask_hn`;
 
         // Use the constructed URL in the fetch call
         const res = await fetch(apiUrl);
