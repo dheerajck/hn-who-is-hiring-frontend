@@ -4,141 +4,372 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>HN Job Tracker</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
+    :root {
+      --primary: #bb86fc;
+      --surface: #1e1e1e;
+      --background: #121212;
+      --on-surface: #ddd;
+      --border: #333;
+      --success: #2a4832;
+      --danger: #83322a;
+      --button-bg: #444;
+      --button-hover: #555;
+      --input-bg: #333;
+      --card-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      --transition: all 0.3s ease;
+    }
+
     body {
-      font-family: sans-serif;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       padding: 1rem;
       max-width: 800px;
-      margin: auto;
-      transition: background 0.3s, color 0.3s;
-      /* Default to dark mode styles */
-      background: #121212;
-      color: #ddd;
+      margin: 0 auto;
+      transition: var(--transition);
+      background: var(--background);
+      color: var(--on-surface);
+      line-height: 1.5;
     }
-    .job {
-      border: 1px solid #333; /* Dark mode border */
-      margin: 0.5rem 0;
-      padding: 0.5rem;
-      border-radius: 6px;
-      background: #1e1e1e; /* Dark mode job background */
+
+    /* Improved accessibility - focus styles */
+    *:focus {
+      outline: 2px solid var(--primary);
+      outline-offset: 2px;
     }
-    .applied {
-      background: #2a4832; /* Darker green for applied jobs in dark mode */
+
+    header {
+      margin-bottom: 1.5rem;
     }
-    .switcher button, .controls button {
-      margin: 0.3rem;
-      /* Dark mode button styles */
-      background-color: #444;
-      color: #eee;
-      border: 1px solid #555;
+
+    h1 {
+      margin-top: 0;
+      font-size: 1.8rem;
     }
-    .switcher button:hover, .controls button:hover {
-        background-color: #555;
+
+    button,
+    .btn {
+      padding: 0.5rem 0.75rem;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      background-color: var(--button-bg);
+      color: var(--on-surface);
+      cursor: pointer;
+      transition: var(--transition);
+      font-family: inherit;
+      font-size: 0.9rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
     }
-    .note {
+
+    button:hover,
+    .btn:hover {
+      background-color: var(--button-hover);
+    }
+
+    button:active,
+    .btn:active {
+      transform: translateY(1px);
+    }
+
+    .job-card {
+      border: 1px solid var(--border);
+      margin: 1rem 0;
+      padding: 1rem;
+      border-radius: 8px;
+      background: var(--surface);
+      box-shadow: var(--card-shadow);
+      transition: var(--transition);
+    }
+
+    .job-card.applied {
+      background: var(--success);
+      border-color: var(--success);
+    }
+
+    .job-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 0.75rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .job-company {
+      font-weight: bold;
+      font-size: 1.1rem;
+    }
+
+    .job-content {
+      margin-bottom: 1rem;
+    }
+
+    .job-content a {
+      color: var(--primary);
+    }
+
+    .job-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.5rem;
       margin-top: 0.5rem;
+    }
+
+    .note {
+      margin-top: 0.75rem;
       width: 100%;
-      /* Dark mode input/textarea styles */
-      background: #333;
-      color: #eee;
-      border: 1px solid #555;
+      background: var(--input-bg);
+      color: var(--on-surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.5rem;
+      font-family: inherit;
+      resize: vertical;
+      min-height: 60px;
     }
+
     .meta {
-      font-size: 0.85em;
-      color: gray;
-      margin-top: 0.3rem;
+      font-size: 0.85rem;
+      color: #999;
+      margin-top: 0.5rem;
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
     }
-    /* Light mode styles */
-    body:not(.dark) {
-      background: white;
-      color: black;
+
+    .badge {
+      display: inline-block;
+      padding: 0.2rem 0.5rem;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      background: var(--primary);
+      color: #000;
     }
-    body:not(.dark) .job {
-      background: white;
-      border-color: #ccc;
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+      align-items: center;
     }
-    body:not(.dark) input, body:not(.dark) textarea {
-      background: white;
-      color: black;
-      border: 1px solid #ccc;
+
+    .search-container {
+      width: 100%;
+      position: relative;
+      margin-bottom: 0.5rem;
     }
-    body:not(.dark) .applied {
-      background: #d4edda; /* Light mode applied green */
+
+    .search-container i {
+      position: absolute;
+      left: 0.75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #999;
     }
-    body:not(.dark) button {
-        background-color: #f0f0f0; /* Default light mode button */
-        color: black;
-        border: 1px solid #ccc;
+
+    #search {
+      padding: 0.75rem 1rem 0.75rem 2.25rem;
+      width: 100%;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      background: var(--input-bg);
+      color: var(--on-surface);
+      transition: var(--transition);
     }
-    body:not(.dark) button:hover {
-        background-color: #e0e0e0;
+
+    .switcher {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1rem;
     }
-    body:not(.dark) .switcher button {
-        background-color: #f0f0f0;
+
+    .switcher button {
+      background-color: transparent;
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
     }
-    body:not(.dark) .switcher button:hover {
-        background-color: #e0e0e0;
+
+    .switcher button.active {
+      background-color: var(--primary);
+      color: #000;
+      border-color: var(--primary);
     }
-    body:not(.dark) a { /* Style links if any are added later */
-        color: #007bff; /* Default blue link color */
+
+    .theme-toggle {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.5rem;
+      font-size: 1.2rem;
+      color: var(--on-surface);
     }
+
     .loading {
       text-align: center;
-      font-size: 1.2em;
-      margin-top: 20px;
+      padding: 2rem;
+      font-size: 1.2rem;
     }
-    /* Explicit dark class for overrides if needed, though defaults handle most */
-    .dark {
-      background: #121212;
-      color: #ddd;
+
+    .loading i {
+      animation: spin 1s linear infinite;
+      margin-right: 0.5rem;
     }
-    .dark .job {
-      background: #1e1e1e;
-      border-color: #333;
+
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      padding: 0.75rem 1.5rem;
+      background: var(--primary);
+      color: #000;
+      border-radius: 4px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      transform: translateY(150%);
+      transition: transform 0.3s ease;
+      z-index: 1000;
     }
-    .dark input, .dark textarea {
-      background: #333;
-      color: #eee;
-      border: 1px solid #555;
+
+    .toast.show {
+      transform: translateY(0);
     }
-    .dark .applied {
-      background: #2a4832;
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
-    .dark button {
-        background-color: #444;
-        color: #eee;
-        border: 1px solid #555;
+
+    .fade-in {
+      animation: fadeIn 0.3s ease;
     }
-    .dark button:hover {
-        background-color: #555;
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
-    .dark .switcher button {
-        background-color: #333;
+
+    /* Light mode styles */
+    body:not(.dark) {
+      --primary: #007bff;
+      --surface: #ffffff;
+      --background: #f5f5f5;
+      --on-surface: #333;
+      --border: #ddd;
+      --success: #d4edda;
+      --danger: #f8d7da;
+      --button-bg: #e9ecef;
+      --button-hover: #dee2e6;
+      --input-bg: #fff;
+      --card-shadow: 0 2px 8px rgba(0,0,0,0.05);
     }
-    .dark .switcher button:hover {
-        background-color: #444;
+
+    /* Mobile responsive styles */
+    @media (max-width: 600px) {
+      body {
+        padding: 0.75rem;
+      }
+
+      .controls {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .controls > * {
+        width: 100%;
+      }
+
+      .job-actions {
+        flex-direction: column;
+      }
+
+      .job-actions button {
+        width: 100%;
+      }
+
+      .switcher {
+        overflow-x: auto;
+        padding-bottom: 0.5rem;
+        gap: 0.25rem;
+      }
+
+      .switcher button {
+        flex: 0 0 auto;
+        white-space: nowrap;
+        padding: 0.4rem 0.75rem;
+        font-size: 0.9rem;
+      }
     }
-    .dark a {
-        color: #bb86fc;
+
+    /* Screen reader only class */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
     }
   </style>
 </head>
-<body class="dark"> <!-- Add dark class by default -->
-  <h1>HN "Who is hiring?" Tracker</h1>
+<body class="dark">
+  <header>
+    <h1>HN "Who is hiring?" Tracker</h1>
+  </header>
 
-  <div class="controls">
-    <input id="search" type="text" placeholder="Search jobs..." style="width:100%; padding:0.5rem; margin:0.5rem 0;" />
-    <label><input type="checkbox" id="hideApplied" /> Hide Applied</label>
-    <button onclick="toggleDark()">Toggle Light Mode</button> <!-- Changed button text -->
-    <button onclick="exportData()">Export</button>
-    <button onclick="importData()">Import</button>
-    <input type="file" id="importFile" style="display:none" />
-  </div>
+  <main>
+    <section class="controls">
+      <div class="search-container">
+        <i class="fas fa-search" aria-hidden="true"></i>
+        <input id="search" type="text" placeholder="Search jobs..." aria-label="Search jobs">
+      </div>
 
-  <div class="switcher"></div>
-  <div id="jobs">
-    <div class="loading">Loading job listings...</div>
-  </div>
+      <div class="control-buttons">
+        <label class="btn">
+          <input type="checkbox" id="hideApplied" class="sr-only">
+          <i class="fas fa-eye-slash" aria-hidden="true"></i>
+          <span>Hide Applied</span>
+        </label>
+
+        <button id="themeToggle" class="theme-toggle" aria-label="Toggle dark/light mode">
+          <i class="fas fa-moon" aria-hidden="true"></i>
+        </button>
+
+        <button onclick="exportData()" aria-label="Export data">
+          <i class="fas fa-download" aria-hidden="true"></i>
+          <span>Export</span>
+        </button>
+
+        <button onclick="importData()" aria-label="Import data">
+          <i class="fas fa-upload" aria-hidden="true"></i>
+          <span>Import</span>
+        </button>
+        <input type="file" id="importFile" class="sr-only" aria-label="Import file">
+      </div>
+    </section>
+
+    <nav class="switcher" aria-label="Thread navigation"></nav>
+
+    <section id="jobs" class="job-listings" aria-live="polite">
+      <div class="loading">
+        <i class="fas fa-circle-notch" aria-hidden="true"></i>
+        Loading job listings...
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true"></div>
 
   <script>
     const appliedKey = 'appliedHNv3';
@@ -147,6 +378,60 @@
     let currentThreadId = null;
     let allComments = [];
 
+    // Keyboard navigation support
+    const keyboardShortcuts = {
+      'j': () => navigateJobs('next'),
+      'k': () => navigateJobs('prev'),
+      '/': () => document.getElementById('search').focus(),
+      'Escape': () => document.activeElement.blur(),
+      'a': () => handleJobAction()
+    };
+
+    function navigateJobs(direction) {
+      const jobCards = document.querySelectorAll('.job-card');
+      if (!jobCards.length) return;
+
+      const focused = document.activeElement;
+      let currentIndex = -1;
+
+      // Find currently focused job
+      jobCards.forEach((card, index) => {
+        if (card === focused || card.contains(focused)) {
+          currentIndex = index;
+        }
+      });
+
+      let nextIndex;
+      if (direction === 'next') {
+        nextIndex = (currentIndex + 1) % jobCards.length;
+      } else {
+        nextIndex = (currentIndex - 1 + jobCards.length) % jobCards.length;
+      }
+
+      jobCards[nextIndex].focus();
+      jobCards[nextIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function handleJobAction() {
+      const focused = document.activeElement;
+      const jobCard = focused.closest('.job-card');
+
+      if (jobCard) {
+        const actionButton = jobCard.querySelector('.job-action-button');
+        if (actionButton) actionButton.click();
+      }
+    }
+
+    // Show toast notification
+    function showToast(message, duration = 3000) {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, duration);
+    }
+
     async function fetchHiringThreads() {
       try {
         // https://hn.algolia.com/?dateRange=all&page=0&prefix=true&query=%22Ask%20HN%3A%20Who%20is%20hiring%3F%22&sort=byDate&type=story
@@ -154,38 +439,71 @@
         const data = await res.json();
         threads = data.hits;
         renderThreadSwitcher();
-        // Check local storage for preference - remove dark if light mode is explicitly set
+
+        // Check local storage for preference
         if (localStorage.getItem('darkMode') === 'disabled') {
-            document.body.classList.remove('dark');
-            updateToggleButtonText(); // Update button text on initial load
+          document.body.classList.remove('dark');
+          updateThemeIcon();
         }
+
         loadThread(threads[0].objectID);
       } catch (error) {
-        document.getElementById('jobs').innerHTML = `<div class="loading">Failed to load job listings. Please try again later.</div>`;
+        document.getElementById('jobs').innerHTML = `
+          <div class="loading">
+            <i class="fas fa-exclamation-circle"></i>
+            Failed to load job listings. Please try again later.
+          </div>`;
       }
     }
 
     async function loadThread(id) {
       currentThreadId = id;
-      document.getElementById('jobs').innerHTML = `<div class="loading">Loading thread...</div>`;
+      document.getElementById('jobs').innerHTML = `
+        <div class="loading">
+          <i class="fas fa-circle-notch"></i>
+          Loading thread...
+        </div>`;
+
       try {
         const res = await fetch(`https://hn.algolia.com/api/v1/items/${id}`);
         const data = await res.json();
         allComments = data.children;
+
+        // Update active thread button
+        const buttons = document.querySelectorAll('.switcher button');
+        buttons.forEach(btn => {
+          btn.classList.remove('active');
+          if (btn.dataset.threadId === id) {
+            btn.classList.add('active');
+          }
+        });
+
         renderJobs(allComments);
       } catch (error) {
-        document.getElementById('jobs').innerHTML = `<div class="loading">Failed to load thread details. Please try again later.</div>`;
+        document.getElementById('jobs').innerHTML = `
+          <div class="loading">
+            <i class="fas fa-exclamation-circle"></i>
+            Failed to load thread details. Please try again later.
+          </div>`;
       }
     }
 
     function renderThreadSwitcher() {
       const container = document.querySelector('.switcher');
       container.innerHTML = '';
+
       threads.slice(0, 5).forEach(t => {
-        const b = document.createElement('button');
-        b.textContent = t.title;
-        b.onclick = () => loadThread(t.objectID);
-        container.appendChild(b);
+        const button = document.createElement('button');
+        button.textContent = t.title;
+        button.setAttribute('data-thread-id', t.objectID);
+        button.setAttribute('aria-label', `Load thread: ${t.title}`);
+
+        if (t.objectID === currentThreadId) {
+          button.classList.add('active');
+        }
+
+        button.addEventListener('click', () => loadThread(t.objectID));
+        container.appendChild(button);
       });
     }
 
@@ -195,40 +513,79 @@
       const hideApplied = document.getElementById('hideApplied').checked;
       container.innerHTML = '';
 
-      comments
+      const filteredComments = comments
         .filter(c => c.text && c.text.toLowerCase().includes(query))
-        .forEach(c => {
-          const jobStatus = applied[currentThreadId]?.[c.id];
-          if (hideApplied && jobStatus) return;
+        .filter(c => !(hideApplied && applied[currentThreadId]?.[c.id]));
 
-          const div = document.createElement('div');
-          div.className = 'job';
-          if (jobStatus) div.classList.add('applied');
+      if (filteredComments.length === 0) {
+        container.innerHTML = `
+          <div class="loading fade-in">
+            <i class="fas fa-search"></i>
+            No matching jobs found.
+          </div>`;
+        return;
+      }
 
-          const note = jobStatus?.note || '';
-          const date = jobStatus?.date ? new Date(jobStatus.date).toLocaleString() : '';
+      filteredComments.forEach(c => {
+        const jobStatus = applied[currentThreadId]?.[c.id];
+        const note = jobStatus?.note || '';
+        const date = jobStatus?.date ? new Date(jobStatus.date).toLocaleString() : '';
 
-          div.innerHTML = `
-            <div><strong>${c.author}</strong></div>
-            <div>${c.text}</div>
-            <div class="meta">${date ? `Applied: ${date}` : ''}</div>
-            <textarea class="note" placeholder="Add note...">${note}</textarea>
-            <button>${jobStatus ? "Update Note" : "Mark as Applied"}</button>
-          `;
+        const article = document.createElement('article');
+        article.className = 'job-card fade-in';
+        article.tabIndex = 0; // Make focusable for keyboard navigation
 
-          const noteEl = div.querySelector('.note');
-          div.querySelector('button').onclick = () => {
-            if (!applied[currentThreadId]) applied[currentThreadId] = {};
-            applied[currentThreadId][c.id] = {
-              note: noteEl.value.trim(),
-              date: new Date().toISOString()
-            };
-            localStorage.setItem(appliedKey, JSON.stringify(applied));
-            renderJobs(comments); // Re-render to update styles and button text
+        if (jobStatus) article.classList.add('applied');
+
+        article.innerHTML = `
+          <div class="job-header">
+            <div class="job-company">${c.author}</div>
+            ${jobStatus ? `<span class="badge">Applied</span>` : ''}
+          </div>
+          <div class="job-content">${c.text}</div>
+          ${date ? `<div class="meta"><i class="far fa-calendar"></i> Applied: ${date}</div>` : ''}
+          <textarea class="note" placeholder="Add notes about this position...">${note}</textarea>
+          <div class="job-actions">
+            <button class="job-action-button ${jobStatus ? 'btn-update' : 'btn-apply'}">
+              ${jobStatus ?
+                `<i class="fas fa-edit" aria-hidden="true"></i> Update Note` :
+                `<i class="fas fa-check" aria-hidden="true"></i> Mark as Applied`}
+            </button>
+            ${jobStatus ?
+              `<button class="btn-unapply">
+                <i class="fas fa-times" aria-hidden="true"></i> Remove Applied Status
+              </button>` : ''}
+          </div>
+        `;
+
+        const noteEl = article.querySelector('.note');
+        const applyBtn = article.querySelector('.job-action-button');
+        const unapplyBtn = article.querySelector('.btn-unapply');
+
+        applyBtn.addEventListener('click', () => {
+          if (!applied[currentThreadId]) applied[currentThreadId] = {};
+          applied[currentThreadId][c.id] = {
+            note: noteEl.value.trim(),
+            date: new Date().toISOString()
           };
-
-          container.appendChild(div);
+          localStorage.setItem(appliedKey, JSON.stringify(applied));
+          showToast(jobStatus ? 'Note updated!' : 'Marked as applied!');
+          renderJobs(comments);
         });
+
+        if (unapplyBtn) {
+          unapplyBtn.addEventListener('click', () => {
+            if (applied[currentThreadId] && applied[currentThreadId][c.id]) {
+              delete applied[currentThreadId][c.id];
+              localStorage.setItem(appliedKey, JSON.stringify(applied));
+              showToast('Removed applied status');
+              renderJobs(comments);
+            }
+          });
+        }
+
+        container.appendChild(article);
+      });
     }
 
     function exportData() {
@@ -239,6 +596,7 @@
       a.download = 'hn-tracker.json';
       a.click();
       URL.revokeObjectURL(url);
+      showToast('Data exported successfully!');
     }
 
     function importData() {
@@ -248,50 +606,75 @@
     document.getElementById('importFile').addEventListener('change', e => {
       const file = e.target.files[0];
       if (!file) return;
+
       const reader = new FileReader();
       reader.onload = () => {
         try {
           applied = JSON.parse(reader.result);
           localStorage.setItem(appliedKey, JSON.stringify(applied));
-          // Re-render the current view after import
+          showToast('Data imported successfully!');
+
           if (currentThreadId) {
             renderJobs(allComments);
           } else if (threads.length > 0) {
-            // If no thread was loaded yet, load the first one
             loadThread(threads[0].objectID);
           }
         } catch (e) {
-          alert("Invalid JSON file.");
+          showToast('Error: Invalid JSON file');
         }
       };
       reader.readAsText(file);
     });
 
-    function updateToggleButtonText() {
-        const button = document.querySelector('.controls button[onclick="toggleDark()"]');
-        if (document.body.classList.contains('dark')) {
-            button.textContent = 'Toggle Light Mode';
-        } else {
-            button.textContent = 'Toggle Dark Mode';
-        }
+    function updateThemeIcon() {
+      const themeToggle = document.getElementById('themeToggle');
+      const icon = themeToggle.querySelector('i');
+
+      if (document.body.classList.contains('dark')) {
+        icon.className = 'fas fa-sun';
+        themeToggle.setAttribute('aria-label', 'Switch to light mode');
+      } else {
+        icon.className = 'fas fa-moon';
+        themeToggle.setAttribute('aria-label', 'Switch to dark mode');
+      }
     }
 
     function toggleDark() {
       document.body.classList.toggle('dark');
-      // Persist preference in local storage
+
       if (document.body.classList.contains('dark')) {
-        // Dark mode is active (default state), remove the override setting
         localStorage.removeItem('darkMode');
       } else {
-        // Light mode is active, set the override
         localStorage.setItem('darkMode', 'disabled');
       }
-      updateToggleButtonText(); // Update button text after toggle
+
+      updateThemeIcon();
+      showToast(document.body.classList.contains('dark') ? 'Dark mode enabled' : 'Light mode enabled');
     }
 
+    // Event listeners
     document.getElementById('search').addEventListener('input', () => renderJobs(allComments));
     document.getElementById('hideApplied').addEventListener('change', () => renderJobs(allComments));
+    document.getElementById('themeToggle').addEventListener('click', toggleDark);
 
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+      // Skip if user is typing in an input or textarea
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+        if (e.key === 'Escape') {
+          e.target.blur();
+        }
+        return;
+      }
+
+      const shortcut = keyboardShortcuts[e.key];
+      if (shortcut) {
+        e.preventDefault();
+        shortcut();
+      }
+    });
+
+    // Initialize
     fetchHiringThreads();
   </script>
 </body>
