@@ -47,6 +47,26 @@
       color: #eee;
       border: 1px solid #555;
     }
+    .dark .applied {
+      background: #2a4832; /* Darker green for applied jobs in dark mode */
+    }
+    .dark button {
+        background-color: #444;
+        color: #eee;
+        border: 1px solid #555;
+    }
+    .dark button:hover {
+        background-color: #555;
+    }
+    .dark .switcher button {
+        background-color: #333;
+    }
+    .dark .switcher button:hover {
+        background-color: #444;
+    }
+    .dark a { /* Style links if any are added later */
+        color: #bb86fc;
+    }
     .loading {
       text-align: center;
       font-size: 1.2em;
@@ -85,6 +105,10 @@
         const data = await res.json();
         threads = data.hits;
         renderThreadSwitcher();
+        // Check local storage for preferred mode
+        if (localStorage.getItem('darkMode') === 'enabled') {
+            document.body.classList.add('dark');
+        }
         loadThread(threads[0].objectID);
       } catch (error) {
         document.getElementById('jobs').innerHTML = `<div class="loading">Failed to load job listings. Please try again later.</div>`;
@@ -150,7 +174,7 @@
               date: new Date().toISOString()
             };
             localStorage.setItem(appliedKey, JSON.stringify(applied));
-            renderJobs(comments);
+            renderJobs(comments); // Re-render to update styles and button text
           };
 
           container.appendChild(div);
@@ -179,7 +203,13 @@
         try {
           applied = JSON.parse(reader.result);
           localStorage.setItem(appliedKey, JSON.stringify(applied));
-          renderJobs(allComments);
+          // Re-render the current view after import
+          if (currentThreadId) {
+            renderJobs(allComments);
+          } else if (threads.length > 0) {
+            // If no thread was loaded yet, load the first one
+            loadThread(threads[0].objectID);
+          }
         } catch (e) {
           alert("Invalid JSON file.");
         }
@@ -189,6 +219,12 @@
 
     function toggleDark() {
       document.body.classList.toggle('dark');
+      // Persist preference in local storage
+      if (document.body.classList.contains('dark')) {
+        localStorage.setItem('darkMode', 'enabled');
+      } else {
+        localStorage.removeItem('darkMode');
+      }
     }
 
     document.getElementById('search').addEventListener('input', () => renderJobs(allComments));
