@@ -550,6 +550,19 @@
         const note = jobStatus?.note || '';
         const date = jobStatus?.date ? new Date(jobStatus.date).toLocaleString() : '';
 
+        // Format posted time as "May 2, 2:25 PM"
+        let postedTime = '';
+        if (c.created_at) {
+          const d = new Date(c.created_at);
+          postedTime = d.toLocaleString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+          });
+        }
+
         const article = document.createElement('article');
         article.className = 'job-card fade-in';
         article.tabIndex = 0; // Make focusable for keyboard navigation
@@ -558,7 +571,12 @@
 
         article.innerHTML = `
           <div class="job-header">
-            <div class="job-company">${c.author}</div>
+            <div class="job-company">
+              ${c.author}
+            </div>
+            <div style="font-weight:normal; color:#999; font-size:0.95em; margin-left:auto;">
+              ${postedTime ? `${postedTime}` : ''}
+            </div>
             ${jobStatus ? `<span class="badge">Applied</span>` : ''}
           </div>
           <div class="job-content">${c.text}</div>
