@@ -40,6 +40,9 @@
 
     header {
       margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
 
     h1 {
@@ -91,11 +94,9 @@
 
     .job-header {
       display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 0.75rem;
-      padding-bottom: 0.75rem;
-      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.5em;
     }
 
     .job-company {
@@ -134,10 +135,11 @@
     .meta {
       font-size: 0.85rem;
       color: #999;
-      margin-top: 0.5rem;
+      margin-top: 0.25rem;
+      margin-bottom: 0.25rem;
       display: flex;
-      gap: 0.5rem;
       align-items: center;
+      gap: 0.5em;
     }
 
     .badge {
@@ -147,6 +149,8 @@
       font-size: 0.75rem;
       background: var(--primary);
       color: #000;
+      margin-left: 0.5em;
+      vertical-align: middle;
     }
 
     .controls {
@@ -307,6 +311,16 @@
         padding: 0.4rem 0.75rem;
         font-size: 0.9rem;
       }
+
+      .filter-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.25rem;
+      }
+
+      .hide-applied-label {
+        margin-left: 0;
+      }
     }
 
     /* Screen reader only class */
@@ -321,11 +335,70 @@
       white-space: nowrap;
       border: 0;
     }
+
+    /* Add this to your <style> section */
+    .star-btn {
+      background: transparent;
+      border: none;
+      color: gold;
+      font-size: 1.2em;
+      cursor: pointer;
+      margin-right: 0.5em;
+      transition: color 0.2s;
+    }
+    .star-btn.inactive {
+      color: #888;
+    }
+    .copy-btn {
+      background: transparent;
+      border: none;
+      color: var(--primary);
+      cursor: pointer;
+      font-size: 1em;
+      margin-left: 0.5em;
+    }
+
+    .filter-row {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 0.5rem;
+    }
+    .filter-btn {
+      margin: 0;
+      border: 1px solid var(--border);
+      background: var(--button-bg);
+      color: var(--on-surface);
+      cursor: pointer;
+      padding: 0.5rem 0.75rem;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .filter-btn.active {
+      background-color: var(--primary);
+      color: #000;
+      border-color: var(--primary);
+    }
+    .hide-applied-label {
+      display: flex;
+      align-items: center;
+      gap: 0.3em;
+      margin-left: 0.5em;
+      font-size: 0.95em;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body class="dark">
   <header>
     <h1>HN "Who is hiring?" Tracker</h1>
+    <button id="themeToggle" class="theme-toggle" aria-label="Switch theme">
+      <i class="fas fa-moon"></i>
+    </button>
   </header>
 
   <main>
@@ -335,27 +408,8 @@
         <input id="search" type="text" placeholder="Search jobs..." aria-label="Search jobs">
       </div>
 
-      <div class="control-buttons">
-        <label class="btn">
-          <input type="checkbox" id="hideApplied" class="sr-only">
-          <i class="fas fa-eye-slash" aria-hidden="true"></i>
-          <span>Hide Applied</span>
-        </label>
-
-        <button id="themeToggle" class="theme-toggle" aria-label="Toggle dark/light mode">
-          <i class="fas fa-moon" aria-hidden="true"></i>
-        </button>
-
-        <button onclick="exportData()" aria-label="Export data">
-          <i class="fas fa-download" aria-hidden="true"></i>
-          <span>Export</span>
-        </button>
-
-        <button onclick="importData()" aria-label="Import data">
-          <i class="fas fa-upload" aria-hidden="true"></i>
-          <span>Import</span>
-        </button>
-        <input type="file" id="importFile" class="sr-only" aria-label="Import file">
+      <div class="control-buttons filter-row">
+        <!-- Filter buttons will be injected here by JS -->
       </div>
     </section>
 
@@ -379,6 +433,9 @@
     let threads = [];
     let currentThreadId = null;
     let allComments = [];
+    const favoriteKey = 'favoriteHNv1';
+    let favorites = JSON.parse(localStorage.getItem(favoriteKey) || '{}');
+    let toastTimeout; // Add this at the top level (outside the function)
 
     // Keyboard navigation support
     const keyboardShortcuts = {
@@ -429,7 +486,8 @@
       const toast = document.getElementById('toast');
       toast.textContent = message;
       toast.classList.add('show');
-      setTimeout(() => {
+      if (toastTimeout) clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
         toast.classList.remove('show');
       }, duration);
     }
@@ -527,14 +585,101 @@
       });
     }
 
+    // Add filter buttons for favorites, applied, and notes
+    const controlButtons = document.querySelector('.control-buttons');
+    controlButtons.classList.add('filter-row');
+
+    // Favorites button
+    const favBtn = document.createElement('button');
+    favBtn.id = 'showFavorites';
+    favBtn.className = 'filter-btn';
+    favBtn.innerHTML = '<i class="fas fa-star"></i> Favorites';
+
+    // Show Applied button
+    const appliedBtn = document.createElement('button');
+    appliedBtn.id = 'showApplied';
+    appliedBtn.className = 'filter-btn';
+    appliedBtn.innerHTML = '<i class="fas fa-check"></i> Show Applied';
+
+    // Show Notes button
+    const notesBtn = document.createElement('button');
+    notesBtn.id = 'showNotes';
+    notesBtn.className = 'filter-btn';
+    notesBtn.innerHTML = '<i class="fas fa-sticky-note"></i> Show Notes';
+
+    // Hide Applied toggle button (not a label+checkbox)
+    const hideAppliedBtn = document.createElement('button');
+    hideAppliedBtn.id = 'hideAppliedBtn';
+    hideAppliedBtn.className = 'filter-btn';
+    hideAppliedBtn.innerHTML = '<i class="fas fa-eye-slash"></i> Hide Applied';
+    let hideApplied = false;
+
+    // Add highlight class
+    const highlightClass = 'active';
+
+    // Only one filter active at a time, allow deselecting by clicking again
+    function setActiveFilter(btn) {
+      const isActive = btn.classList.contains(highlightClass);
+      [favBtn, appliedBtn, notesBtn].forEach(b => b.classList.remove(highlightClass));
+      if (!isActive) {
+        btn.classList.add(highlightClass);
+      }
+      renderJobs(allComments);
+    }
+
+    // Hide Applied toggle logic (independent toggle)
+    hideAppliedBtn.onclick = () => {
+      hideApplied = !hideApplied;
+      hideAppliedBtn.classList.toggle(highlightClass, hideApplied);
+
+      // If both "Hide Applied" and "Show Applied" are active, show toast and turn off both
+      if (hideApplied && appliedBtn.classList.contains(highlightClass)) {
+        showToast('What are you doing? You cannot "Hide Applied" and "Show Applied" at the same time!');
+        hideApplied = false;
+        hideAppliedBtn.classList.remove(highlightClass);
+        appliedBtn.classList.remove(highlightClass);
+      }
+
+      renderJobs(allComments);
+    };
+
+    favBtn.onclick = () => setActiveFilter(favBtn);
+    appliedBtn.onclick = () => setActiveFilter(appliedBtn);
+    notesBtn.onclick = () => setActiveFilter(notesBtn);
+
+    controlButtons.appendChild(favBtn);
+    controlButtons.appendChild(appliedBtn);
+    controlButtons.appendChild(notesBtn);
+    controlButtons.appendChild(hideAppliedBtn);
+
+    // Update renderJobs to fix badge/date overlap
     function renderJobs(comments) {
       const container = document.getElementById('jobs');
       const query = document.getElementById('search').value.toLowerCase();
-      const hideApplied = document.getElementById('hideApplied').checked;
+      const showFavs = favBtn.classList.contains(highlightClass);
+      const showApplied = appliedBtn.classList.contains(highlightClass);
+      const showNotes = notesBtn.classList.contains(highlightClass);
+
       container.innerHTML = '';
 
-      const filteredComments = comments
-        .filter(c => !(hideApplied && applied[currentThreadId]?.[c.id]));
+      let filteredComments = comments;
+
+      // Apply the selected filter (only one active at a time)
+      if (showFavs) {
+        filteredComments = filteredComments.filter(c => favorites[currentThreadId]?.[c.id]);
+      } else if (showApplied) {
+        filteredComments = filteredComments.filter(c => applied[currentThreadId]?.[c.id]);
+      } else if (showNotes) {
+        filteredComments = filteredComments.filter(c => {
+          const note = applied[currentThreadId]?.[c.id]?.note;
+          return note && note.trim().length > 0;
+        });
+      }
+
+      // Now apply "Hide Applied" if toggled on
+      if (hideApplied) {
+        filteredComments = filteredComments.filter(c => !applied[currentThreadId]?.[c.id]);
+      }
 
       if (filteredComments.length === 0) {
         container.innerHTML = `
@@ -550,7 +695,6 @@
         const note = jobStatus?.note || '';
         const date = jobStatus?.date ? new Date(jobStatus.date).toLocaleString() : '';
 
-        // Format posted time as "May 2, 2:25 PM"
         let postedTime = '';
         if (c.created_at) {
           const d = new Date(c.created_at);
@@ -563,23 +707,32 @@
           });
         }
 
+        const isFav = favorites[currentThreadId]?.[c.id];
+
         const article = document.createElement('article');
         article.className = 'job-card fade-in';
-        article.tabIndex = 0; // Make focusable for keyboard navigation
+        article.tabIndex = 0;
 
         if (jobStatus) article.classList.add('applied');
 
         article.innerHTML = `
           <div class="job-header">
+            <button class="star-btn${isFav ? '' : ' inactive'}" title="Star this job" aria-label="Star job">
+              <i class="fas fa-star"></i>
+            </button>
             <div class="job-company">
               ${c.author}
             </div>
             <div style="font-weight:normal; color:#999; font-size:0.95em; margin-left:auto;">
               ${postedTime ? `${postedTime}` : ''}
             </div>
-            ${jobStatus ? `<span class="badge">Applied</span>` : ''}
           </div>
-          <div class="job-content">${c.text}</div>
+          ${jobStatus ? `<span class="badge">Applied</span>` : ''}
+          <div class="job-content">${c.text}
+            <button class="copy-btn" title="Copy job details" aria-label="Copy job details">
+              <i class="fas fa-copy"></i>
+            </button>
+          </div>
           ${date ? `<div class="meta"><i class="far fa-calendar"></i> Applied: ${date}</div>` : ''}
           <textarea class="note" placeholder="Add notes about this position...">${note}</textarea>
           <div class="job-actions">
@@ -594,6 +747,33 @@
               </button>` : ''}
           </div>
         `;
+
+        // Star button logic
+        const starBtn = article.querySelector('.star-btn');
+        starBtn.onclick = () => {
+          if (!favorites[currentThreadId]) favorites[currentThreadId] = {};
+          if (favorites[currentThreadId][c.id]) {
+            delete favorites[currentThreadId][c.id];
+            starBtn.classList.add('inactive');
+          } else {
+            favorites[currentThreadId][c.id] = true;
+            starBtn.classList.remove('inactive');
+          }
+          localStorage.setItem(favoriteKey, JSON.stringify(favorites));
+          if (showFavs) renderJobs(comments);
+        };
+
+        // Copy button logic
+        const copyBtn = article.querySelector('.copy-btn');
+        copyBtn.onclick = () => {
+          const temp = document.createElement('textarea');
+          temp.value = c.text.replace(/<[^>]+>/g, ''); // Remove HTML tags
+          document.body.appendChild(temp);
+          temp.select();
+          document.execCommand('copy');
+          document.body.removeChild(temp);
+          showToast('Job details copied!');
+        };
 
         const noteEl = article.querySelector('.note');
         const applyBtn = article.querySelector('.job-action-button');
@@ -640,29 +820,6 @@
       document.getElementById('importFile').click();
     }
 
-    document.getElementById('importFile').addEventListener('change', e => {
-      const file = e.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = () => {
-        try {
-          applied = JSON.parse(reader.result);
-          localStorage.setItem(appliedKey, JSON.stringify(applied));
-          showToast('Data imported successfully!');
-
-          if (currentThreadId) {
-            renderJobs(allComments);
-          } else if (threads.length > 0) {
-            loadThread(threads[0].objectID);
-          }
-        } catch (e) {
-          showToast('Error: Invalid JSON file');
-        }
-      };
-      reader.readAsText(file);
-    });
-
     function updateThemeIcon() {
       const themeToggle = document.getElementById('themeToggle');
       const icon = themeToggle.querySelector('i');
@@ -691,7 +848,6 @@
 
     // Event listeners
     document.getElementById('search').addEventListener('input', () => renderJobs(allComments));
-    document.getElementById('hideApplied').addEventListener('change', () => renderJobs(allComments));
     document.getElementById('themeToggle').addEventListener('click', toggleDark);
 
     // Keyboard navigation
