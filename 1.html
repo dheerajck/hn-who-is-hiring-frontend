@@ -481,7 +481,7 @@
       try {
         const res = await fetch(`https://hn.algolia.com/api/v1/items/${id}`);
         const data = await res.json();
-        allComments = data.children;
+        allComments = data.children.slice().reverse(); // Reverse for descending order
 
         // Update active thread button
         const buttons = document.querySelectorAll('.switcher button');
