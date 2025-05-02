@@ -231,20 +231,24 @@
 
     .toast {
       position: fixed;
-      bottom: 2rem;
+      bottom: 2rem; /* Keep desired final position */
       right: 2rem;
       padding: 0.75rem 1.5rem;
       background: var(--primary);
       color: #000;
       border-radius: 4px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-      transform: translateY(150%);
-      transition: transform 0.3s ease;
+      opacity: 0; /* Start fully transparent */
+      transform: translateY(10px); /* Start slightly lower */
+      transition: opacity 0.3s ease, transform 0.3s ease; /* Animate opacity and transform */
       z-index: 1000;
+      pointer-events: none; /* Prevent interaction when hidden */
     }
 
     .toast.show {
-      transform: translateY(0);
+      opacity: 1; /* Fade in */
+      transform: translateY(0); /* Move to final position */
+      pointer-events: auto; /* Allow interaction when shown */
     }
 
     @keyframes spin {
