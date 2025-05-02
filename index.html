@@ -620,32 +620,19 @@
     // Only one filter active at a time, allow deselecting by clicking again
     function setActiveFilter(btn) {
       const isActive = btn.classList.contains(highlightClass);
-      [favBtn, appliedBtn, notesBtn].forEach(b => b.classList.remove(highlightClass));
+      // Include hideAppliedBtn in the list of mutually exclusive buttons
+      [favBtn, appliedBtn, notesBtn, hideAppliedBtn].forEach(b => b.classList.remove(highlightClass));
       if (!isActive) {
         btn.classList.add(highlightClass);
       }
+      // Conflict checks are no longer needed as only one button can be active
       renderJobs(allComments);
     }
-
-    // Hide Applied toggle logic (independent toggle)
-    hideAppliedBtn.onclick = () => {
-      hideApplied = !hideApplied;
-      hideAppliedBtn.classList.toggle(highlightClass, hideApplied);
-
-      // If both "Hide Applied" and "Show Applied" are active, show toast and turn off both
-      if (hideApplied && appliedBtn.classList.contains(highlightClass)) {
-        showToast('What are you doing? You cannot "Hide Applied" and "Show Applied" at the same time!');
-        hideApplied = false;
-        hideAppliedBtn.classList.remove(highlightClass);
-        appliedBtn.classList.remove(highlightClass);
-      }
-
-      renderJobs(allComments);
-    };
 
     favBtn.onclick = () => setActiveFilter(favBtn);
     appliedBtn.onclick = () => setActiveFilter(appliedBtn);
     notesBtn.onclick = () => setActiveFilter(notesBtn);
+    hideAppliedBtn.onclick = () => setActiveFilter(hideAppliedBtn);
 
     controlButtons.appendChild(favBtn);
     controlButtons.appendChild(appliedBtn);
@@ -659,26 +646,34 @@
       const showFavs = favBtn.classList.contains(highlightClass);
       const showApplied = appliedBtn.classList.contains(highlightClass);
       const showNotes = notesBtn.classList.contains(highlightClass);
+      const hideAppliedActive = hideAppliedBtn.classList.contains(highlightClass); // Check button state directly
 
       container.innerHTML = '';
 
-      let filteredComments = comments;
+      let filteredComments = comments; // Start with all comments
 
-      // Apply the selected filter (only one active at a time)
+      // Apply the single active filter
       if (showFavs) {
         filteredComments = filteredComments.filter(c => favorites[currentThreadId]?.[c.id]);
       } else if (showApplied) {
         filteredComments = filteredComments.filter(c => applied[currentThreadId]?.[c.id]);
+      } else if (hideAppliedActive) { // Use the button's active state
+        filteredComments = filteredComments.filter(c => !applied[currentThreadId]?.[c.id]);
       } else if (showNotes) {
         filteredComments = filteredComments.filter(c => {
           const note = applied[currentThreadId]?.[c.id]?.note;
           return note && note.trim().length > 0;
         });
       }
+      // If none are active, filteredComments remains the full list (before search)
 
-      // Now apply "Hide Applied" if toggled on
-      if (hideApplied) {
-        filteredComments = filteredComments.filter(c => !applied[currentThreadId]?.[c.id]);
+      // Apply search query filter (runs after the main filter)
+      if (query) {
+          filteredComments = filteredComments.filter(c =>
+              c.text.toLowerCase().includes(query) ||
+              c.author.toLowerCase().includes(query) ||
+              (applied[currentThreadId]?.[c.id]?.note || '').toLowerCase().includes(query)
+          );
       }
 
       if (filteredComments.length === 0) {
