@@ -1180,13 +1180,34 @@
             let postedTime = '';
             if (c.created_at) {
               const d = new Date(c.created_at);
-              postedTime = d.toLocaleString('en-US', {
+              const formattedDate = d.toLocaleString('en-US', {
                 month: 'short',
                 day: 'numeric',
                 hour: 'numeric',
                 minute: '2-digit',
                 hour12: true
               });
+
+              // Calculate time ago
+              const now = new Date();
+              const diffMs = now - d;
+              const diffSecs = Math.floor(diffMs / 1000);
+              const diffMins = Math.floor(diffSecs / 60);
+              const diffHours = Math.floor(diffMins / 60);
+              const diffDays = Math.floor(diffHours / 24);
+
+              let timeAgo = '';
+              if (diffDays > 0) {
+                timeAgo = `${diffDays} ${diffDays === 1 ? 'day' : 'days'} ago`;
+              } else if (diffHours > 0) {
+                timeAgo = `${diffHours} ${diffHours === 1 ? 'hour' : 'hours'} ago`;
+              } else if (diffMins > 0) {
+                timeAgo = `${diffMins} ${diffMins === 1 ? 'minute' : 'minutes'} ago`;
+              } else {
+                timeAgo = 'just now';
+              }
+
+              postedTime = `${formattedDate} <span title="${d.toLocaleString()}">(${timeAgo})</span>`;
             }
 
             const isFav = favorites[currentThreadId]?.[c.id];
