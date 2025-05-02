@@ -382,6 +382,47 @@
       border: 0;
     }
 
+    /* Go to top button */
+    .go-to-top {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 10px;
+      background-color: var(--primary);
+      color: #000;
+      border: none;
+      border-radius: 50%;
+      width: 45px;
+      height: 45px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s, visibility 0.3s;
+      z-index: 1000;
+    }
+
+    .go-to-top.visible {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .go-to-top:hover {
+      transform: translateY(-3px);
+    }
+
+    /* Mobile adjustments for go-to-top button */
+    @media (max-width: 600px) {
+      .go-to-top {
+        bottom: 10px;
+        right: 10px;
+        width: 40px;
+        height: 40px;
+      }
+    }
 
     .star-btn {
       background: transparent;
@@ -473,6 +514,10 @@
   </main>
 
   <div id="toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true"></div>
+
+  <button id="goToTop" class="go-to-top" aria-label="Go to top">
+    <i class="fas fa-arrow-up"></i>
+  </button>
 
   <script>
     const appliedKey = 'appliedHNv3';
@@ -918,6 +963,34 @@
         shortcut();
       }
     });
+
+    // Go to top functionality
+    const goToTopButton = document.getElementById('goToTop');
+
+    // Show button when page is scrolled down
+    window.addEventListener('scroll', () => {
+      if (window.pageYOffset > 300) {
+        goToTopButton.classList.add('visible');
+      } else {
+        goToTopButton.classList.remove('visible');
+      }
+    });
+
+    // Scroll to top when button is clicked
+    goToTopButton.addEventListener('click', () => {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    });
+
+    // Add keyboard shortcut for "Go to Top"
+    keyboardShortcuts['g'] = () => {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    };
 
     // Initialize
     fetchHiringThreads();
