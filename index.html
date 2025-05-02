@@ -479,6 +479,14 @@
       font-size: 0.95em;
       cursor: pointer;
     }
+    .reset-btn {
+        background-color: var(--danger);
+        color: var(--on-surface);
+        border-color: var(--danger);
+    }
+    .reset-btn:hover {
+        background-color: #a3423a; /* Darker red on hover */
+    }
   </style>
 </head>
 <body class="dark">
@@ -706,6 +714,13 @@
     hideAppliedBtn.innerHTML = '<i class="fas fa-eye-slash"></i> Hide Applied';
     let hideApplied = false;
 
+    // Add Reset Defaults button
+    const resetBtn = document.createElement('button');
+    resetBtn.id = 'resetDefaultsBtn';
+    resetBtn.className = 'filter-btn reset-btn'; // Added reset-btn class
+    resetBtn.innerHTML = '<i class="fas fa-trash-alt"></i> Reset Everything';
+    resetBtn.title = 'Clear all applied statuses, notes, and favorites';
+
     // Add highlight class
     const highlightClass = 'active';
 
@@ -726,10 +741,25 @@
     notesBtn.onclick = () => setActiveFilter(notesBtn);
     hideAppliedBtn.onclick = () => setActiveFilter(hideAppliedBtn);
 
+    // Reset button click handler
+    resetBtn.onclick = () => {
+        if (window.confirm('Are you sure you want to clear all applied statuses, notes, and favorites? This cannot be undone.')) {
+            applied = {};
+            favorites = {};
+            localStorage.removeItem(appliedKey);
+            localStorage.removeItem(favoriteKey);
+            // Deactivate any active filter buttons
+            [favBtn, appliedBtn, notesBtn, hideAppliedBtn].forEach(b => b.classList.remove(highlightClass));
+            renderJobs(allComments); // Re-render to show the cleared state
+            showToast('All data cleared.');
+        }
+    };
+
     controlButtons.appendChild(favBtn);
     controlButtons.appendChild(appliedBtn);
     controlButtons.appendChild(notesBtn);
     controlButtons.appendChild(hideAppliedBtn);
+    controlButtons.appendChild(resetBtn); // Add the reset button to the DOM
 
     // Update renderJobs to fix badge/date overlap
     function renderJobs(comments) {
