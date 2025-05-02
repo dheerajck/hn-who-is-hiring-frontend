@@ -6,6 +6,11 @@
   <title>HN Job Tracker</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
+    /* Add box-sizing globally for consistent layout */
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
     :root {
       --primary: #bb86fc;
       --surface: #1e1e1e;
@@ -13,7 +18,9 @@
       --on-surface: #ddd;
       --border: #333;
       --success: #2a4832;
-      --danger: #83322a;
+      --danger: #cf6679; /* Brighter red for dark mode */
+      --danger-hover: #b05261; /* Darker hover for dark mode */
+      --danger-text: #000000; /* Text color for danger button */
       --button-bg: #444;
       --button-hover: #555;
       --input-bg: #333;
@@ -23,13 +30,14 @@
 
     body {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      padding: 1rem;
-      max-width: 800px;
+      padding: 1.5rem; /* Increased padding */
+      max-width: 1200px; /* Increased max-width */
       margin: 0 auto;
       transition: var(--transition);
       background: var(--background);
       color: var(--on-surface);
-      line-height: 1.5;
+      line-height: 1.6; /* Slightly increased line-height */
+      font-size: 16px; /* Set base font size (adjust as needed) */
     }
 
     /* Improved accessibility - focus styles */
@@ -47,12 +55,12 @@
 
     h1 {
       margin-top: 0;
-      font-size: 1.8rem;
+      font-size: 2rem; /* Increased heading size */
     }
 
     button,
     .btn {
-      padding: 0.5rem 0.75rem;
+      padding: 0.6rem 0.9rem; /* Slightly larger padding */
       border-radius: 4px;
       border: 1px solid var(--border);
       background-color: var(--button-bg);
@@ -60,7 +68,7 @@
       cursor: pointer;
       transition: var(--transition);
       font-family: inherit;
-      font-size: 0.9rem;
+      font-size: 1rem; /* Increased button font size */
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -79,8 +87,8 @@
 
     .job-card {
       border: 1px solid var(--border);
-      margin: 1rem 0;
-      padding: 1rem;
+      margin: 1.2rem 0; /* Increased margin */
+      padding: 1.2rem; /* Increased padding */
       border-radius: 8px;
       background: var(--surface);
       box-shadow: var(--card-shadow);
@@ -129,11 +137,12 @@
 
     .job-company {
       font-weight: bold;
-      font-size: 1.1rem;
+      font-size: 1.2rem; /* Increased company font size */
     }
 
     .job-content {
       margin-bottom: 1rem;
+      font-size: 1.05rem; /* Slightly larger job content text */
     }
 
     .job-content a {
@@ -154,14 +163,15 @@
       color: var(--on-surface);
       border: 1px solid var(--border);
       border-radius: 4px;
-      padding: 0.5rem;
+      padding: 0.6rem; /* Increased padding */
       font-family: inherit;
       resize: vertical;
-      min-height: 60px;
+      min-height: 70px; /* Increased min-height */
+      font-size: 1rem; /* Increased note font size */
     }
 
     .meta {
-      font-size: 0.8rem; /* Existing base size */
+      font-size: 0.9rem; /* Increased meta text size */
       color: #aaa;
       margin-top: 0;
       margin-bottom: 0;
@@ -171,20 +181,20 @@
     }
 
     .job-header-status .meta {
-        font-size: 0.9rem; /* Existing base size */
+        font-size: 0.95rem; /* Increased meta text size */
     }
 
     .job-header-status .job-company.meta {
-        font-size: 1.05rem;
+        font-size: 1.1rem; /* Increased author link size */
         font-weight: bold;
         color: var(--on-surface); /* Use main text color */
     }
 
     .badge {
       display: inline-block;
-      padding: 0.15rem 0.4rem;
+      padding: 0.2rem 0.5rem; /* Adjusted padding */
       border-radius: 10px;
-      font-size: 0.8rem;
+      font-size: 0.85rem; /* Increased badge font size */
       background: var(--primary);
       color: #000;
       vertical-align: middle;
@@ -207,20 +217,22 @@
 
     .search-container i {
       position: absolute;
-      left: 0.75rem;
+      left: 0.85rem; /* Adjusted icon position */
       top: 50%;
       transform: translateY(-50%);
       color: #999;
+      font-size: 1.1rem; /* Increased search icon size */
     }
 
     #search {
-      padding: 0.75rem 1rem 0.75rem 2.25rem;
+      padding: 0.8rem 1rem 0.8rem 2.5rem; /* Adjusted padding */
       width: 100%;
       border-radius: 4px;
       border: 1px solid var(--border);
       background: var(--input-bg);
       color: var(--on-surface);
       transition: var(--transition);
+      font-size: 1rem; /* Increased search input font size */
     }
 
     .switcher {
@@ -234,14 +246,9 @@
 
     .switcher button {
       background-color: transparent;
-      padding: 0.5rem 1rem;
+      padding: 0.6rem 1.1rem; /* Increased padding */
       border-radius: 20px;
-    }
-
-    .switcher button.active {
-      background-color: var(--primary);
-      color: #000;
-      border-color: var(--primary);
+      font-size: 1rem; /* Increased switcher button font size */
     }
 
     .theme-toggle {
@@ -459,12 +466,13 @@
       background: var(--button-bg);
       color: var(--on-surface);
       cursor: pointer;
-      padding: 0.5rem 0.75rem;
+      padding: 0.6rem 0.85rem; /* Adjusted padding */
       border-radius: 4px;
-      font-size: 0.9rem;
+      font-size: 1rem; /* Increased filter button font size */
       display: inline-flex;
       align-items: center;
       gap: 0.5rem;
+      transition: var(--transition); /* Add transition */
     }
     .filter-btn.active {
       background-color: var(--primary);
@@ -481,11 +489,11 @@
     }
     .reset-btn {
         background-color: var(--danger);
-        color: var(--on-surface);
+        color: var(--danger-text); /* Use danger text color */
         border-color: var(--danger);
     }
     .reset-btn:hover {
-        background-color: #a3423a; /* Darker red on hover */
+        background-color: var(--danger-hover); /* Darker hover for danger button */
     }
   </style>
 </head>
