@@ -94,9 +94,37 @@
 
     .job-header {
       display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 0.5em;
+      flex-wrap: wrap; /* Allow wrapping */
+      align-items: flex-start; /* Align items to the top */
+      gap: 0.5em 1em; /* Row and column gap */
+      margin-bottom: 0.75rem; /* Add some space below the header */
+    }
+
+    .job-header-main { /* New container for company/star */
+        display: flex;
+        align-items: center;
+        gap: 0.5em;
+        flex-grow: 1; /* Allow it to take available space */
+    }
+
+    .job-header-status { /* New container for badge/date */
+        display: flex;
+        flex-direction: column; /* Stack badge and date */
+        align-items: flex-start; /* Align left */
+        gap: 0.1rem; /* Small gap between badge and date */
+        /* Order this first visually if needed, or adjust flex layout */
+        order: -1; /* Place it visually at the start */
+        flex-basis: 100%; /* Force it to a new line on smaller widths if needed */
+        margin-bottom: 0.5rem; /* Space below status block */
+    }
+
+    @media (min-width: 450px) { /* Adjust breakpoint as needed */
+        .job-header-status {
+            order: 0; /* Reset order on wider screens */
+            flex-basis: auto; /* Allow it side-by-side */
+            margin-bottom: 0; /* Remove margin when side-by-side */
+        }
+
     }
 
     .job-company {
@@ -133,24 +161,34 @@
     }
 
     .meta {
-      font-size: 0.85rem;
-      color: #999;
-      margin-top: 0.25rem;
-      margin-bottom: 0.25rem;
+      font-size: 0.8rem; /* Existing base size */
+      color: #aaa;
+      margin-top: 0;
+      margin-bottom: 0;
       display: flex;
       align-items: center;
-      gap: 0.5em;
+      gap: 0.3em;
+    }
+
+    .job-header-status .meta {
+        font-size: 0.9rem; /* Existing base size */
+    }
+
+    .job-header-status .job-company.meta {
+        font-size: 1.05rem;
+        font-weight: bold;
+        color: var(--on-surface); /* Use main text color */
     }
 
     .badge {
       display: inline-block;
-      padding: 0.2rem 0.5rem;
-      border-radius: 12px;
-      font-size: 0.75rem;
+      padding: 0.15rem 0.4rem;
+      border-radius: 10px;
+      font-size: 0.8rem;
       background: var(--primary);
       color: #000;
-      margin-left: 0.5em;
       vertical-align: middle;
+      margin-bottom: 0;
     }
 
     .controls {
@@ -224,9 +262,13 @@
       font-size: 1.2rem;
     }
 
-    .loading i {
+    .loading i.fa-circle-notch {
       animation: spin 1s linear infinite;
       margin-right: 0.5rem;
+    }
+
+    .loading i:not(.fa-circle-notch) {
+        margin-right: 0.5rem;
     }
 
     .toast {
@@ -340,14 +382,15 @@
       border: 0;
     }
 
-    /* Add this to your <style> section */
+
     .star-btn {
       background: transparent;
       border: none;
       color: gold;
       font-size: 1.2em;
       cursor: pointer;
-      margin-right: 0.5em;
+      padding: 0;
+      line-height: 1;
       transition: color 0.2s;
     }
     .star-btn.inactive {
@@ -683,8 +726,7 @@
       if (filteredComments.length === 0) {
         container.innerHTML = `
           <div class="loading fade-in">
-            <i class="fas fa-search"></i>
-            No matching jobs found.
+            <i class="far fa-meh" style="margin-right: 0.5rem;"></i> No matching jobs found. Maybe try a different search?
           </div>`;
         return;
       }
@@ -716,25 +758,36 @@
 
         article.innerHTML = `
           <div class="job-header">
-            <button class="star-btn${isFav ? '' : ' inactive'}" title="Star this job" aria-label="Star job">
-              <i class="fas fa-star"></i>
-            </button>
-            <div class="job-company">
-              ${c.author}
+            <!-- Status (Badge/Date) -->
+            <div class="job-header-status">
+              ${jobStatus ? `<span class="badge">Applied</span>` : ''}
+              ${date ? `<div class="meta"><i class="far fa-calendar"></i> ${date}</div>` : ''}
+              <!-- Moved Author Link Here -->
+              <a href="https://news.ycombinator.com/item?id=${c.id}" target="_blank" rel="noopener noreferrer" class="job-company meta" title="View original comment by ${c.author}"><i class="fas fa-user" aria-hidden="true"></i> ${c.author}</a>
             </div>
-            <div style="font-weight:normal; color:#999; font-size:0.95em; margin-left:auto;">
+
+            <!-- Main Header Content (Author removed) -->
+            <div class="job-header-main">
+                <!-- Author/Company name removed -->
+            </div>
+
+            <!-- Posted Time -->
+            <div style="font-weight:normal; color:#999; font-size:0.9em; margin-left:auto; align-self: flex-start;">
               ${postedTime ? `${postedTime}` : ''}
             </div>
           </div>
-          ${jobStatus ? `<span class="badge">Applied</span>` : ''}
           <div class="job-content">${c.text}
             <button class="copy-btn" title="Copy job details" aria-label="Copy job details">
               <i class="fas fa-copy"></i>
             </button>
           </div>
-          ${date ? `<div class="meta"><i class="far fa-calendar"></i> Applied: ${date}</div>` : ''}
           <textarea class="note" placeholder="Add notes about this position...">${note}</textarea>
           <div class="job-actions">
+            <!-- Star button moved here -->
+            <button class="star-btn${isFav ? '' : ' inactive'}" title="Add to Favorite" aria-label="Star job" style="margin-right: auto;"> <!-- Added style to push other buttons right -->
+              <i class="fas fa-star"></i>
+            </button>
+            <!-- Existing Action Buttons -->
             <button class="job-action-button ${jobStatus ? 'btn-update' : 'btn-apply'}">
               ${jobStatus ?
                 `<i class="fas fa-edit" aria-hidden="true"></i> Update Note` :
