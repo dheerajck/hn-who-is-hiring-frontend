@@ -1050,64 +1050,53 @@
             }
         });
 
-        // --- Evaluate Positive Part (Handles OR groups) ---
+        // --- Evaluate Positive Part (Left-to-Right Evaluation) ---
         let positiveMatch = false;
         if (positiveTokens.length === 0) {
-             // If only negated terms exist, assume a positive match initially
-             positiveMatch = true;
+            // If only negated terms exist, assume a positive match initially
+            positiveMatch = true;
         } else {
-            const orGroups = [];
-            let currentGroup = [];
+            let currentResult = null; // Stores the evaluated result so far
+            let nextOperator = null; // Stores the next operator to apply ('|' or '&')
+
             for (const token of positiveTokens) {
-                if (token === '|') {
-                    if (currentGroup.length > 0) orGroups.push(currentGroup);
-                    currentGroup = [];
+                if (token === '&' || token === '|') {
+                    // If we encounter an operator, store it for the next term
+                    if (currentResult !== null) { // Only store if we already have a result to operate on
+                       nextOperator = token;
+                    }
                 } else {
-                    currentGroup.push(token);
-                }
-            }
-            if (currentGroup.length > 0) orGroups.push(currentGroup);
+                    // It's a term (word or phrase)
+                    const termResult = checkTerm(token, false); // Check if the term matches
 
-            if (orGroups.length === 0 && positiveTokens.includes('&')) {
-                 // Handle case like "& term" - treat as single group
-                 orGroups.push(positiveTokens.filter(t => t !== '&'));
-            }
-
-            // If no positive terms/groups found after filtering operators, it's not a positive match
-            if (orGroups.length === 0) {
-                 positiveMatch = false;
-            } else {
-                // Check if ANY positive OR group matches
-                for (const group of orGroups) {
-                    let groupResult = true; // AND logic within group
-                    let termFoundInGroup = false;
-                    for (const item of group) {
-                        if (item === '&') continue;
-                        termFoundInGroup = true;
-                        // Pass false for isNegatedCheck, as these are positive terms
-                        const termResult = checkTerm(item, false);
-                        groupResult = groupResult && termResult;
-                        if (!groupResult) break; // Short-circuit AND group
-                    }
-                    // Group matches if it had terms and all evaluated true
-                    if (termFoundInGroup && groupResult) {
-                        positiveMatch = true;
-                        break; // Found a matching OR group, no need to check others
+                    if (currentResult === null) {
+                        // This is the first term in the expression
+                        currentResult = termResult;
+                    } else if (nextOperator === '|') {
+                        // Apply the stored OR operator
+                        currentResult = currentResult || termResult;
+                        nextOperator = null; // Reset operator after use
+                    } else {
+                        // Apply the stored AND operator (or default to AND if no operator was explicitly between terms)
+                        currentResult = currentResult && termResult;
+                        nextOperator = null; // Reset operator after use
                     }
                 }
             }
+
+            // The final result for the positive part
+            // If currentResult is still null (e.g., query was just " | & "), treat as no positive match required.
+            // Otherwise, use the calculated boolean result.
+            positiveMatch = currentResult !== null ? currentResult : true;
         }
         // --- End Positive Part Evaluation ---
-
 
         // If the positive part didn't match, the overall result is false
         if (!positiveMatch) {
             return false;
         }
 
-        // --- Check Negated Terms ---
-        // If the positive part matched, now check if any negated term ALSO matches.
-        // If a negated term is found, the overall result becomes false.
+        // --- Check Negated Terms (this part remains unchanged) ---
         for (const negTerm of negatedTerms) {
              // Pass true for isNegatedCheck - we want to know if the term *exists*
             if (checkTerm(negTerm, true)) {
