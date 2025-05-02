@@ -981,19 +981,21 @@
 
     // Update evaluateQuery/checkTerm to handle non-phrased terms
     function evaluateQuery(commentText, author, noteText, tokens) {
-        // Ensure inputs are lowercase (should already be done in renderJobs, but safe to double-check)
-        commentText = commentText || '';
-        author = author || '';
-        noteText = noteText || '';
+        // Ensure inputs are lowercase
+        commentText = (commentText || '').toLowerCase();
+        author = (author || '').toLowerCase();
+        noteText = (noteText || '').toLowerCase();
 
-        if (!tokens.length) return true;
+        if (!tokens.length) return true; // No query means match all
 
-        function checkTerm(term) {
-            let isNegated = false;
+        // --- Helper function checkTerm remains the same ---
+        function checkTerm(term, isNegatedCheck = false) {
+            let isNegated = isNegatedCheck; // Use passed negation status
             let actualTerm = term;
             let isPhrase = false;
 
-            if (term.startsWith('~')) {
+            // If not called for negation check, determine negation from term prefix
+            if (!isNegatedCheck && term.startsWith('~')) {
                 isNegated = true;
                 actualTerm = term.substring(1);
             }
@@ -1002,85 +1004,119 @@
             if (actualTerm.startsWith('"') && actualTerm.endsWith('"')) {
                 isPhrase = true;
                 actualTerm = actualTerm.substring(1, actualTerm.length - 1);
-                if (!actualTerm) return false; // Empty phrase "" doesn't match
+                // Empty phrase "" or ~"" doesn't match anything positive,
+                // but ~"" should match everything if used in negation check
+                if (!actualTerm) return isNegated;
             }
             // else: it's a single word (no quotes)
 
-            if (!actualTerm) return false; // Empty term doesn't match
+            if (!actualTerm) return isNegated; // Empty term doesn't match positive
 
             // Check for term/phrase presence
-            // For single words, consider using regex for word boundaries (\b)
             let match = false;
             if (isPhrase) {
-                // Exact phrase matching (case already handled by lowercasing inputs)
                 match = commentText.includes(actualTerm) || author.includes(actualTerm) || noteText.includes(actualTerm);
             } else {
-                // Word matching using regex with word boundaries
                 try {
-                    // Escape special regex characters in the word itself
                     const escapedTerm = actualTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
                     const regex = new RegExp(`\\b${escapedTerm}\\b`);
                     match = regex.test(commentText) || regex.test(author) || regex.test(noteText);
                 } catch (e) {
-                    // Fallback to includes if regex fails (e.g., invalid term)
                     console.error(`Regex error for term "${actualTerm}":`, e);
                     match = commentText.includes(actualTerm) || author.includes(actualTerm) || noteText.includes(actualTerm);
                 }
             }
 
+            // If called for negation check, return true if the term IS found (we negate later)
+            if (isNegatedCheck) return match;
+
+            // Otherwise, return based on term's own negation prefix
             return isNegated ? !match : match;
         }
+        // --- End of checkTerm ---
 
-        // ... rest of evaluateQuery (OR group splitting and evaluation) remains the same ...
-        // Split query by '|' operator to handle OR groups (lower precedence)
-        const orGroups = [];
-        let currentGroup = [];
-        for (const token of tokens) {
-            if (token === '|') {
-                if (currentGroup.length > 0) { // Avoid empty groups
-                    orGroups.push(currentGroup);
+        // Separate positive tokens and negated tokens
+        const positiveTokens = [];
+        const negatedTerms = []; // Store only the term/phrase part, without ~
+
+        tokens.forEach(token => {
+            if (token.startsWith('~')) {
+                const actualTerm = token.substring(1);
+                if (actualTerm) { // Avoid adding empty negations like just "~"
+                   negatedTerms.push(actualTerm);
                 }
-                currentGroup = []; // Reset for the next group
             } else {
-                currentGroup.push(token); // Add term, ~term, or & to the current group
+                positiveTokens.push(token);
             }
-        }
-        if (currentGroup.length > 0) { // Add the last group
-            orGroups.push(currentGroup);
-        }
+        });
 
-        // If query was empty or only contained '|', result is no match
-        if (orGroups.length === 0) return false;
-
-        // Evaluate each OR group. If any group matches, the overall result is true.
-        for (const group of orGroups) {
-            let groupResult = true; // AND logic: starts true, requires all terms to match
-            let termFoundInGroup = false; // Track if group has actual terms
-
-            for (const item of group) {
-                if (item === '&') {
-                    // '&' is the default/implicit operator within a group, ignore the token itself
-                    continue;
+        // --- Evaluate Positive Part (Handles OR groups) ---
+        let positiveMatch = false;
+        if (positiveTokens.length === 0) {
+             // If only negated terms exist, assume a positive match initially
+             positiveMatch = true;
+        } else {
+            const orGroups = [];
+            let currentGroup = [];
+            for (const token of positiveTokens) {
+                if (token === '|') {
+                    if (currentGroup.length > 0) orGroups.push(currentGroup);
+                    currentGroup = [];
                 } else {
-                    // Item is a term or a negated term
-                    termFoundInGroup = true; // Mark that this group has searchable content
-                    const termResult = checkTerm(item);
-                    groupResult = groupResult && termResult; // Apply AND logic
-
-                    // If any term in the AND group fails, the whole group fails.
-                    if (!groupResult) break;
+                    currentGroup.push(token);
                 }
             }
+            if (currentGroup.length > 0) orGroups.push(currentGroup);
 
-            // A group matches if it contained terms and all terms (considering negations) evaluated to true.
-            if (termFoundInGroup && groupResult) {
-                return true; // One OR group matched, so the whole query matches
+            if (orGroups.length === 0 && positiveTokens.includes('&')) {
+                 // Handle case like "& term" - treat as single group
+                 orGroups.push(positiveTokens.filter(t => t !== '&'));
+            }
+
+            // If no positive terms/groups found after filtering operators, it's not a positive match
+            if (orGroups.length === 0) {
+                 positiveMatch = false;
+            } else {
+                // Check if ANY positive OR group matches
+                for (const group of orGroups) {
+                    let groupResult = true; // AND logic within group
+                    let termFoundInGroup = false;
+                    for (const item of group) {
+                        if (item === '&') continue;
+                        termFoundInGroup = true;
+                        // Pass false for isNegatedCheck, as these are positive terms
+                        const termResult = checkTerm(item, false);
+                        groupResult = groupResult && termResult;
+                        if (!groupResult) break; // Short-circuit AND group
+                    }
+                    // Group matches if it had terms and all evaluated true
+                    if (termFoundInGroup && groupResult) {
+                        positiveMatch = true;
+                        break; // Found a matching OR group, no need to check others
+                    }
+                }
+            }
+        }
+        // --- End Positive Part Evaluation ---
+
+
+        // If the positive part didn't match, the overall result is false
+        if (!positiveMatch) {
+            return false;
+        }
+
+        // --- Check Negated Terms ---
+        // If the positive part matched, now check if any negated term ALSO matches.
+        // If a negated term is found, the overall result becomes false.
+        for (const negTerm of negatedTerms) {
+             // Pass true for isNegatedCheck - we want to know if the term *exists*
+            if (checkTerm(negTerm, true)) {
+                return false; // Found a term that should be excluded
             }
         }
 
-        // If none of the OR groups matched
-        return false;
-
+        // If positive part matched and no negated terms were found, it's a match
+        return true;
     }
 
     // Update renderJobs function
