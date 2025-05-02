@@ -217,22 +217,100 @@
 
     .search-container i {
       position: absolute;
-      left: 0.85rem; /* Adjusted icon position */
-      top: 50%;
-      transform: translateY(-50%);
+      left: 0.75rem;
+      top: 0.85rem; /* Adjust this value slightly if needed */
       color: #999;
-      font-size: 1.1rem; /* Increased search icon size */
+      font-size: 1.1rem;
+      z-index: 2; /* Ensure icon is above the input background */
+      pointer-events: none;
     }
 
     #search {
-      padding: 0.8rem 1rem 0.8rem 2.5rem; /* Adjusted padding */
+      padding: 0.8rem 1rem 0.8rem 2.6rem; /* Top padding is 0.8rem */
       width: 100%;
       border-radius: 4px;
       border: 1px solid var(--border);
       background: var(--input-bg);
       color: var(--on-surface);
       transition: var(--transition);
-      font-size: 1rem; /* Increased search input font size */
+      font-size: 1rem;
+    }
+
+    /* Styles for Parsed Query Display */
+    .parsed-query-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px; /* Spacing between tokens */
+      margin-top: 8px; /* Space below search input */
+      padding: 5px;
+      border-radius: 4px;
+      min-height: 28px; /* Ensure container has some height even when empty */
+      /* Optional: Add a subtle background/border */
+      /* background-color: rgba(255, 255, 255, 0.05); */
+      /* border: 1px solid var(--border); */
+    }
+
+    .query-token {
+      padding: 4px 10px; /* Padding inside each token */
+      border-radius: 15px; /* Rounded corners for pill shape */
+      font-size: 0.9em;
+      display: inline-flex;
+      align-items: center;
+      line-height: 1.2;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1); /* Subtle shadow */
+    }
+
+    .token-phrase {
+      background-color: #5a5a5a; /* Darker grey for phrases */
+      color: #f0f0f0;
+      border: 1px solid #777;
+    }
+    /* Add quotes visually for phrases */
+    .token-phrase::before,
+    .token-phrase::after {
+        content: '"';
+        opacity: 0.7;
+        margin: 0 2px;
+    }
+
+    .token-operator {
+      background-color: var(--primary); /* Use primary color for operators */
+      color: #000; /* Black text on primary */
+      font-weight: bold;
+      border: 1px solid var(--primary);
+    }
+
+    .token-negated {
+      background-color: var(--danger); /* Use danger color for negated terms */
+      color: var(--danger-text); /* Use specific text color for danger */
+      border: 1px solid var(--danger-hover);
+      /* Optional: line-through */
+      /* text-decoration: line-through; */
+      /* text-decoration-thickness: 1.5px; */
+    }
+    /* Add quotes visually for negated phrases */
+    .token-negated.token-phrase::before,
+    .token-negated.token-phrase::after {
+        content: '"';
+        opacity: 0.7;
+        margin: 0 2px;
+    }
+    /* Add ~ visually for negated terms */
+    .token-negated::before {
+        content: '~';
+        margin-right: 3px;
+        font-weight: bold;
+    }
+    /* Remove double quotes if ~ is already there */
+    .token-negated.token-phrase::before {
+        content: '~"'; /* Combine ~ and opening quote */
+        margin-right: 2px;
+        font-weight: normal; /* Reset weight if needed */
+    }
+     .token-negated.token-phrase::after {
+        content: '"'; /* Keep closing quote */
+        opacity: 0.7;
+        margin: 0 2px;
     }
 
     .switcher {
@@ -495,6 +573,20 @@
     .reset-btn:hover {
         background-color: var(--danger-hover); /* Darker hover for danger button */
     }
+
+    /* Style for the 'Try example' link */
+    .try-example-link {
+      display: inline-block; /* Allow margin */
+      margin-top: 6px; /* Space above the link */
+      font-size: 0.85em;
+      color: var(--primary);
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .try-example-link:hover {
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body class="dark">
@@ -508,8 +600,10 @@
   <main>
     <section class="controls">
       <div class="search-container">
-        <i class="fas fa-search" aria-hidden="true"></i>
-        <input id="search" type="text" placeholder="Search jobs..." aria-label="Search jobs">
+        <i class="fas fa-search" aria-hidden="true"></i> <!-- Add the icon here -->
+        <input id="search" type="text" placeholder='e.g., python | javascript & remote ~us-based' aria-label="Search jobs">
+        <div id="parsed-query-display" class="parsed-query-container"></div>
+        <a href="#" id="try-example-search" class="try-example-link">Try example search</a>
       </div>
 
       <div class="control-buttons filter-row">
@@ -769,175 +863,408 @@
     controlButtons.appendChild(hideAppliedBtn);
     controlButtons.appendChild(resetBtn); // Add the reset button to the DOM
 
-    // Update renderJobs to fix badge/date overlap
-    function renderJobs(comments) {
-      const container = document.getElementById('jobs');
-      const query = document.getElementById('search').value.toLowerCase();
-      const showFavs = favBtn.classList.contains(highlightClass);
-      const showApplied = appliedBtn.classList.contains(highlightClass);
-      const showNotes = notesBtn.classList.contains(highlightClass);
-      const hideAppliedActive = hideAppliedBtn.classList.contains(highlightClass); // Check button state directly
+    // New parseQuery function - Treats single words as words, multi-word as phrases
+    function parseQuery(queryString) {
+        const tokens = [];
+        // Convert to lowercase FIRST
+        const lowerQuery = queryString.toLowerCase().trim();
+        // Regex to split by operators (&, |), negation (~), and quotes ("), keeping delimiters
+        const parts = lowerQuery.split(/(\s*[&|~]\s*|"[^"]*")/g);
 
-      container.innerHTML = '';
-
-      let filteredComments = comments; // Start with all comments
-
-      // Apply the single active filter
-      if (showFavs) {
-        filteredComments = filteredComments.filter(c => favorites[currentThreadId]?.[c.id]);
-      } else if (showApplied) {
-        filteredComments = filteredComments.filter(c => applied[currentThreadId]?.[c.id]);
-      } else if (hideAppliedActive) { // Use the button's active state
-        filteredComments = filteredComments.filter(c => !applied[currentThreadId]?.[c.id]);
-      } else if (showNotes) {
-        filteredComments = filteredComments.filter(c => {
-          const note = applied[currentThreadId]?.[c.id]?.note;
-          return note && note.trim().length > 0;
-        });
-      }
-      // If none are active, filteredComments remains the full list (before search)
-
-      // Apply search query filter (runs after the main filter)
-      if (query) {
-          filteredComments = filteredComments.filter(c =>
-              c.text.toLowerCase().includes(query) ||
-              c.author.toLowerCase().includes(query) ||
-              (applied[currentThreadId]?.[c.id]?.note || '').toLowerCase().includes(query)
-          );
-      }
-
-      if (filteredComments.length === 0) {
-        container.innerHTML = `
-          <div class="loading fade-in">
-            <i class="far fa-meh" style="margin-right: 0.5rem;"></i> No matching jobs found. Maybe try a different search?
-          </div>`;
-        return;
-      }
-
-      filteredComments.forEach(c => {
-        const jobStatus = applied[currentThreadId]?.[c.id];
-        const note = jobStatus?.note || '';
-        const date = jobStatus?.date ? new Date(jobStatus.date).toLocaleString() : '';
-
-        let postedTime = '';
-        if (c.created_at) {
-          const d = new Date(c.created_at);
-          postedTime = d.toLocaleString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            hour: 'numeric',
-            minute: '2-digit',
-            hour12: true
-          });
-        }
-
-        const isFav = favorites[currentThreadId]?.[c.id];
-
-        const article = document.createElement('article');
-        article.className = 'job-card fade-in';
-        article.tabIndex = 0;
-
-        if (jobStatus) article.classList.add('applied');
-
-        article.innerHTML = `
-          <div class="job-header">
-            <!-- Status (Badge/Date) -->
-            <div class="job-header-status">
-              ${jobStatus ? `<span class="badge">Applied</span>` : ''}
-              ${date ? `<div class="meta"><i class="far fa-calendar"></i> ${date}</div>` : ''}
-              <!-- Moved Author Link Here -->
-              <a href="https://news.ycombinator.com/item?id=${c.id}" target="_blank" rel="noopener noreferrer" class="job-company meta" title="View original comment by ${c.author}"><i class="fas fa-user" aria-hidden="true"></i> ${c.author}</a>
-            </div>
-
-            <!-- Main Header Content (Author removed) -->
-            <div class="job-header-main">
-                <!-- Author/Company name removed -->
-            </div>
-
-            <!-- Posted Time -->
-            <div style="font-weight:normal; color:#999; font-size:0.9em; margin-left:auto; align-self: flex-start;">
-              ${postedTime ? `${postedTime}` : ''}
-            </div>
-          </div>
-          <div class="job-content">${c.text}
-            <button class="copy-btn" title="Copy job details" aria-label="Copy job details">
-              <i class="fas fa-copy"></i>
-            </button>
-          </div>
-          <textarea class="note" placeholder="Add notes about this position...">${note}</textarea>
-          <div class="job-actions">
-            <!-- Star button moved here -->
-            <button class="star-btn${isFav ? '' : ' inactive'}" title="Add to Favorite" aria-label="Star job" style="margin-right: auto;"> <!-- Added style to push other buttons right -->
-              <i class="fas fa-star"></i>
-            </button>
-            <!-- Existing Action Buttons -->
-            <button class="job-action-button ${jobStatus ? 'btn-update' : 'btn-apply'}">
-              ${jobStatus ?
-                `<i class="fas fa-edit" aria-hidden="true"></i> Update Note` :
-                `<i class="fas fa-check" aria-hidden="true"></i> Mark as Applied`}
-            </button>
-            ${jobStatus ?
-              `<button class="btn-unapply">
-                <i class="fas fa-times" aria-hidden="true"></i> Remove Applied Status
-              </button>` : ''}
-          </div>
-        `;
-
-        // Star button logic
-        const starBtn = article.querySelector('.star-btn');
-        starBtn.onclick = () => {
-          if (!favorites[currentThreadId]) favorites[currentThreadId] = {};
-          if (favorites[currentThreadId][c.id]) {
-            delete favorites[currentThreadId][c.id];
-            starBtn.classList.add('inactive');
-          } else {
-            favorites[currentThreadId][c.id] = true;
-            starBtn.classList.remove('inactive');
-          }
-          localStorage.setItem(favoriteKey, JSON.stringify(favorites));
-          if (showFavs) renderJobs(comments);
-        };
-
-        // Copy button logic
-        const copyBtn = article.querySelector('.copy-btn');
-        copyBtn.onclick = () => {
-          const temp = document.createElement('textarea');
-          temp.value = c.text.replace(/<[^>]+>/g, ''); // Remove HTML tags
-          document.body.appendChild(temp);
-          temp.select();
-          document.execCommand('copy');
-          document.body.removeChild(temp);
-          showToast('Job details copied!');
-        };
-
-        const noteEl = article.querySelector('.note');
-        const applyBtn = article.querySelector('.job-action-button');
-        const unapplyBtn = article.querySelector('.btn-unapply');
-
-        applyBtn.addEventListener('click', () => {
-          if (!applied[currentThreadId]) applied[currentThreadId] = {};
-          applied[currentThreadId][c.id] = {
-            note: noteEl.value.trim(),
-            date: new Date().toISOString()
-          };
-          localStorage.setItem(appliedKey, JSON.stringify(applied));
-          showToast(jobStatus ? 'Note updated!' : 'Marked as applied!');
-          renderJobs(comments);
-        });
-
-        if (unapplyBtn) {
-          unapplyBtn.addEventListener('click', () => {
-            if (applied[currentThreadId] && applied[currentThreadId][c.id]) {
-              delete applied[currentThreadId][c.id];
-              localStorage.setItem(appliedKey, JSON.stringify(applied));
-              showToast('Removed applied status');
-              renderJobs(comments);
+        let i = 0;
+        while (i < parts.length) {
+            let part = parts[i];
+            if (!part || /^\s*$/.test(part)) { // Skip empty or whitespace-only parts
+                i++;
+                continue;
             }
-          });
+
+            part = part.trim(); // Trim whitespace from the current part
+
+            if (part === '&' || part === '|') {
+                tokens.push(part); // Add operator token
+                i++;
+            } else if (part === '~') {
+                // Handle negation: look ahead for the term/phrase to negate
+                let j = i + 1;
+                while (j < parts.length && (!parts[j] || /^\s*$/.test(parts[j]))) { j++; } // Skip whitespace
+
+                if (j < parts.length) {
+                    let termToNegate = parts[j].trim();
+                    if (termToNegate.startsWith('"') && termToNegate.endsWith('"')) {
+                        // Explicitly negated phrase: ~"..."
+                        tokens.push(`~${termToNegate}`);
+                    } else {
+                        // Check if it's a single word or multiple words
+                        if (termToNegate.includes(' ')) {
+                            // Implicitly negated phrase (multiple words)
+                            tokens.push(`~"${termToNegate}"`);
+                        } else {
+                            // Negated single word (treat as word, not phrase)
+                            tokens.push(`~${termToNegate}`); // No quotes added
+                        }
+                    }
+                    i = j + 1; // Move index past the negated term/phrase
+                } else {
+                    i++; // Dangling ~
+                }
+            } else if (part.startsWith('"') && part.endsWith('"')) {
+                // Explicitly quoted phrase: "..."
+                tokens.push(part);
+                i++;
+            } else {
+                // Term(s) not explicitly quoted
+                if (part.includes(' ')) {
+                    // Implicit phrase (multiple words)
+                    tokens.push(`"${part}"`);
+                } else {
+                    // Single word (treat as word, not phrase)
+                    tokens.push(part); // No quotes added
+                }
+                i++;
+            }
+        }
+        // Filter out potentially empty tokens
+        return tokens.filter(token => token && token !== '""' && token !== '~' && token !== '~""');
+    }
+
+    // Update renderParsedQuery to handle non-phrases correctly
+    function renderParsedQuery(tokens) {
+        const displayContainer = document.getElementById('parsed-query-display');
+        displayContainer.innerHTML = ''; // Clear previous display
+
+        tokens.forEach(token => {
+            const span = document.createElement('span');
+            span.classList.add('query-token');
+            let textContent = token;
+            let isNegated = false;
+            let isPhrase = false; // Track if it's a phrase
+
+            if (token === '|' || token === '&') {
+                span.classList.add('token-operator');
+            } else {
+                 if (token.startsWith('~')) {
+                    isNegated = true;
+                    span.classList.add('token-negated');
+                    textContent = token.substring(1); // Remove ~ for display text
+                }
+
+                // Check if the remaining textContent indicates a phrase
+                if (textContent.startsWith('"') && textContent.endsWith('"')) {
+                    isPhrase = true;
+                    span.classList.add('token-phrase');
+                    // Remove quotes for display text
+                    textContent = textContent.substring(1, textContent.length - 1);
+                }
+                // Add specific styling if it's just a negated word (not phrase)
+                else if (isNegated) {
+                     span.classList.add('token-word'); // Optional: Add a class for single words if needed
+                     // The .token-negated class already adds the ~ prefix via CSS
+                } else {
+                    // Regular word (not phrase, not operator, not negated)
+                     span.classList.add('token-word'); // Optional: Add a class for single words
+                     span.style.backgroundColor = '#4CAF50'; // Example: Green background for positive words
+                     span.style.color = '#fff';
+                     span.style.border = '1px solid #388E3C';
+                }
+            }
+
+             // Ensure empty phrases don't display weirdly
+            if (isPhrase && !textContent) {
+                 textContent = '""'; // Show empty quotes if the phrase was empty
+            }
+
+            span.textContent = textContent; // Set the text content
+            displayContainer.appendChild(span);
+        });
+    }
+
+    // Update evaluateQuery/checkTerm to handle non-phrased terms
+    function evaluateQuery(commentText, author, noteText, tokens) {
+        // Ensure inputs are lowercase (should already be done in renderJobs, but safe to double-check)
+        commentText = commentText || '';
+        author = author || '';
+        noteText = noteText || '';
+
+        if (!tokens.length) return true;
+
+        function checkTerm(term) {
+            let isNegated = false;
+            let actualTerm = term;
+            let isPhrase = false;
+
+            if (term.startsWith('~')) {
+                isNegated = true;
+                actualTerm = term.substring(1);
+            }
+
+            // Check if it's an explicitly quoted phrase
+            if (actualTerm.startsWith('"') && actualTerm.endsWith('"')) {
+                isPhrase = true;
+                actualTerm = actualTerm.substring(1, actualTerm.length - 1);
+                if (!actualTerm) return false; // Empty phrase "" doesn't match
+            }
+            // else: it's a single word (no quotes)
+
+            if (!actualTerm) return false; // Empty term doesn't match
+
+            // Check for term/phrase presence
+            // For single words, consider using regex for word boundaries (\b)
+            let match = false;
+            if (isPhrase) {
+                // Exact phrase matching (case already handled by lowercasing inputs)
+                match = commentText.includes(actualTerm) || author.includes(actualTerm) || noteText.includes(actualTerm);
+            } else {
+                // Word matching using regex with word boundaries
+                try {
+                    // Escape special regex characters in the word itself
+                    const escapedTerm = actualTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    const regex = new RegExp(`\\b${escapedTerm}\\b`);
+                    match = regex.test(commentText) || regex.test(author) || regex.test(noteText);
+                } catch (e) {
+                    // Fallback to includes if regex fails (e.g., invalid term)
+                    console.error(`Regex error for term "${actualTerm}":`, e);
+                    match = commentText.includes(actualTerm) || author.includes(actualTerm) || noteText.includes(actualTerm);
+                }
+            }
+
+            return isNegated ? !match : match;
         }
 
-        container.appendChild(article);
-      });
+        // ... rest of evaluateQuery (OR group splitting and evaluation) remains the same ...
+        // Split query by '|' operator to handle OR groups (lower precedence)
+        const orGroups = [];
+        let currentGroup = [];
+        for (const token of tokens) {
+            if (token === '|') {
+                if (currentGroup.length > 0) { // Avoid empty groups
+                    orGroups.push(currentGroup);
+                }
+                currentGroup = []; // Reset for the next group
+            } else {
+                currentGroup.push(token); // Add term, ~term, or & to the current group
+            }
+        }
+        if (currentGroup.length > 0) { // Add the last group
+            orGroups.push(currentGroup);
+        }
+
+        // If query was empty or only contained '|', result is no match
+        if (orGroups.length === 0) return false;
+
+        // Evaluate each OR group. If any group matches, the overall result is true.
+        for (const group of orGroups) {
+            let groupResult = true; // AND logic: starts true, requires all terms to match
+            let termFoundInGroup = false; // Track if group has actual terms
+
+            for (const item of group) {
+                if (item === '&') {
+                    // '&' is the default/implicit operator within a group, ignore the token itself
+                    continue;
+                } else {
+                    // Item is a term or a negated term
+                    termFoundInGroup = true; // Mark that this group has searchable content
+                    const termResult = checkTerm(item);
+                    groupResult = groupResult && termResult; // Apply AND logic
+
+                    // If any term in the AND group fails, the whole group fails.
+                    if (!groupResult) break;
+                }
+            }
+
+            // A group matches if it contained terms and all terms (considering negations) evaluated to true.
+            if (termFoundInGroup && groupResult) {
+                return true; // One OR group matched, so the whole query matches
+            }
+        }
+
+        // If none of the OR groups matched
+        return false;
+
+    }
+
+    // Update renderJobs function
+    function renderJobs(comments) {
+        const container = document.getElementById('jobs');
+        const query = document.getElementById('search').value; // Get raw query
+        const showFavs = favBtn.classList.contains(highlightClass);
+        const showApplied = appliedBtn.classList.contains(highlightClass);
+        const showNotes = notesBtn.classList.contains(highlightClass);
+        const hideAppliedActive = hideAppliedBtn.classList.contains(highlightClass); // Check button state directly
+
+        container.innerHTML = '';
+
+        let filteredComments = comments; // Start with all comments
+
+        // Apply the single active filter
+        if (showFavs) {
+          filteredComments = filteredComments.filter(c => favorites[currentThreadId]?.[c.id]);
+        } else if (showApplied) {
+          filteredComments = filteredComments.filter(c => applied[currentThreadId]?.[c.id]);
+        } else if (hideAppliedActive) { // Use the button's active state
+          filteredComments = filteredComments.filter(c => !applied[currentThreadId]?.[c.id]);
+        } else if (showNotes) {
+          filteredComments = filteredComments.filter(c => {
+            const note = applied[currentThreadId]?.[c.id]?.note;
+            return note && note.trim().length > 0;
+          });
+        }
+        // If none are active, filteredComments remains the full list (before search)
+
+        // Apply search query filter (runs after the main filter)
+        const queryTokens = parseQuery(query); // Parse the raw query
+
+        // Update the visual display of the parsed query
+        renderParsedQuery(queryTokens); // <-- Call the new render function
+
+        if (queryTokens.length > 0) { // Only filter if query is not empty
+            filteredComments = filteredComments.filter(c =>
+                evaluateQuery(
+                    (c.text || '').toLowerCase(), // Ensure text exists
+                    (c.author || '').toLowerCase(), // Ensure author exists
+                    (applied[currentThreadId]?.[c.id]?.note || '').toLowerCase(),
+                    queryTokens
+                )
+            );
+        }
+
+        if (filteredComments.length === 0) {
+          container.innerHTML = `
+            <div class="loading fade-in">
+              <i class="far fa-meh" style="margin-right: 0.5rem;"></i> No matching jobs found. Maybe try a different search?
+            </div>`;
+          return;
+        }
+
+        filteredComments.forEach(c => {
+            const jobStatus = applied[currentThreadId]?.[c.id];
+            const note = jobStatus?.note || '';
+            const date = jobStatus?.date ? new Date(jobStatus.date).toLocaleString() : '';
+
+            let postedTime = '';
+            if (c.created_at) {
+              const d = new Date(c.created_at);
+              postedTime = d.toLocaleString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+              });
+            }
+
+            const isFav = favorites[currentThreadId]?.[c.id];
+
+            const article = document.createElement('article');
+            article.className = 'job-card fade-in';
+            article.tabIndex = 0;
+
+            if (jobStatus) article.classList.add('applied');
+
+            // Ensure c.text and c.author are not null/undefined before using them
+            const commentTextHTML = c.text || '[No comment text]';
+            const authorName = c.author || '[unknown author]';
+
+            article.innerHTML = `
+              <div class="job-header">
+                <!-- Status (Badge/Date) -->
+                <div class="job-header-status">
+                  ${jobStatus ? `<span class="badge">Applied</span>` : ''}
+                  ${date ? `<div class="meta"><i class="far fa-calendar"></i> ${date}</div>` : ''}
+                  <!-- Moved Author Link Here -->
+                  <a href="https://news.ycombinator.com/item?id=${c.id}" target="_blank" rel="noopener noreferrer" class="job-company meta" title="View original comment by ${authorName}"><i class="fas fa-user" aria-hidden="true"></i> ${authorName}</a>
+                </div>
+
+                <!-- Main Header Content (Author removed) -->
+                <div class="job-header-main">
+                    <!-- Author/Company name removed -->
+                </div>
+
+                <!-- Posted Time -->
+                <div style="font-weight:normal; color:#999; font-size:0.9em; margin-left:auto; align-self: flex-start;">
+                  ${postedTime ? `${postedTime}` : ''}
+                </div>
+              </div>
+              <div class="job-content">${commentTextHTML}
+                <button class="copy-btn" title="Copy job details" aria-label="Copy job details">
+                  <i class="fas fa-copy"></i>
+                </button>
+              </div>
+              <textarea class="note" placeholder="Add notes about this position...">${note}</textarea>
+              <div class="job-actions">
+                <!-- Star button moved here -->
+                <button class="star-btn${isFav ? '' : ' inactive'}" title="Add to Favorite" aria-label="Star job" style="margin-right: auto;"> <!-- Added style to push other buttons right -->
+                  <i class="fas fa-star"></i>
+                </button>
+                <!-- Existing Action Buttons -->
+                <button class="job-action-button ${jobStatus ? 'btn-update' : 'btn-apply'}">
+                  ${jobStatus ?
+                    `<i class="fas fa-edit" aria-hidden="true"></i> Update Note` :
+                    `<i class="fas fa-check" aria-hidden="true"></i> Mark as Applied`}
+                </button>
+                ${jobStatus ?
+                  `<button class="btn-unapply">
+                    <i class="fas fa-times" aria-hidden="true"></i> Remove Applied Status
+                  </button>` : ''}
+              </div>
+            `;
+
+            // Star button logic
+            const starBtn = article.querySelector('.star-btn');
+            starBtn.onclick = () => {
+              if (!favorites[currentThreadId]) favorites[currentThreadId] = {};
+              if (favorites[currentThreadId][c.id]) {
+                delete favorites[currentThreadId][c.id];
+                starBtn.classList.add('inactive');
+              } else {
+                favorites[currentThreadId][c.id] = true;
+                starBtn.classList.remove('inactive');
+              }
+              localStorage.setItem(favoriteKey, JSON.stringify(favorites));
+              if (showFavs) renderJobs(comments); // Re-render only if the fav filter is active
+            };
+
+            // Copy button logic
+            const copyBtn = article.querySelector('.copy-btn');
+            copyBtn.onclick = () => {
+              const temp = document.createElement('textarea');
+              // Use the safe commentTextHTML and remove tags
+              temp.value = commentTextHTML.replace(/<[^>]+>/g, '');
+              document.body.appendChild(temp);
+              temp.select();
+              document.execCommand('copy');
+              document.body.removeChild(temp);
+              showToast('Job details copied!');
+            };
+
+            const noteEl = article.querySelector('.note');
+            const applyBtn = article.querySelector('.job-action-button');
+            const unapplyBtn = article.querySelector('.btn-unapply');
+
+            applyBtn.addEventListener('click', () => {
+              if (!applied[currentThreadId]) applied[currentThreadId] = {};
+              applied[currentThreadId][c.id] = {
+                note: noteEl.value.trim(),
+                date: new Date().toISOString()
+              };
+              localStorage.setItem(appliedKey, JSON.stringify(applied));
+              showToast(jobStatus ? 'Note updated!' : 'Marked as applied!');
+              renderJobs(comments); // Re-render to update the card state
+            });
+
+            if (unapplyBtn) {
+              unapplyBtn.addEventListener('click', () => {
+                if (applied[currentThreadId] && applied[currentThreadId][c.id]) {
+                  delete applied[currentThreadId][c.id];
+                  localStorage.setItem(appliedKey, JSON.stringify(applied));
+                  showToast('Removed applied status');
+                  renderJobs(comments); // Re-render to update the card state
+                }
+              });
+            }
+
+            container.appendChild(article);
+          });
     }
 
     function exportData() {
@@ -984,6 +1311,32 @@
     // Event listeners
     document.getElementById('search').addEventListener('input', () => renderJobs(allComments));
     document.getElementById('themeToggle').addEventListener('click', toggleDark);
+
+    // Add event listener for the 'Try example' link
+    document.getElementById('try-example-search').addEventListener('click', (event) => {
+      event.preventDefault(); // Prevent default link behavior
+      console.log("Try example link clicked"); // Debug log
+
+      const searchInput = document.getElementById('search');
+      // Define the example query directly here
+      const exampleQuery = 'python | javascript & remote ~us-based';
+      console.log("Setting input value to:", exampleQuery); // Debug log
+
+      if (searchInput) {
+          searchInput.value = exampleQuery; // Set input value
+          searchInput.focus(); // Optional: focus the input
+
+          // Ensure allComments is available before calling renderJobs
+          if (typeof allComments !== 'undefined' && Array.isArray(allComments)) {
+              console.log("Calling renderJobs with example query"); // Debug log
+              renderJobs(allComments); // Trigger the search/render
+          } else {
+              console.error("allComments is not ready yet."); // Debug log
+          }
+      } else {
+          console.error("Search input element not found."); // Debug log
+      }
+    });
 
     // Keyboard navigation
     document.addEventListener('keydown', (e) => {
