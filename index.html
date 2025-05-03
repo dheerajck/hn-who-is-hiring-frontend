@@ -290,6 +290,16 @@
       align-items: center;
       line-height: 1.2;
       box-shadow: 0 1px 2px rgba(0,0,0,0.1); /* Subtle shadow */
+      animation: scaleIn 0.3s ease forwards;
+      opacity: 0; /* Start hidden */
+      transform: scale(0.9); /* Start slightly smaller */
+    }
+
+    @keyframes scaleIn {
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
     }
 
     .token-phrase {
@@ -391,6 +401,18 @@
       color: var(--on-surface);
     }
 
+    .theme-toggle i {
+      transition: transform 0.4s ease; /* Add transition for the icon */
+    }
+
+    /* Add rotation for theme change */
+    body:not(.dark) .theme-toggle i.fa-moon {
+        transform: rotate(90deg);
+    }
+    body.dark .theme-toggle i.fa-sun {
+        transform: rotate(90deg);
+    }
+
     .loading {
       text-align: center;
       padding: 2rem;
@@ -434,12 +456,18 @@
     }
 
     .fade-in {
-      animation: fadeIn 0.3s ease;
+      animation: fadeInSlideUp 0.5s ease forwards; /* Use a new animation */
     }
 
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
+    @keyframes fadeInSlideUp {
+      from {
+        opacity: 0;
+        transform: translateY(15px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     /* Light mode styles */
