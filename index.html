@@ -1128,6 +1128,7 @@
             const jobStatus = applied[currentThreadId]?.[c.id];
             const note = jobStatus?.note || '';
             const date = jobStatus?.date ? new Date(jobStatus.date).toLocaleString() : '';
+            const isFav = favorites[currentThreadId]?.[c.id];
 
             let postedTime = '';
             if (c.created_at) {
@@ -1162,15 +1163,13 @@
               postedTime = `${formattedDate} <span title="${d.toLocaleString()}">(${timeAgo})</span>`;
             }
 
-            const isFav = favorites[currentThreadId]?.[c.id];
-
             const article = document.createElement('article');
             article.className = 'job-card fade-in';
             article.tabIndex = 0;
+            article.setAttribute('data-job-id', c.id);
 
             if (jobStatus) article.classList.add('applied');
 
-            // Ensure c.text and c.author are not null/undefined before using them
             const commentTextHTML = c.text || '[No comment text]';
             const authorName = c.author || '[unknown author]';
 
@@ -1180,101 +1179,113 @@
                 <div class="job-header-status">
                   ${jobStatus ? `<span class="badge">Applied</span>` : ''}
                   ${date ? `<div class="meta"><i class="far fa-calendar"></i> ${date}</div>` : ''}
-                  <!-- Moved Author Link Here -->
                   <a href="https://news.ycombinator.com/item?id=${c.id}" target="_blank" rel="noopener noreferrer" class="job-company meta" title="View original comment by ${authorName}"><i class="fas fa-user" aria-hidden="true"></i> ${authorName}</a>
                 </div>
-
-                <!-- Main Header Content (Author removed) -->
-                <div class="job-header-main">
-                    <!-- Author/Company name removed -->
-                </div>
-
+                <!-- Main Header Content -->
+                <div class="job-header-main"></div>
                 <!-- Posted Time -->
                 <div style="font-weight:normal; color:#999; font-size:0.9em; margin-left:auto; align-self: flex-start;">
                   ${postedTime ? `${postedTime}` : ''}
                 </div>
               </div>
               <div class="job-content">${commentTextHTML}
-                <button class="copy-btn" title="Copy job details" aria-label="Copy job details">
+                <button class="copy-btn" data-action="copy" title="Copy job details" aria-label="Copy job details">
                   <i class="fas fa-copy"></i>
                 </button>
               </div>
               <textarea class="note" placeholder="Add notes about this position...">${note}</textarea>
               <div class="job-actions">
-                <!-- Star button moved here -->
-                <button class="star-btn${isFav ? '' : ' inactive'}" title="Add to Favorite" aria-label="Star job" style="margin-right: auto;"> <!-- Added style to push other buttons right -->
+                <button class="star-btn${isFav ? '' : ' inactive'}" data-action="star" title="Add to Favorite" aria-label="Star job" style="margin-right: auto;">
                   <i class="fas fa-star"></i>
                 </button>
-                <!-- Existing Action Buttons -->
-                <button class="job-action-button ${jobStatus ? 'btn-update' : 'btn-apply'}">
+                <button class="job-action-button ${jobStatus ? 'btn-update' : 'btn-apply'}" data-action="apply-update">
                   ${jobStatus ?
                     `<i class="fas fa-edit" aria-hidden="true"></i> Update Note` :
                     `<i class="fas fa-check" aria-hidden="true"></i> Mark as Applied`}
                 </button>
                 ${jobStatus ?
-                  `<button class="btn-unapply">
+                  `<button class="btn-unapply" data-action="unapply">
                     <i class="fas fa-times" aria-hidden="true"></i> Remove Applied Status
                   </button>` : ''}
               </div>
             `;
 
-            // Star button logic
-            const starBtn = article.querySelector('.star-btn');
-            starBtn.onclick = () => {
-              if (!favorites[currentThreadId]) favorites[currentThreadId] = {};
-              if (favorites[currentThreadId][c.id]) {
-                delete favorites[currentThreadId][c.id];
-                starBtn.classList.add('inactive');
-              } else {
-                favorites[currentThreadId][c.id] = true;
-                starBtn.classList.remove('inactive');
-              }
-              localStorage.setItem(favoriteKey, JSON.stringify(favorites));
-              if (showFavs) renderJobs(comments); // Re-render only if the fav filter is active
-            };
-
-            // Copy button logic
-            const copyBtn = article.querySelector('.copy-btn');
-            copyBtn.onclick = () => {
-              const temp = document.createElement('textarea');
-              // Use the safe commentTextHTML and remove tags
-              temp.value = commentTextHTML.replace(/<[^>]+>/g, '');
-              document.body.appendChild(temp);
-              temp.select();
-              document.execCommand('copy');
-              document.body.removeChild(temp);
-              showToast('Job details copied!');
-            };
-
-            const noteEl = article.querySelector('.note');
-            const applyBtn = article.querySelector('.job-action-button');
-            const unapplyBtn = article.querySelector('.btn-unapply');
-
-            applyBtn.addEventListener('click', () => {
-              if (!applied[currentThreadId]) applied[currentThreadId] = {};
-              applied[currentThreadId][c.id] = {
-                note: noteEl.value.trim(),
-                date: new Date().toISOString()
-              };
-              localStorage.setItem(appliedKey, JSON.stringify(applied));
-              showToast(jobStatus ? 'Note updated!' : 'Marked as applied!');
-              renderJobs(comments); // Re-render to update the card state
-            });
-
-            if (unapplyBtn) {
-              unapplyBtn.addEventListener('click', () => {
-                if (applied[currentThreadId] && applied[currentThreadId][c.id]) {
-                  delete applied[currentThreadId][c.id];
-                  localStorage.setItem(appliedKey, JSON.stringify(applied));
-                  showToast('Removed applied status');
-                  renderJobs(comments); // Re-render to update the card state
-                }
-              });
-            }
-
             container.appendChild(article);
           });
     }
+
+    function handleJobCardClick(event) {
+        const target = event.target;
+        const jobCard = target.closest('.job-card');
+
+        if (!jobCard) return;
+
+        const jobId = jobCard.dataset.jobId;
+        if (!jobId) return;
+
+        const actionTarget = target.closest('[data-action]');
+        if (!actionTarget) return;
+
+        const action = actionTarget.dataset.action;
+        const noteEl = jobCard.querySelector('.note');
+        const showFavs = favBtn.classList.contains(highlightClass);
+
+        if (action === 'star') {
+            const starBtn = actionTarget;
+            if (!favorites[currentThreadId]) favorites[currentThreadId] = {};
+            if (favorites[currentThreadId][jobId]) {
+                delete favorites[currentThreadId][jobId];
+                starBtn.classList.add('inactive');
+            } else {
+                favorites[currentThreadId][jobId] = true;
+                starBtn.classList.remove('inactive');
+            }
+            localStorage.setItem(favoriteKey, JSON.stringify(favorites));
+            if (showFavs) renderJobs(allComments);
+        }
+        else if (action === 'copy') {
+            const jobContent = jobCard.querySelector('.job-content');
+            if (jobContent) {
+                const contentClone = jobContent.cloneNode(true);
+                const cloneCopyBtn = contentClone.querySelector('.copy-btn');
+                if (cloneCopyBtn) cloneCopyBtn.remove();
+
+                const temp = document.createElement('textarea');
+                temp.value = contentClone.textContent.trim();
+                document.body.appendChild(temp);
+                temp.select();
+                try {
+                    document.execCommand('copy');
+                    showToast('Job details copied!');
+                } catch (err) {
+                    showToast('Failed to copy.');
+                    console.error('Copy failed:', err);
+                }
+                document.body.removeChild(temp);
+            }
+        }
+        else if (action === 'apply-update') {
+            const jobStatus = applied[currentThreadId]?.[jobId];
+            if (!applied[currentThreadId]) applied[currentThreadId] = {};
+            applied[currentThreadId][jobId] = {
+                note: noteEl ? noteEl.value.trim() : '',
+                date: new Date().toISOString()
+            };
+            localStorage.setItem(appliedKey, JSON.stringify(applied));
+            showToast(jobStatus ? 'Note updated!' : 'Marked as applied!');
+            renderJobs(allComments);
+        }
+        else if (action === 'unapply') {
+            if (applied[currentThreadId] && applied[currentThreadId][jobId]) {
+                delete applied[currentThreadId][jobId];
+                localStorage.setItem(appliedKey, JSON.stringify(applied));
+                showToast('Removed applied status');
+                renderJobs(allComments);
+            }
+        }
+    }
+
+    document.getElementById('jobs').addEventListener('click', handleJobCardClick);
 
     function exportData() {
       const blob = new Blob([JSON.stringify(applied, null, 2)], { type: 'application/json' });
