@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=width=device-width, initial-scale=1.0">
   <title>HN Job Tracker</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
@@ -735,6 +735,18 @@
     const favoriteKey = 'favoriteHNv1';
     let favorites = JSON.parse(localStorage.getItem(favoriteKey) || '{}');
     let toastTimeout; // Add this at the top level (outside the function)
+    let searchDebounceTimeout; // Add this for search debounce
+
+    // Debounce utility function
+    function debounce(func, delay) {
+      let timeoutId;
+      return function(...args) {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => {
+          func.apply(this, args);
+        }, delay);
+      };
+    }
 
     // Keyboard navigation support
     const keyboardShortcuts = {
@@ -1428,7 +1440,10 @@
     }
 
     // Event listeners
-    document.getElementById('search').addEventListener('input', () => renderJobs(allComments));
+    // Debounce the search input listener (e.g., 300ms delay)
+    document.getElementById('search').addEventListener('input', debounce(() => {
+        renderJobs(allComments);
+    }, 300));
     document.getElementById('themeToggle').addEventListener('click', toggleDark);
 
     // Add event listener for the 'Try example' link
