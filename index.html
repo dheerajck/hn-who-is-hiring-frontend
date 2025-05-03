@@ -601,7 +601,7 @@
     <section class="controls">
       <div class="search-container">
         <i class="fas fa-search" aria-hidden="true"></i> <!-- Add the icon here -->
-        <input id="search" type="text" placeholder='e.g., python | javascript & remote ~us-based' aria-label="Search jobs">
+        <input id="search" type="text" placeholder='e.g., python | javascript & remote & ~us-based' aria-label="Search jobs">
         <div id="parsed-query-display" class="parsed-query-container"></div>
         <a href="#" id="try-example-search" class="try-example-link">Try example search</a>
       </div>
@@ -979,133 +979,96 @@
         });
     }
 
-    // Update evaluateQuery/checkTerm to handle non-phrased terms
+    // Simplified checkTerm: Returns true if the token's condition is met by the text.
+    // Handles negation directly based on the token prefix.
+    function checkTerm(token, commentText, author, noteText) {
+        let isNegated = false;
+        let actualTerm = token;
+        let isPhrase = false;
+
+        // 1. Determine Negation and Actual Term
+        if (actualTerm.startsWith('~')) {
+            isNegated = true;
+            actualTerm = actualTerm.substring(1);
+        }
+
+        // 2. Determine if it's a Phrase
+        if (actualTerm.startsWith('"') && actualTerm.endsWith('"')) {
+            isPhrase = true;
+            actualTerm = actualTerm.substring(1, actualTerm.length - 1);
+        }
+
+        // Handle empty terms/phrases after stripping ~, ""
+        if (!actualTerm) {
+            // An empty positive term "" or word doesn't match anything.
+            // An empty negative term ~"" or ~word matches everything.
+            return isNegated;
+        }
+
+        // 3. Check for Presence
+        let termFound = false;
+        if (isPhrase) {
+            // Exact phrase match
+            termFound = commentText.includes(actualTerm) || author.includes(actualTerm) || noteText.includes(actualTerm);
+        } else {
+            // Whole word match (using regex)
+            try {
+                // Escape special regex characters in the term
+                const escapedTerm = actualTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                // \b ensures matching whole words
+                const regex = new RegExp(`\\b${escapedTerm}\\b`);
+                termFound = regex.test(commentText) || regex.test(author) || regex.test(noteText);
+            } catch (e) {
+                // Fallback to simple includes if regex fails (e.g., invalid pattern)
+                console.error(`Regex error for term "${actualTerm}":`, e);
+                termFound = commentText.includes(actualTerm) || author.includes(actualTerm) || noteText.includes(actualTerm);
+            }
+        }
+
+        // 4. Return final result based on negation
+        return isNegated ? !termFound : termFound;
+    }
+
+    // Updated evaluateQuery for standard boolean logic (left-to-right)
     function evaluateQuery(commentText, author, noteText, tokens) {
         // Ensure inputs are lowercase
         commentText = (commentText || '').toLowerCase();
         author = (author || '').toLowerCase();
         noteText = (noteText || '').toLowerCase();
 
-        if (!tokens.length) return true; // No query means match all
+        if (!tokens || tokens.length === 0) return true; // No query means match all
 
-        // --- Helper function checkTerm remains the same ---
-        function checkTerm(term, isNegatedCheck = false) {
-            let isNegated = isNegatedCheck; // Use passed negation status
-            let actualTerm = term;
-            let isPhrase = false;
+        let currentResult = null; // Stores the evaluated result so far
+        let nextOperator = '&';   // Default operator between terms is AND
 
-            // If not called for negation check, determine negation from term prefix
-            if (!isNegatedCheck && term.startsWith('~')) {
-                isNegated = true;
-                actualTerm = term.substring(1);
-            }
-
-            // Check if it's an explicitly quoted phrase
-            if (actualTerm.startsWith('"') && actualTerm.endsWith('"')) {
-                isPhrase = true;
-                actualTerm = actualTerm.substring(1, actualTerm.length - 1);
-                // Empty phrase "" or ~"" doesn't match anything positive,
-                // but ~"" should match everything if used in negation check
-                if (!actualTerm) return isNegated;
-            }
-            // else: it's a single word (no quotes)
-
-            if (!actualTerm) return isNegated; // Empty term doesn't match positive
-
-            // Check for term/phrase presence
-            let match = false;
-            if (isPhrase) {
-                match = commentText.includes(actualTerm) || author.includes(actualTerm) || noteText.includes(actualTerm);
+        for (const token of tokens) {
+            if (token === '&' || token === '|') {
+                // Store the explicit operator for the *next* term evaluation
+                nextOperator = token;
             } else {
-                try {
-                    const escapedTerm = actualTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                    const regex = new RegExp(`\\b${escapedTerm}\\b`);
-                    match = regex.test(commentText) || regex.test(author) || regex.test(noteText);
-                } catch (e) {
-                    console.error(`Regex error for term "${actualTerm}":`, e);
-                    match = commentText.includes(actualTerm) || author.includes(actualTerm) || noteText.includes(actualTerm);
-                }
-            }
+                // It's a term (word, phrase, potentially negated)
+                const termResult = checkTerm(token, commentText, author, noteText); // Check if this term's condition is met
 
-            // If called for negation check, return true if the term IS found (we negate later)
-            if (isNegatedCheck) return match;
-
-            // Otherwise, return based on term's own negation prefix
-            return isNegated ? !match : match;
-        }
-        // --- End of checkTerm ---
-
-        // Separate positive tokens and negated tokens
-        const positiveTokens = [];
-        const negatedTerms = []; // Store only the term/phrase part, without ~
-
-        tokens.forEach(token => {
-            if (token.startsWith('~')) {
-                const actualTerm = token.substring(1);
-                if (actualTerm) { // Avoid adding empty negations like just "~"
-                   negatedTerms.push(actualTerm);
-                }
-            } else {
-                positiveTokens.push(token);
-            }
-        });
-
-        // --- Evaluate Positive Part (Left-to-Right Evaluation) ---
-        let positiveMatch = false;
-        if (positiveTokens.length === 0) {
-            // If only negated terms exist, assume a positive match initially
-            positiveMatch = true;
-        } else {
-            let currentResult = null; // Stores the evaluated result so far
-            let nextOperator = null; // Stores the next operator to apply ('|' or '&')
-
-            for (const token of positiveTokens) {
-                if (token === '&' || token === '|') {
-                    // If we encounter an operator, store it for the next term
-                    if (currentResult !== null) { // Only store if we already have a result to operate on
-                       nextOperator = token;
-                    }
+                if (currentResult === null) {
+                    // This is the first term in the expression (or sub-expression)
+                    currentResult = termResult;
                 } else {
-                    // It's a term (word or phrase)
-                    const termResult = checkTerm(token, false); // Check if the term matches
-
-                    if (currentResult === null) {
-                        // This is the first term in the expression
-                        currentResult = termResult;
-                    } else if (nextOperator === '|') {
-                        // Apply the stored OR operator
+                    // Apply the stored operator between the previous result and the current term's result
+                    if (nextOperator === '|') {
                         currentResult = currentResult || termResult;
-                        nextOperator = null; // Reset operator after use
-                    } else {
-                        // Apply the stored AND operator (or default to AND if no operator was explicitly between terms)
+                    } else { // Operator is '&' (or the default AND)
                         currentResult = currentResult && termResult;
-                        nextOperator = null; // Reset operator after use
                     }
+                    // Reset the operator to default AND for the next pair of terms unless an explicit | or & is found
+                    nextOperator = '&';
                 }
             }
-
-            // The final result for the positive part
-            // If currentResult is still null (e.g., query was just " | & "), treat as no positive match required.
-            // Otherwise, use the calculated boolean result.
-            positiveMatch = currentResult !== null ? currentResult : true;
-        }
-        // --- End Positive Part Evaluation ---
-
-        // If the positive part didn't match, the overall result is false
-        if (!positiveMatch) {
-            return false;
         }
 
-        // --- Check Negated Terms (this part remains unchanged) ---
-        for (const negTerm of negatedTerms) {
-             // Pass true for isNegatedCheck - we want to know if the term *exists*
-            if (checkTerm(negTerm, true)) {
-                return false; // Found a term that should be excluded
-            }
-        }
-
-        // If positive part matched and no negated terms were found, it's a match
-        return true;
+        // If the query consisted only of operators (e.g., "& |"), currentResult would be null.
+        // In this case, or if the evaluation resulted in true, return true. Otherwise false.
+        // A null result implies no terms were actually evaluated, which shouldn't block results.
+        return currentResult === null ? true : currentResult;
     }
 
     // Update renderJobs function
@@ -1144,7 +1107,7 @@
 
         if (queryTokens.length > 0) { // Only filter if query is not empty
             filteredComments = filteredComments.filter(c =>
-                evaluateQuery(
+                evaluateQuery( // Uses the NEW evaluateQuery logic
                     (c.text || '').toLowerCase(), // Ensure text exists
                     (c.author || '').toLowerCase(), // Ensure author exists
                     (applied[currentThreadId]?.[c.id]?.note || '').toLowerCase(),
@@ -1365,7 +1328,7 @@
 
       const searchInput = document.getElementById('search');
       // Define the example query directly here
-      const exampleQuery = 'python | javascript & remote ~us-based';
+      const exampleQuery = 'python | javascript & remote & ~us-based';
       console.log("Setting input value to:", exampleQuery); // Debug log
 
       if (searchInput) {
