@@ -36,8 +36,8 @@
       transition: var(--transition);
       background: var(--background);
       color: var(--on-surface);
-      line-height: 1.6; /* Slightly increased line-height */
-      font-size: 16px; /* Set base font size (adjust as needed) */
+      line-height: 1.6;
+      font-size: 16px;
     }
 
     /* Improved accessibility - focus styles */
@@ -55,12 +55,12 @@
 
     h1 {
       margin-top: 0;
-      font-size: 2rem; /* Increased heading size */
+      font-size: 2rem;
     }
 
     button,
     .btn {
-      padding: 0.6rem 0.9rem; /* Slightly larger padding */
+      padding: 0.6rem 0.9rem;
       border-radius: 4px;
       border: 1px solid var(--border);
       background-color: var(--button-bg);
@@ -68,7 +68,7 @@
       cursor: pointer;
       transition: var(--transition);
       font-family: inherit;
-      font-size: 1rem; /* Increased button font size */
+      font-size: 1rem;
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -136,12 +136,12 @@
 
     .job-company {
       font-weight: bold;
-      font-size: 1.2rem; /* Increased company font size */
+      font-size: 1.2rem;
     }
 
     .job-content {
       margin-bottom: 1rem;
-      font-size: 1.05rem; /* Slightly larger job content text */
+      font-size: 1.05rem;
     }
 
     .job-content a {
@@ -160,14 +160,15 @@
       overflow-x: auto;            /* Add horizontal scroll if still too wide */
       font-size: 0.9em;            /* Slightly smaller font size for code */
     }
-    /* Optional: Style pre tags if they are used */
+
+    /* Style pre tags if they are used */
     .job-content pre {
         white-space: pre-wrap;
         word-wrap: break-word;
         margin: 0.5em 0;
         overflow-x: auto;
     }
-    /* Optional: If pre contains code, reset code styles */
+    /* If pre contains code, reset code styles */
     .job-content pre code {
         display: inline; /* Reset display if inside pre */
         background-color: transparent;
@@ -249,7 +250,7 @@
     .search-container i {
       position: absolute;
       left: 0.75rem;
-      top: 0.85rem; /* Adjust this value slightly if needed */
+      top: 0.85rem;
       color: #999;
       font-size: 1.1rem;
       z-index: 2; /* Ensure icon is above the input background */
@@ -298,7 +299,7 @@
 
     /* Adjust spacing for parsed query display if needed */
     .parsed-query-container {
-      margin-top: 6px; /* Slightly reduced margin */
+      margin-top: 6px;
     }
 
     /* Styles for Parsed Query Display */
@@ -310,9 +311,8 @@
       padding: 5px;
       border-radius: 4px;
       min-height: 28px; /* Ensure container has some height even when empty */
-      /* Optional: Add a subtle background/border */
-      /* background-color: rgba(255, 255, 255, 0.05); */
-      /* border: 1px solid var(--border); */
+
+
     }
 
     .query-token {
@@ -359,9 +359,7 @@
       background-color: var(--danger); /* Use danger color for negated terms */
       color: var(--danger-text); /* Use specific text color for danger */
       border: 1px solid var(--danger-hover);
-      /* Optional: line-through */
-      /* text-decoration: line-through; */
-      /* text-decoration-thickness: 1.5px; */
+
     }
     /* Add quotes visually for negated phrases */
     .token-negated.token-phrase::before,
@@ -414,10 +412,10 @@
       background-color: var(--primary);
       color: #000;
       border-color: var(--primary);
-      font-weight: bold; /* Optional: make text bold */
+      font-weight: bold;
     }
 
-    /* Optional: Add hover effect for non-active buttons */
+    /* Add hover effect for non-active buttons */
     .switcher button:not(.active):hover {
         background-color: var(--button-hover);
     }
@@ -797,17 +795,17 @@
   </button>
 
   <script>
-    const appliedKey = 'appliedHNv3';
+    const appliedKey = 'appliedHNv1';
     let applied = JSON.parse(localStorage.getItem(appliedKey) || '{}');
-    const notesKey = 'notesHNv1'; // New key for notes
-    let notes = JSON.parse(localStorage.getItem(notesKey) || '{}'); // New variable for notes
+    const notesKey = 'notesHNv1';
+    let notes = JSON.parse(localStorage.getItem(notesKey) || '{}');
     let threads = [];
     let currentThreadId = null;
     let allComments = [];
     const favoriteKey = 'favoriteHNv1';
     let favorites = JSON.parse(localStorage.getItem(favoriteKey) || '{}');
-    let toastTimeout; // Add this at the top level (outside the function)
-    let searchDebounceTimeout; // Add this for search debounce
+    let toastTimeout;
+    let searchDebounceTimeout;
 
     // Debounce utility function
     function debounce(func, delay) {
@@ -882,8 +880,10 @@
 
         // Define the search query
         const searchQuery = '"Ask HN: Who is hiring?"';
+
         // URL encode the query
         const encodedQuery = encodeURIComponent(searchQuery);
+
         // Construct the API URL
         const apiUrl = `https://hn.algolia.com/api/v1/search_by_date?query=${encodedQuery}&tags=ask_hn,author_whoishiring`;
 
@@ -1002,22 +1002,20 @@
     // Add Reset Defaults button
     const resetBtn = document.createElement('button');
     resetBtn.id = 'resetDefaultsBtn';
-    resetBtn.className = 'filter-btn reset-btn'; // Added reset-btn class
+    resetBtn.className = 'filter-btn reset-btn';
     resetBtn.innerHTML = '<i class="fas fa-trash-alt"></i> Reset Everything';
     resetBtn.title = 'Clear all applied statuses, notes, and favorites';
 
     // Add highlight class
     const highlightClass = 'active';
 
-    // Only one filter active at a time, allow deselecting by clicking again
+    // There should be one filter active at a time, allow deselecting by clicking again
     function setActiveFilter(btn) {
       const isActive = btn.classList.contains(highlightClass);
-      // Include hideAppliedBtn in the list of mutually exclusive buttons
       [favBtn, appliedBtn, notesBtn, hideAppliedBtn].forEach(b => b.classList.remove(highlightClass));
       if (!isActive) {
         btn.classList.add(highlightClass);
       }
-      // Conflict checks are no longer needed as only one button can be active
       renderJobs(allComments);
     }
 
@@ -1031,13 +1029,12 @@
         if (window.confirm('Are you sure you want to clear all applied statuses, notes, and favorites? This cannot be undone.')) {
             applied = {};
             favorites = {};
-            notes = {}; // Clear the notes object
+            notes = {};
             localStorage.removeItem(appliedKey);
             localStorage.removeItem(favoriteKey);
-            localStorage.removeItem(notesKey); // Remove notes from localStorage
-            // Deactivate any active filter buttons
+            localStorage.removeItem(notesKey);
             [favBtn, appliedBtn, notesBtn, hideAppliedBtn].forEach(b => b.classList.remove(highlightClass));
-            renderJobs(allComments); // Re-render to show the cleared state
+            renderJobs(allComments);
             showToast('All data cleared.');
         }
     };
@@ -1046,7 +1043,7 @@
     controlButtons.appendChild(appliedBtn);
     controlButtons.appendChild(notesBtn);
     controlButtons.appendChild(hideAppliedBtn);
-    controlButtons.appendChild(resetBtn); // Add the reset button to the DOM
+    controlButtons.appendChild(resetBtn);
 
     // New parseQuery function - Treats single words as words, multi-word as phrases
     function parseQuery(queryString) {
@@ -1143,11 +1140,11 @@
                 }
                 // Add specific styling if it's just a negated word (not phrase)
                 else if (isNegated) {
-                     span.classList.add('token-word'); // Optional: Add a class for single words if needed
+                     span.classList.add('token-word'); // Add a class for single words if needed
                      // The .token-negated class already adds the ~ prefix via CSS
                 } else {
                     // Regular word (not phrase, not operator, not negated)
-                     span.classList.add('token-word'); // Optional: Add a class for single words
+                     span.classList.add('token-word'); // Add a class for single words
                      span.style.backgroundColor = '#4CAF50'; // Example: Green background for positive words
                      span.style.color = '#fff';
                      span.style.border = '1px solid #388E3C';
@@ -1334,7 +1331,7 @@
                 hour12: true
               });
 
-              // Calculate time ago
+              // Calculate time ago to show with posted date
               const now = new Date();
               const diffMs = now - d;
               const diffSecs = Math.floor(diffMs / 1000);
@@ -1430,7 +1427,7 @@
         if (!actionTarget) return;
 
         const action = actionTarget.dataset.action;
-        const noteEl = jobCard.querySelector('.note'); // Still need this for saving notes
+        const noteEl = jobCard.querySelector('.note');
         const showFavs = favBtn.classList.contains(highlightClass);
 
         // Ensure thread-specific objects exist
@@ -1460,31 +1457,29 @@
               .then(() => showToast('Job details copied!'))
               .catch(err => showToast('Failed to copy text.'));
         }
-        else if (action === 'save-note') { // New action: Save Note
+        else if (action === 'save-note') {
             const noteText = noteEl ? noteEl.value.trim() : '';
             if (noteText) {
                 notes[currentThreadId][jobId] = noteText;
             } else {
-                // If note is empty, remove it from storage
-                if (notes[currentThreadId]?.[jobId]) { // Check if note exists before deleting
+                if (notes[currentThreadId]?.[jobId]) {
                     delete notes[currentThreadId][jobId];
                 }
             }
             localStorage.setItem(notesKey, JSON.stringify(notes));
             showToast('Note saved!');
-            // Optional: Re-render if 'Show Notes' filter is active
             if (notesBtn.classList.contains(highlightClass)) {
                 renderJobs(allComments);
             }
         }
-        else if (action === 'apply') { // Modified action: Mark as Applied
-            applied[currentThreadId][jobId] = new Date().toISOString(); // Store timestamp
+        else if (action === 'apply') {
+            applied[currentThreadId][jobId] = new Date().toISOString();
             localStorage.setItem(appliedKey, JSON.stringify(applied));
             showToast('Marked as applied!');
             renderJobs(allComments); // Re-render to show status change
         }
-        else if (action === 'unapply') { // Modified action: Remove Applied Status
-            if (applied[currentThreadId]?.[jobId]) { // Check if applied status exists
+        else if (action === 'unapply') {
+            if (applied[currentThreadId]?.[jobId]) {
                 delete applied[currentThreadId][jobId];
                 localStorage.setItem(appliedKey, JSON.stringify(applied));
                 showToast('Removed applied status');
@@ -1578,7 +1573,7 @@
 
       if (searchInput) {
           searchInput.value = exampleQuery; // Set input value
-          searchInput.focus(); // Optional: focus the input
+          searchInput.focus(); // focus the input
 
           // Ensure allComments is available before calling renderJobs
           if (typeof allComments !== 'undefined' && Array.isArray(allComments)) {
