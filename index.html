@@ -1031,8 +1031,10 @@
         if (window.confirm('Are you sure you want to clear all applied statuses, notes, and favorites? This cannot be undone.')) {
             applied = {};
             favorites = {};
+            notes = {}; // Clear the notes object
             localStorage.removeItem(appliedKey);
             localStorage.removeItem(favoriteKey);
+            localStorage.removeItem(notesKey); // Remove notes from localStorage
             // Deactivate any active filter buttons
             [favBtn, appliedBtn, notesBtn, hideAppliedBtn].forEach(b => b.classList.remove(highlightClass));
             renderJobs(allComments); // Re-render to show the cleared state
