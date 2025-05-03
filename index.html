@@ -359,6 +359,24 @@
       padding: 0.6rem 1.1rem; /* Increased padding */
       border-radius: 20px;
       font-size: 1rem; /* Increased switcher button font size */
+      /* Add border for consistency */
+      border: 1px solid var(--border);
+      color: var(--on-surface);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    /* Add this rule for the active state */
+    .switcher button.active {
+      background-color: var(--primary);
+      color: #000;
+      border-color: var(--primary);
+      font-weight: bold; /* Optional: make text bold */
+    }
+
+    /* Optional: Add hover effect for non-active buttons */
+    .switcher button:not(.active):hover {
+        background-color: var(--button-hover);
     }
 
     .theme-toggle {
