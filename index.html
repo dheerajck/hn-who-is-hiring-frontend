@@ -149,6 +149,38 @@
       color: var(--primary);
     }
 
+    /* Add these styles for code blocks within job content */
+    .job-content code {
+      white-space: pre-wrap;       /* Preserve whitespace but wrap lines */
+      word-wrap: break-word;       /* Break long words/strings if necessary */
+      display: block;              /* Make it block-level for better layout control */
+      background-color: rgba(255, 255, 255, 0.05); /* Subtle background */
+      padding: 0.5em;              /* Add some padding */
+      border-radius: 4px;          /* Rounded corners */
+      margin: 0.5em 0;             /* Add some vertical margin */
+      overflow-x: auto;            /* Add horizontal scroll if still too wide */
+      font-size: 0.9em;            /* Slightly smaller font size for code */
+    }
+    /* Optional: Style pre tags if they are used */
+    .job-content pre {
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        margin: 0.5em 0;
+        overflow-x: auto;
+    }
+    /* Optional: If pre contains code, reset code styles */
+    .job-content pre code {
+        display: inline; /* Reset display if inside pre */
+        background-color: transparent;
+        padding: 0;
+        margin: 0;
+        border-radius: 0;
+        font-size: inherit; /* Inherit size from pre */
+        white-space: inherit; /* Inherit wrapping from pre */
+        word-wrap: inherit;
+        overflow-x: initial; /* Let pre handle scrolling */
+    }
+
     .job-actions {
       display: flex;
       justify-content: flex-end;
