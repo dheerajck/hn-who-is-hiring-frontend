@@ -1427,21 +1427,27 @@
         if (!notes[currentThreadId]) notes[currentThreadId] = {};
         if (!favorites[currentThreadId]) favorites[currentThreadId] = {};
 
-
         if (action === 'star') {
-            // ... (star logic remains the same) ...
-            if (favorites[currentThreadId][jobId]) {
+            const starButton = actionTarget; // Get the button that was clicked
+
+            if (favorites[currentThreadId]?.[jobId]) { // Check if it IS currently a favorite
                 delete favorites[currentThreadId][jobId];
-                starBtn.classList.add('inactive');
-            } else {
+                starButton.classList.add('inactive'); // Make it inactive visually
+            } else { // If it's NOT currently a favorite
                 favorites[currentThreadId][jobId] = true;
-                starBtn.classList.remove('inactive');
+                starButton.classList.remove('inactive'); // Make it active visually
             }
             localStorage.setItem(favoriteKey, JSON.stringify(favorites));
-            if (showFavs) renderJobs(allComments);
+            // Only re-render the whole list if the 'Favorites' filter is active
+            if (showFavs) {
+                renderJobs(allComments);
+            }
         }
         else if (action === 'copy') {
-            // ... (copy logic remains the same) ...
+            const contentToCopy = jobCard.querySelector('.job-content').innerText;
+            navigator.clipboard.writeText(contentToCopy)
+              .then(() => showToast('Job details copied!'))
+              .catch(err => showToast('Failed to copy text.'));
         }
         else if (action === 'save-note') { // New action: Save Note
             const noteText = noteEl ? noteEl.value.trim() : '';
@@ -1449,7 +1455,9 @@
                 notes[currentThreadId][jobId] = noteText;
             } else {
                 // If note is empty, remove it from storage
-                delete notes[currentThreadId][jobId];
+                if (notes[currentThreadId]?.[jobId]) { // Check if note exists before deleting
+                    delete notes[currentThreadId][jobId];
+                }
             }
             localStorage.setItem(notesKey, JSON.stringify(notes));
             showToast('Note saved!');
@@ -1465,7 +1473,7 @@
             renderJobs(allComments); // Re-render to show status change
         }
         else if (action === 'unapply') { // Modified action: Remove Applied Status
-            if (applied[currentThreadId][jobId]) {
+            if (applied[currentThreadId]?.[jobId]) { // Check if applied status exists
                 delete applied[currentThreadId][jobId];
                 localStorage.setItem(appliedKey, JSON.stringify(applied));
                 showToast('Removed applied status');
