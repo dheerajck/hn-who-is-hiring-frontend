@@ -86,7 +86,7 @@
     }
 
     .job-card {
-      border: 1px solid var(--border);
+      border: 1px solid var(--border); /* Ensure default border width */
       margin: 1.2rem 0; /* Increased margin */
       padding: 1.2rem; /* Increased padding */
       border-radius: 8px;
@@ -96,8 +96,7 @@
     }
 
     .job-card.applied {
-      background: var(--success);
-      border-color: var(--success);
+      border: 2px solid var(--primary); /* Use a thicker primary color border */
     }
 
     .job-header {
