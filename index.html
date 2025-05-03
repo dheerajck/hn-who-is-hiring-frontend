@@ -492,6 +492,7 @@
       }
 
       .controls {
+        /* Keep as column for search + filters */
         flex-direction: column;
         align-items: stretch;
       }
@@ -501,11 +502,23 @@
       }
 
       .job-actions {
-        flex-direction: column;
+        /* Keep horizontal but allow wrapping */
+        flex-direction: row; /* Changed from column */
+        flex-wrap: wrap; /* Allow wrapping */
+        justify-content: flex-end; /* Align to the right */
       }
 
       .job-actions button {
-        width: 100%;
+        /* Allow buttons to shrink/wrap, don't force full width */
+        width: auto; /* Changed from 100% */
+        flex-grow: 1; /* Allow buttons to grow if space allows */
+        flex-basis: auto; /* Reset basis */
+        /* Add some bottom margin when wrapped */
+        margin-bottom: 0.25rem;
+      }
+      /* Ensure the last button doesn't have bottom margin */
+      .job-actions button:last-child {
+          margin-bottom: 0;
       }
 
       .switcher {
@@ -522,9 +535,15 @@
       }
 
       .filter-row {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 0.25rem;
+        /* Allow wrapping instead of forcing column */
+        flex-direction: row; /* Changed from column */
+        flex-wrap: wrap; /* Added */
+        align-items: center; /* Revert alignment if needed */
+        gap: 0.5rem; /* Adjust gap if needed */
+      }
+      /* Remove stretch alignment for filter row items */
+      .filter-row > * {
+          align-self: auto;
       }
 
       .hide-applied-label {
