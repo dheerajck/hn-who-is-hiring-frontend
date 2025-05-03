@@ -268,6 +268,40 @@
       font-size: 1rem;
     }
 
+    /* Styles for Operator Buttons */
+    .operator-buttons {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.5rem; /* Space below search input */
+      margin-bottom: 0.25rem; /* Space above parsed query */
+    }
+
+    .op-btn {
+      padding: 0.2rem 0.6rem; /* Smaller padding */
+      font-size: 0.9rem; /* Smaller font size */
+      min-width: 30px; /* Ensure minimum tap target size */
+      background-color: var(--button-bg);
+      color: var(--on-surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      cursor: pointer;
+      transition: var(--transition);
+      font-weight: bold;
+    }
+
+    .op-btn:hover {
+      background-color: var(--button-hover);
+    }
+
+    .op-btn:active {
+      transform: translateY(1px);
+    }
+
+    /* Adjust spacing for parsed query display if needed */
+    .parsed-query-container {
+      margin-top: 6px; /* Slightly reduced margin */
+    }
+
     /* Styles for Parsed Query Display */
     .parsed-query-container {
       display: flex;
@@ -549,6 +583,15 @@
       .hide-applied-label {
         margin-left: 0;
       }
+
+      .operator-buttons {
+        /* Ensure buttons are easily tappable */
+        gap: 0.75rem;
+      }
+      .op-btn {
+        padding: 0.4rem 0.8rem; /* Slightly larger padding on mobile */
+        font-size: 1rem;
+      }
     }
 
     /* Screen reader only class */
@@ -684,6 +727,28 @@
     .try-example-link:hover {
       text-decoration: underline;
     }
+
+    /* Operator buttons container */
+    .operator-buttons {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+
+    .op-btn {
+      padding: 0.5rem;
+      border: 1px solid var(--border);
+      background: var(--button-bg);
+      color: var(--on-surface);
+      cursor: pointer;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      transition: var(--transition);
+    }
+
+    .op-btn:hover {
+      background-color: var(--button-hover);
+    }
   </style>
 </head>
 <body class="dark">
@@ -699,6 +764,12 @@
       <div class="search-container">
         <i class="fas fa-search" aria-hidden="true"></i> <!-- Add the icon here -->
         <input id="search" type="text" placeholder='e.g., python | javascript & remote & ~us-based' aria-label="Search jobs">
+        <!-- Add Operator Buttons Container -->
+        <div class="operator-buttons">
+          <button class="op-btn" data-op=" & " title="AND Operator">&</button>
+          <button class="op-btn" data-op=" | " title="OR Operator">|</button>
+          <button class="op-btn" data-op=" ~" title="NOT Operator">~</button>
+        </div>
         <div id="parsed-query-display" class="parsed-query-container"></div>
         <a href="#" id="try-example-search" class="try-example-link">Try example search</a>
       </div>
@@ -1441,9 +1512,32 @@
 
     // Event listeners
     // Debounce the search input listener (e.g., 300ms delay)
-    document.getElementById('search').addEventListener('input', debounce(() => {
+    const debouncedRender = debounce(() => {
         renderJobs(allComments);
-    }, 300));
+    }, 300);
+    document.getElementById('search').addEventListener('input', debouncedRender);
+
+    // Add listeners for Operator Buttons
+    document.querySelectorAll('.op-btn').forEach(button => {
+        button.addEventListener('click', (e) => {
+            e.preventDefault(); // Prevent potential form submission if wrapped
+            const searchInput = document.getElementById('search');
+            const operator = button.dataset.op; // Get operator from data attribute (includes spaces)
+            const currentPos = searchInput.selectionStart;
+            const currentValue = searchInput.value;
+
+            // Insert operator at cursor position
+            searchInput.value = currentValue.substring(0, currentPos) + operator + currentValue.substring(currentPos);
+
+            // Move cursor after the inserted operator
+            searchInput.focus();
+            searchInput.setSelectionRange(currentPos + operator.length, currentPos + operator.length);
+
+            // Trigger the debounced search function immediately
+            debouncedRender();
+        });
+    });
+
     document.getElementById('themeToggle').addEventListener('click', toggleDark);
 
     // Add event listener for the 'Try example' link
