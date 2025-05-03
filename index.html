@@ -1299,9 +1299,18 @@
         }
 
         if (filteredComments.length === 0) {
+          let message = 'No matching jobs found.';
+          if (queryTokens.length > 0 && (showFavs || showApplied || showNotes || hideAppliedActive)) {
+            message = 'No matching jobs found for the current search and filter combination.';
+          } else if (queryTokens.length > 0) {
+            message = 'No matching jobs found for the current search.';
+          } else if (showFavs || showApplied || showNotes || hideAppliedActive) {
+             message = 'No matching jobs found for the active filter.';
+          }
+
           container.innerHTML = `
             <div class="loading fade-in">
-              <i class="far fa-meh" style="margin-right: 0.5rem;"></i> No matching jobs found. Maybe try a different search?
+              <i class="far fa-meh" style="margin-right: 0.5rem;"></i> ${message} Try adjusting your search or filters.
             </div>`;
           return;
         }
