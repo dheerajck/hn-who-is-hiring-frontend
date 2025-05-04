@@ -1184,16 +1184,40 @@
 
     // Reset button click handler
     resetBtn.onclick = () => {
-        if (window.confirm('Are you sure you want to clear all applied statuses, notes, and favorites? This cannot be undone.')) {
+        if (window.confirm('Are you sure you want to clear all applied statuses, notes, favorites, AND cached comments? This cannot be undone.')) {
+            // Clear user data
             applied = {};
             favorites = {};
             notes = {};
             localStorage.removeItem(appliedKey);
             localStorage.removeItem(favoriteKey);
             localStorage.removeItem(notesKey);
+
+            // --- START: Clear comment caches ---
+            try {
+                const keysToRemove = [];
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && key.startsWith('hn_thread_comments_')) {
+                        keysToRemove.push(key);
+                    }
+                }
+                keysToRemove.forEach(key => localStorage.removeItem(key));
+                console.log(`Removed ${keysToRemove.length} comment cache entries.`);
+            } catch (e) {
+                console.error("Error clearing comment caches from localStorage", e);
+            }
+            // --- END: Clear comment caches ---
+
+            // Reset UI
             [favBtn, appliedBtn, notesBtn, hideAppliedBtn].forEach(b => b.classList.remove(highlightClass));
-            renderJobs(allComments);
-            showToast('All data cleared.');
+            renderJobs(allComments); // Re-render with cleared data
+            showToast('All data and comment caches cleared.');
+
+            // Optional: Reload the current thread to fetch fresh data if needed
+            // if (currentThreadId) {
+            //     loadThread(currentThreadId);
+            // }
         }
     };
 
