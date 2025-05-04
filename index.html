@@ -897,8 +897,10 @@
     let allComments = [];
     const favoriteKey = 'favoriteHNv1';
     let favorites = JSON.parse(localStorage.getItem(favoriteKey) || '{}');
-    let toastTimeout;
-    let searchDebounceTimeout;
+
+    const searchDebounceTimeout = 300;
+    const toastTimeout = 3000;
+    let activeToastHideTimerId = null;
 
     const CACHE_KEY_THREAD_LIST = 'hn_thread_list'; // Key for the list cache
     const CACHE_DURATION_LIST = 4 * 60 * 60 * 1000; // 4 hours for thread list cache
@@ -996,7 +998,7 @@
     }
 
     // Show toast notification
-    function showToast(message, duration = 3000) {
+    function showToast(message, duration = toastTimeout) {
       const toast = document.getElementById('toast');
       if (!toast) {
           console.error("Toast element not found!"); // Check if element exists
@@ -1013,8 +1015,8 @@
 
       toast.classList.add('show');
       console.log("Toast classes after adding 'show':", toast.className); // Log classes
-      if (toastTimeout) clearTimeout(toastTimeout);
-      toastTimeout = setTimeout(() => {
+      if (activeToastHideTimerId) clearTimeout(activeToastHideTimerId);
+      activeToastHideTimerId = setTimeout(() => {
         toast.classList.remove('show');
         console.log("Hiding toast"); // Log when hiding
       }, duration);
@@ -1837,21 +1839,6 @@
 
     document.getElementById('jobs').addEventListener('click', handleJobCardClick);
 
-    function exportData() {
-      const blob = new Blob([JSON.stringify(applied, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'hn-tracker.json';
-      a.click();
-      URL.revokeObjectURL(url);
-      showToast('Data exported successfully!');
-    }
-
-    function importData() {
-      document.getElementById('importFile').click();
-    }
-
     function updateThemeIcon() {
       const themeToggle = document.getElementById('themeToggle');
       const icon = themeToggle.querySelector('i');
@@ -1882,7 +1869,7 @@
     // Debounce the search input listener (e.g., 300ms delay)
     const debouncedRender = debounce(() => {
         renderJobs(allComments);
-    }, 300);
+    }, searchDebounceTimeout);
     document.getElementById('search').addEventListener('input', debouncedRender);
 
     // Add listeners for Operator Buttons
