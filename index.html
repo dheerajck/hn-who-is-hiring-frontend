@@ -859,11 +859,13 @@
     let toastTimeout;
     let searchDebounceTimeout;
 
-    // const CACHE_DURATION_LIST = 4 * 60 * 60 * 1000; // 4 hours for thread list
-    const CACHE_DURATION_THREAD = 24 * 60 * 60 * 1000 * 30; // 30 days maybe ??
+    const CACHE_KEY_THREAD_LIST = 'hn_thread_list'; // Key for the list cache
+    const CACHE_DURATION_LIST = 4 * 60 * 60 * 1000; // 4 hours for thread list cache
+    const CACHE_DURATION_THREAD = 24 * 60 * 60 * 1000 * 30; // 30 days for individual thread comments
 
     function setCache(key, data, ttl = CACHE_DURATION_THREAD) {
       // 'data' for threads will be { comments: [...], cachedAt: timestamp }
+      // 'data' for list will be the array of threads
       const item = {
         data: data,
         expiry: Date.now() + ttl,
@@ -955,48 +957,141 @@
     // Show toast notification
     function showToast(message, duration = 3000) {
       const toast = document.getElementById('toast');
+      if (!toast) {
+          console.error("Toast element not found!"); // Check if element exists
+          return;
+      }
+      console.log(`Showing toast: "${message}"`); // Log toast message
       toast.textContent = message;
+
+      // --- Force Reflow ---
+      // Reading offsetHeight forces the browser to calculate the layout
+      // before proceeding to the next line where the class is added.
+      void toast.offsetHeight;
+      // --- End Force Reflow ---
+
       toast.classList.add('show');
+      console.log("Toast classes after adding 'show':", toast.className); // Log classes
       if (toastTimeout) clearTimeout(toastTimeout);
       toastTimeout = setTimeout(() => {
         toast.classList.remove('show');
+        console.log("Hiding toast"); // Log when hiding
       }, duration);
     }
 
     async function fetchHiringThreads() {
-      try {
+      const cachedListData = getCache(CACHE_KEY_THREAD_LIST);
+      let initialLoadFromCache = false;
+
+      if (cachedListData) {
+        console.log("Using cached thread list.");
+        threads = cachedListData; // Use cached list
+        initialLoadFromCache = true;
+        renderThreadSwitcher();
+        if (threads.length > 0) {
+          // Load the first thread from the cache immediately
+          loadThread(threads[0].objectID);
+        } else {
+           document.getElementById('jobs').innerHTML = `<div class="loading"><i class="fas fa-info-circle"></i> No threads found in cache. Checking for new ones...</div>`;
+        }
+        // Fetch latest list in the background to check for updates
+        fetchLatestThreadListInBackground(threads[0]?.objectID);
+      } else {
+        console.log("Fetching fresh thread list.");
+        // No valid cache, fetch fresh list
+        try {
+          const latestThreads = await fetchLatestThreadListFromApi();
+          threads = latestThreads;
+          setCache(CACHE_KEY_THREAD_LIST, threads, CACHE_DURATION_LIST); // Cache the new list
+          renderThreadSwitcher();
+
+          if (localStorage.getItem('darkMode') === 'disabled') {
+            document.body.classList.remove('dark');
+            updateThemeIcon();
+          }
+
+          if (threads.length > 0) {
+            loadThread(threads[0].objectID);
+          } else {
+             document.getElementById('jobs').innerHTML = `<div class="loading"><i class="fas fa-info-circle"></i> No hiring threads found.</div>`;
+          }
+        } catch (error) {
+          handleFetchError(error);
+        }
+      }
+    }
+
+    // Helper function to fetch the latest list from API
+    async function fetchLatestThreadListFromApi(isBackground = false) { // Added isBackground parameter
+
         // Example via their frontend to test things now
         // https://hn.algolia.com/?dateRange=all&page=0&prefix=true&query=%22Ask%20HN%3A%20Who%20is%20hiring%3F%22&sort=byDate&type=story
 
-        // Define the search query
+        console.log("API: Fetching real thread list...");
         const searchQuery = '"Ask HN: Who is hiring?"';
-
-        // URL encode the query
         const encodedQuery = encodeURIComponent(searchQuery);
-
-        // Construct the API URL
         const apiUrl = `https://hn.algolia.com/api/v1/search_by_date?query=${encodedQuery}&tags=ask_hn,author_whoishiring`;
 
-        // Use the constructed URL in the fetch call
         const res = await fetch(apiUrl);
-        const data = await res.json();
-        threads = data.hits;
-        renderThreadSwitcher();
-
-        // Check local storage for preference
-        if (localStorage.getItem('darkMode') === 'disabled') {
-          document.body.classList.remove('dark');
-          updateThemeIcon();
+        if (!res.ok) {
+            throw new Error(`Failed to fetch thread list: ${res.statusText}`);
         }
+        const data = await res.json();
+        return data.hits || []; // Return the hits array
+    }
 
-        loadThread(threads[0].objectID);
-      } catch (error) {
+    // Function to fetch in background and notify if new thread exists
+    async function fetchLatestThreadListInBackground(cachedLatestThreadId) {
+        try {
+            console.log(`Background Check: Starting. Cached latest ID: ${cachedLatestThreadId}`); // Log start
+
+            // Pass true for isBackground parameter
+            const latestThreads = await fetchLatestThreadListFromApi(true);
+            console.log(`Background Check: Fetched list. Newest ID from API: ${latestThreads[0]?.objectID}`); // Log fetched ID
+
+            if (latestThreads.length > 0) {
+                const newestThreadId = latestThreads[0].objectID;
+                // Check if a *different* newest thread is found compared to the one initially loaded/cached
+                if (newestThreadId && cachedLatestThreadId && newestThreadId !== cachedLatestThreadId) {
+                    console.log(`Background Check: New thread found! ID: ${newestThreadId}. Updating cache, UI (showing 6), and showing toast.`); // Log detection
+
+                    // 1. Update the global threads array
+                    threads = latestThreads;
+
+                    // 2. Update the cache with the new list
+                    setCache(CACHE_KEY_THREAD_LIST, threads, CACHE_DURATION_LIST);
+
+                    // 3. Re-render the thread switcher buttons, passing true to show 6
+                    renderThreadSwitcher(true); // <-- Pass true here
+                    console.log("Background Check: Updated thread switcher UI to show 6.");
+
+                    // // 4. Show a toast indicating the UI was updated, including the new thread title
+                    // const newestTitle = latestThreads[0]?.title || 'New Thread'; // Get the title
+                    // showToast(`✨ New thread added: "${newestTitle}". Click the button to load it.`, 10000); // Include title in message
+
+                } else if (newestThreadId === cachedLatestThreadId) {
+                    console.log("Background Check: Thread list is up-to-date."); // Log up-to-date
+                } else {
+                    console.log("Background Check: Condition not met for update/toast.", { newestThreadId, cachedLatestThreadId }); // Log if condition fails unexpectedly
+                }
+            } else {
+                 console.log("Background Check: Fetched list was empty."); // Log empty list
+            }
+        } catch (error) {
+            console.error("Background check for new threads failed:", error);
+            // Optionally show a toast for the error itself
+            // showToast("⚠️ Failed to check for new threads in the background.", 5000);
+        }
+    }
+
+    // Helper function to handle fetch errors
+    function handleFetchError(error) {
+        console.error("Error fetching threads:", error);
         document.getElementById('jobs').innerHTML = `
           <div class="loading">
             <i class="fas fa-exclamation-circle"></i>
-            Failed to load job listings. Please try again later.
+            Failed to load job listings. Please try again later. (${error.message})
           </div>`;
-      }
     }
 
     async function loadThread(id) {
@@ -1009,7 +1104,7 @@
       const buttons = document.querySelectorAll('.switcher button');
       buttons.forEach(btn => {
         btn.classList.remove('active');
-        if (btn.dataset.threadId === id) {
+        if (btn.dataset.threadId === String(id)) { // Ensure comparison is correct type
           btn.classList.add('active');
         }
       });
@@ -1019,80 +1114,66 @@
       let initialLoadFromCache = false;
 
       try {
-        // --- Check Cache ---
         const cachedData = getCache(cacheKey);
 
         if (cachedData && cachedData.comments && cachedData.cachedAt) {
           console.log(`Using cached comments for thread ${id}`);
-          allComments = cachedData.comments || []; // Use cached comments
+          allComments = cachedData.comments || [];
           lastCachedTimestampMs = cachedData.cachedAt;
           initialLoadFromCache = true;
 
-          renderJobs(allComments); // Render cached jobs immediately
+          renderJobs(allComments);
           const cachedCount = allComments.length;
           document.getElementById('load-time-info').textContent = `Displayed ${cachedCount} cached jobs. Checking for updates...`;
 
-          // --- Fetch Newer Comments ---
+
+          let fetchedHits = [];
+
           const lastCachedTimestampSeconds = Math.floor(lastCachedTimestampMs / 1000);
           const updateApiUrl = `https://hn.algolia.com/api/v1/search_by_date?tags=comment,story_${id}&numericFilters=created_at_i>${lastCachedTimestampSeconds}&hitsPerPage=1000`;
-
-          console.log(`Fetching comments newer than ${new Date(lastCachedTimestampMs).toISOString()}`);
+          console.log(`API: Fetching comments newer than ${new Date(lastCachedTimestampMs).toISOString()}`);
           const updateRes = await fetch(updateApiUrl);
           if (!updateRes.ok) {
               throw new Error(`Failed to fetch updates: ${updateRes.statusText}`);
           }
           const updateData = await updateRes.json();
-          const fetchedHits = updateData.hits || []; // All comments fetched (incl. nested)
+          fetchedHits = updateData.hits || [];
+
+
           const newCommentsCount = fetchedHits.length;
           console.log(`Fetched ${newCommentsCount} potential new comments.`);
 
-          // --- START: Filter for top-level comments only ---
-          const newTopLevelComments = fetchedHits.filter(comment => comment.parent_id == id); // Filter: parent_id must match the story id
+          const newTopLevelComments = fetchedHits.filter(comment => String(comment.parent_id) === String(id)); // Ensure comparison is correct type
           const newTopLevelCount = newTopLevelComments.length;
           console.log(`Filtered down to ${newTopLevelCount} new top-level comments.`);
-          // --- END: Filter for top-level comments only ---
 
-          // --- START: Declare uniqueNewComments earlier ---
-          let uniqueNewComments = []; // Initialize as an empty array
-          // --- END: Declare uniqueNewComments earlier ---
-
+          let uniqueNewComments = [];
           if (newTopLevelCount > 0) {
-            // Merge new *top-level* comments, avoiding duplicates
-            const existingCommentIds = new Set(allComments.map(c => c.id || c.objectID));
-            // Assign the filtered array to the existing variable
-            uniqueNewComments = newTopLevelComments.filter(nc => nc.objectID && !existingCommentIds.has(nc.objectID));
+            const existingCommentIds = new Set(allComments.map(c => String(c.id || c.objectID))); // Ensure comparison is correct type
+            uniqueNewComments = newTopLevelComments.filter(nc => nc.objectID && !existingCommentIds.has(String(nc.objectID)));
 
-            // Prepend new comments
             allComments = [...uniqueNewComments, ...allComments];
-
-            // --- Minimize before caching ---
             const minimizedCommentsForCache = allComments.map(minimizeCommentObject);
             setCache(cacheKey, { comments: minimizedCommentsForCache, cachedAt: Date.now() });
-
-            renderJobs(allComments); // Re-render with merged list
+            renderJobs(allComments);
           }
 
           const endTime = performance.now();
           const duration = ((endTime - startTime) / 1000).toFixed(2);
-          // Now uniqueNewComments is always defined, even if the if block wasn't entered
           document.getElementById('load-time-info').textContent = `Loaded ${allComments.length} jobs (${uniqueNewComments.length} new jobs added) in ${duration} seconds.`;
 
         } else {
-          // --- Cache Miss or Invalid Cache: Fetch All Comments ---
-          console.log(`Fetching all comments for thread ${id} via items endpoint`);
-          const res = await fetch(`https://hn.algolia.com/api/v1/items/${id}`);
-           if (!res.ok) {
-              throw new Error(`Failed to fetch thread details: ${res.statusText}`);
-          }
-          const data = await res.json();
-          // data.children from items endpoint are already top-level comments
-          allComments = (data.children || []).slice().reverse();
+            console.log(`API: Fetching all comments for thread ${id} via items endpoint`);
+            const res = await fetch(`https://hn.algolia.com/api/v1/items/${id}`);
+            if (!res.ok) {
+                throw new Error(`Failed to fetch thread details: ${res.statusText}`);
+            }
+            const data = await res.json();
+            allComments = (data.children || []).slice().reverse();
 
-          // --- Minimize before caching (Cache Miss case) ---
           const minimizedCommentsForCache = allComments.map(minimizeCommentObject);
           setCache(cacheKey, { comments: minimizedCommentsForCache, cachedAt: Date.now() });
-
-          renderJobs(allComments); // Render the fetched jobs
+          renderJobs(allComments);
 
           const endTime = performance.now();
           const duration = ((endTime - startTime) / 1000).toFixed(2);
@@ -1107,22 +1188,25 @@
             Failed to load thread details. ${error.message || ''}
           </div>`;
         document.getElementById('load-time-info').textContent = 'Failed to load jobs.';
-        // Optionally clear potentially bad cache entry
-        // localStorage.removeItem(cacheKey);
       }
     }
 
-    function renderThreadSwitcher() {
+    function renderThreadSwitcher(showExtra = false) {
       const container = document.querySelector('.switcher');
       container.innerHTML = '';
 
-      threads.slice(0, 5).forEach(t => {
+      // Determine how many threads to show based on the flag
+      const numThreadsToShow = showExtra ? 6 : 5;
+      console.log(`Rendering switcher, showing top ${numThreadsToShow} threads.`); // Log how many are shown
+
+      threads.slice(0, numThreadsToShow).forEach(t => { // Use the calculated number
         const button = document.createElement('button');
         button.textContent = t.title;
         button.setAttribute('data-thread-id', t.objectID);
         button.setAttribute('aria-label', `Load thread: ${t.title}`);
 
-        if (t.objectID === currentThreadId) {
+        // Ensure comparison is correct type (string vs string)
+        if (String(t.objectID) === String(currentThreadId)) {
           button.classList.add('active');
         }
 
@@ -1201,12 +1285,12 @@
                 const keysToRemove = [];
                 for (let i = 0; i < localStorage.length; i++) {
                     const key = localStorage.key(i);
-                    if (key && key.startsWith('hn_thread_comments_')) {
+                    if (key && key.startsWith('hn_thread_comments_') || key.startsWith(CACHE_KEY_THREAD_LIST)) {
                         keysToRemove.push(key);
                     }
                 }
                 keysToRemove.forEach(key => localStorage.removeItem(key));
-                console.log(`Removed ${keysToRemove.length} comment cache entries.`);
+                console.log(`Removed ${keysToRemove.length} thread and comment caches from localStorage.`);
             } catch (e) {
                 console.error("Error clearing comment caches from localStorage", e);
             }
