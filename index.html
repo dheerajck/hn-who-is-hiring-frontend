@@ -859,6 +859,44 @@
     let toastTimeout;
     let searchDebounceTimeout;
 
+    // const CACHE_DURATION_LIST = 4 * 60 * 60 * 1000; // 4 hours for thread list
+    const CACHE_DURATION_THREAD = 24 * 60 * 60 * 1000 * 30; // 30 days maybe ??
+
+    function setCache(key, data, ttl = CACHE_DURATION_THREAD) {
+      // 'data' for threads will be { comments: [...], cachedAt: timestamp }
+      const item = {
+        data: data,
+        expiry: Date.now() + ttl,
+      };
+      try {
+        localStorage.setItem(key, JSON.stringify(item));
+      } catch (e) {
+        console.error("Error saving to localStorage", e);
+        // Consider clearing old cache items if quota is exceeded
+      }
+    }
+
+    function getCache(key) {
+      try {
+        const itemStr = localStorage.getItem(key);
+        if (!itemStr) {
+          return null;
+        }
+        const item = JSON.parse(itemStr);
+        const now = Date.now();
+        if (now > item.expiry) {
+          localStorage.removeItem(key); // Remove expired item
+          return null;
+        }
+        // Returns the 'data' part, which could be the list or { comments, cachedAt }
+        return item.data;
+      } catch (e) {
+        console.error("Error reading from localStorage", e);
+        localStorage.removeItem(key); // Remove potentially corrupted item
+        return null; // Treat errors as cache miss
+      }
+    }
+
     // Debounce utility function
     function debounce(func, delay) {
       let timeoutId;
@@ -962,44 +1000,112 @@
     }
 
     async function loadThread(id) {
-      const startTime = performance.now(); // Record start time
+      const startTime = performance.now();
       currentThreadId = id;
-      document.getElementById('jobs').innerHTML = `
-        <div class="loading">
-          <i class="fas fa-circle-notch"></i>
-          Loading thread...
-        </div>`;
-      document.getElementById('load-time-info').textContent = ''; // Clear previous time
+      document.getElementById('jobs').innerHTML = `<div class="loading"><i class="fas fa-circle-notch"></i> Loading thread...</div>`;
+      document.getElementById('load-time-info').textContent = '';
+
+      // Update active thread button immediately
+      const buttons = document.querySelectorAll('.switcher button');
+      buttons.forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.dataset.threadId === id) {
+          btn.classList.add('active');
+        }
+      });
+
+      const cacheKey = `hn_thread_comments_${id}`;
+      let lastCachedTimestampMs = 0;
+      let initialLoadFromCache = false;
 
       try {
-        const res = await fetch(`https://hn.algolia.com/api/v1/items/${id}`);
-        const data = await res.json();
-        allComments = data.children.slice().reverse(); // Reverse for descending order
-        const totalCommentsCount = allComments.length; // Get the total count
+        // --- Check Cache ---
+        const cachedData = getCache(cacheKey);
 
-        // Update active thread button
-        const buttons = document.querySelectorAll('.switcher button');
-        buttons.forEach(btn => {
-          btn.classList.remove('active');
-          if (btn.dataset.threadId === id) {
-            btn.classList.add('active');
+        if (cachedData && cachedData.comments && cachedData.cachedAt) {
+          console.log(`Using cached comments for thread ${id}`);
+          allComments = cachedData.comments || []; // Use cached comments
+          lastCachedTimestampMs = cachedData.cachedAt;
+          initialLoadFromCache = true;
+
+          renderJobs(allComments); // Render cached jobs immediately
+          const cachedCount = allComments.length;
+          document.getElementById('load-time-info').textContent = `Displayed ${cachedCount} cached jobs. Checking for updates...`;
+
+          // --- Fetch Newer Comments ---
+          const lastCachedTimestampSeconds = Math.floor(lastCachedTimestampMs / 1000);
+          const updateApiUrl = `https://hn.algolia.com/api/v1/search_by_date?tags=comment,story_${id}&numericFilters=created_at_i>${lastCachedTimestampSeconds}&hitsPerPage=1000`;
+
+          console.log(`Fetching comments newer than ${new Date(lastCachedTimestampMs).toISOString()}`);
+          const updateRes = await fetch(updateApiUrl);
+          if (!updateRes.ok) {
+              throw new Error(`Failed to fetch updates: ${updateRes.statusText}`);
           }
-        });
+          const updateData = await updateRes.json();
+          const fetchedHits = updateData.hits || []; // All comments fetched (incl. nested)
+          const newCommentsCount = fetchedHits.length;
+          console.log(`Fetched ${newCommentsCount} potential new comments.`);
 
-        renderJobs(allComments);
+          // --- START: Filter for top-level comments only ---
+          const newTopLevelComments = fetchedHits.filter(comment => comment.parent_id == id); // Filter: parent_id must match the story id
+          const newTopLevelCount = newTopLevelComments.length;
+          console.log(`Filtered down to ${newTopLevelCount} new top-level comments.`);
+          // --- END: Filter for top-level comments only ---
 
-        const endTime = performance.now(); // Record end time
-        const duration = ((endTime - startTime) / 1000).toFixed(2); // Calculate duration in seconds
-        // Update the text content to include the job count
-        document.getElementById('load-time-info').textContent = `Loaded ${totalCommentsCount} jobs in ${duration} seconds.`;
+          // --- START: Declare uniqueNewComments earlier ---
+          let uniqueNewComments = []; // Initialize as an empty array
+          // --- END: Declare uniqueNewComments earlier ---
+
+          if (newTopLevelCount > 0) {
+            // Merge new *top-level* comments, avoiding duplicates
+            const existingCommentIds = new Set(allComments.map(c => c.id || c.objectID));
+            // Assign the filtered array to the existing variable
+            uniqueNewComments = newTopLevelComments.filter(nc => nc.objectID && !existingCommentIds.has(nc.objectID));
+
+            // Prepend new comments
+            allComments = [...uniqueNewComments, ...allComments];
+
+            // Update cache with merged list and new timestamp
+            setCache(cacheKey, { comments: allComments, cachedAt: Date.now() });
+            renderJobs(allComments); // Re-render with merged list
+          }
+
+          const endTime = performance.now();
+          const duration = ((endTime - startTime) / 1000).toFixed(2);
+          // Now uniqueNewComments is always defined, even if the if block wasn't entered
+          document.getElementById('load-time-info').textContent = `Loaded ${allComments.length} jobs (${uniqueNewComments.length} new jobs added) in ${duration} seconds.`;
+
+        } else {
+          // --- Cache Miss or Invalid Cache: Fetch All Comments ---
+          console.log(`Fetching all comments for thread ${id} via items endpoint`);
+          const res = await fetch(`https://hn.algolia.com/api/v1/items/${id}`);
+           if (!res.ok) {
+              throw new Error(`Failed to fetch thread details: ${res.statusText}`);
+          }
+          const data = await res.json();
+          // data.children from items endpoint are already top-level comments
+          allComments = (data.children || []).slice().reverse();
+
+          // Store in cache
+          setCache(cacheKey, { comments: allComments, cachedAt: Date.now() });
+
+          renderJobs(allComments); // Render the fetched jobs
+
+          const endTime = performance.now();
+          const duration = ((endTime - startTime) / 1000).toFixed(2);
+          document.getElementById('load-time-info').textContent = `Loaded ${allComments.length} jobs in ${duration} seconds.`;
+        }
 
       } catch (error) {
+        console.error("Error loading thread:", error);
         document.getElementById('jobs').innerHTML = `
           <div class="loading">
             <i class="fas fa-exclamation-circle"></i>
-            Failed to load thread details. Please try again later.
+            Failed to load thread details. ${error.message || ''}
           </div>`;
-        document.getElementById('load-time-info').textContent = 'Failed to load jobs.'; // Update status on error
+        document.getElementById('load-time-info').textContent = 'Failed to load jobs.';
+        // Optionally clear potentially bad cache entry
+        // localStorage.removeItem(cacheKey);
       }
     }
 
@@ -1318,15 +1424,15 @@
 
         // Apply the single active filter
         if (showFavs) {
-          filteredComments = filteredComments.filter(c => favorites[currentThreadId]?.[c.id]);
+          filteredComments = filteredComments.filter(c => favorites[currentThreadId]?.[c.id || c.objectID]);
         } else if (showApplied) {
-          filteredComments = filteredComments.filter(c => applied[currentThreadId]?.[c.id]);
+          filteredComments = filteredComments.filter(c => applied[currentThreadId]?.[c.id || c.objectID]);
         } else if (hideAppliedActive) { // Use the button's active state
-          filteredComments = filteredComments.filter(c => !applied[currentThreadId]?.[c.id]);
+          filteredComments = filteredComments.filter(c => !applied[currentThreadId]?.[c.id || c.objectID]);
         } else if (showNotes) {
           filteredComments = filteredComments.filter(c => {
             // Check the notes object directly
-            return notes[currentThreadId]?.[c.id] && notes[currentThreadId][c.id].trim().length > 0;
+            return notes[currentThreadId]?.[c.id || c.objectID] && notes[currentThreadId][c.id || c.objectID].trim().length > 0;
           });
         }
 
@@ -1341,7 +1447,7 @@
                 evaluateQuery(
                     (c.text || '').toLowerCase(),
                     (c.author || '').toLowerCase(),
-                    (notes[currentThreadId]?.[c.id] || '').toLowerCase(),
+                    (notes[currentThreadId]?.[c.id || c.objectID] || '').toLowerCase(),
                     queryTokens
                 )
             );
@@ -1365,10 +1471,11 @@
         }
 
         filteredComments.forEach(c => {
-            const appliedStatus = applied[currentThreadId]?.[c.id]; // Get applied date/status
-            const note = notes[currentThreadId]?.[c.id] || ''; // Get note from notes object
+            const jobId = c.id || c.objectID; // Use whichever ID is present
+            const appliedStatus = applied[currentThreadId]?.[jobId]; // Get applied date/status
+            const note = notes[currentThreadId]?.[jobId] || ''; // Get note from notes object
             const date = appliedStatus ? new Date(appliedStatus).toLocaleString() : ''; // Format date if applied
-            const isFav = favorites[currentThreadId]?.[c.id];
+            const isFav = favorites[currentThreadId]?.[jobId];
 
             let postedTime = '';
             if (c.created_at) {
@@ -1406,7 +1513,7 @@
             const article = document.createElement('article');
             article.className = 'job-card fade-in';
             article.tabIndex = 0;
-            article.setAttribute('data-job-id', c.id);
+            article.setAttribute('data-job-id', jobId);
 
             if (appliedStatus) article.classList.add('applied'); // Add class if applied
 
@@ -1419,7 +1526,7 @@
                 <div class="job-header-status">
                   ${appliedStatus ? `<span class="badge">Applied</span>` : ''}
                   ${date ? `<div class="meta"><i class="far fa-calendar"></i> ${date}</div>` : ''}
-                  <a href="https://news.ycombinator.com/item?id=${c.id}" target="_blank" rel="noopener noreferrer" class="job-company meta" title="View original comment by ${authorName}"><i class="fas fa-user" aria-hidden="true"></i> ${authorName}</a>
+                  <a href="https://news.ycombinator.com/item?id=${jobId}" target="_blank" rel="noopener noreferrer" class="job-company meta" title="View original comment by ${authorName}"><i class="fas fa-user" aria-hidden="true"></i> ${authorName}</a>
                 </div>
                 <!-- Main Header Content -->
                 <div class="job-header-main"></div>
