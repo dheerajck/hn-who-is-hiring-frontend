@@ -1613,19 +1613,23 @@
 
         let filteredComments = comments; // Start with all comments
 
+        // --- FIX: Use consistent Job ID access in filters ---
+        const getJobId = (comment) => comment.itemId || comment.id || comment.objectID;
+
         // Apply the single active filter
         if (showFavs) {
-          filteredComments = filteredComments.filter(c => favorites[currentThreadId]?.[c.id || c.objectID]);
+          filteredComments = filteredComments.filter(c => favorites[currentThreadId]?.[getJobId(c)]);
         } else if (showApplied) {
-          filteredComments = filteredComments.filter(c => applied[currentThreadId]?.[c.id || c.objectID]);
+          filteredComments = filteredComments.filter(c => applied[currentThreadId]?.[getJobId(c)]);
         } else if (hideAppliedActive) { // Use the button's active state
-          filteredComments = filteredComments.filter(c => !applied[currentThreadId]?.[c.id || c.objectID]);
+          filteredComments = filteredComments.filter(c => !applied[currentThreadId]?.[getJobId(c)]);
         } else if (showNotes) {
           filteredComments = filteredComments.filter(c => {
-            // Check the notes object directly
-            return notes[currentThreadId]?.[c.id || c.objectID] && notes[currentThreadId][c.id || c.objectID].trim().length > 0;
+            const jobId = getJobId(c);
+            return notes[currentThreadId]?.[jobId] && notes[currentThreadId][jobId].trim().length > 0;
           });
         }
+        // --- END FIX ---
 
         // Apply search query filter (runs after the main filter)
         const queryTokens = parseQuery(query); // Parse the raw query
@@ -1634,14 +1638,15 @@
         renderParsedQuery(queryTokens); // <-- Call the new render function
 
         if (queryTokens.length > 0) { // Only filter if query is not empty
-            filteredComments = filteredComments.filter(c =>
-                evaluateQuery(
+            filteredComments = filteredComments.filter(c => {
+                const jobId = getJobId(c); // Use consistent ID getter here too
+                return evaluateQuery(
                     (c.text || '').toLowerCase(),
                     (c.author || '').toLowerCase(),
-                    (notes[currentThreadId]?.[c.id || c.objectID] || '').toLowerCase(),
+                    (notes[currentThreadId]?.[jobId] || '').toLowerCase(), // Use jobId here
                     queryTokens
-                )
-            );
+                );
+            });
         }
 
         if (filteredComments.length === 0) {
@@ -1662,8 +1667,7 @@
         }
 
         filteredComments.forEach(c => {
-            const jobId = c.itemId || c.id || c.objectID; // Use the minimized key first
-            // --- END FIX ---
+            const jobId = getJobId(c); // Use consistent ID getter
             const appliedStatus = applied[currentThreadId]?.[jobId]; // Get applied date/status
             const note = notes[currentThreadId]?.[jobId] || ''; // Get note from notes object
             const date = appliedStatus ? new Date(appliedStatus).toLocaleString() : ''; // Format date if applied
