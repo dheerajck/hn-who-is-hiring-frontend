@@ -847,6 +847,47 @@
   </button>
 
   <script>
+
+    console.log("Hi")
+    // const USE_MOCK_DATA = true;
+    const USE_MOCK_DATA = false;
+
+
+    // --- START: Mock Data Definitions ---
+    const MOCK_INITIAL_THREAD_HITS = [
+        { objectID: '43884796', title: 'Ask HN: Who is hiring? (May 2025 - Mock)' }, // Newest in initial set
+        { objectID: '43872046', title: 'Ask HN: Who is hiring? (April 2025 - Mock)' },
+        { objectID: '43866535', title: 'Ask HN: Who is hiring? (March 2025 - Mock)' },
+        { objectID: '43865039', title: 'Ask HN: Who is hiring? (Feb 2025 - Mock)' },
+        { objectID: '43861861', title: 'Ask HN: Who is hiring? (Jan 2025 - Mock)' },
+        { objectID: '43861420', title: 'Ask HN: Who is hiring? (Dec 2024 - Mock)' },
+        { objectID: '43858638', title: 'Ask HN: Who is hiring? (Nov 2024 - Mock)' },
+    ];
+
+    const MOCK_BACKGROUND_THREAD_HITS = [
+        { objectID: '43864562', title: 'Ask HN: Who is hiring? (June 2025 - Mock NEW)' }, // The new one for background check
+        ...MOCK_INITIAL_THREAD_HITS // Include the previous ones
+    ];
+
+    const MOCK_COMMENTS_INITIAL = {
+        '43884796': [ // Comments for the first mock thread
+            { id: 101, objectID: 101, text: 'Mock Job 1: We need a JavaScript wizard! Remote OK.', author: 'mock_company_a', created_at: '2025-05-03T10:00:00Z', created_at_i: 1746266400, parent_id: '43884796' },
+            { id: 102, objectID: 102, text: 'Mock Job 2: Python developer wanted. On-site.', author: 'mock_company_b', created_at: '2025-05-03T09:30:00Z', created_at_i: 1746264600, parent_id: '43884796' },
+            { id: 103, objectID: 103, text: 'Mock Job 3: Rust engineer needed. <pre><code>code example</code></pre>', author: 'mock_company_c', created_at: '2025-05-03T09:00:00Z', created_at_i: 1746262800, parent_id: '43884796' },
+        ],
+        // Add more mock comments for other thread IDs if needed
+    };
+
+    const MOCK_COMMENTS_UPDATE = {
+         '43884796': [ // New comments for the first mock thread
+            { id: 104, objectID: 104, text: 'Mock Job 4 (NEW): Go developer, remote.', author: 'mock_company_d', created_at: '2025-05-04T11:00:00Z', created_at_i: 1746356400, parent_id: '43884796' },
+            { id: 105, objectID: 105, text: 'Mock Job 5 (NEW): Data Scientist needed.', author: 'mock_company_e', created_at: '2025-05-04T10:30:00Z', created_at_i: 1746354600, parent_id: '43884796' },
+        ]
+         // Add more mock updates for other thread IDs if needed
+    };
+    // --- END: Mock Data Definitions ---
+
+
     const appliedKey = 'appliedHNv1';
     let applied = JSON.parse(localStorage.getItem(appliedKey) || '{}');
     const notesKey = 'notesHNv1';
@@ -1024,9 +1065,24 @@
     // Helper function to fetch the latest list from API
     async function fetchLatestThreadListFromApi(isBackground = false) { // Added isBackground parameter
 
+
+        if (USE_MOCK_DATA) {
+            console.log(`MOCK: Fetching thread list (${isBackground ? 'background' : 'initial'})...`);
+            const mockData = isBackground ? MOCK_BACKGROUND_THREAD_HITS : MOCK_INITIAL_THREAD_HITS;
+            return new Promise(resolve => {
+                setTimeout(() => { // Simulate network delay
+                    console.log("MOCK: Returning mock thread list.");
+                    resolve([...mockData]); // Return a copy
+                }, 500); // 500ms delay
+            });
+        }
+
+
         // Example via their frontend to test things now
         // https://hn.algolia.com/?dateRange=all&page=0&prefix=true&query=%22Ask%20HN%3A%20Who%20is%20hiring%3F%22&sort=byDate&type=story
 
+
+        // --- Real API call ---
         console.log("API: Fetching real thread list...");
         const searchQuery = '"Ask HN: Who is hiring?"';
         const encodedQuery = encodeURIComponent(searchQuery);
@@ -1044,6 +1100,15 @@
     async function fetchLatestThreadListInBackground(cachedLatestThreadId) {
         try {
             console.log(`Background Check: Starting. Cached latest ID: ${cachedLatestThreadId}`); // Log start
+
+            // --- START: Add delay for mock background fetch ---
+            if (USE_MOCK_DATA) {
+                const backgroundMockDelay = 2000; // 2 seconds
+                console.log(`MOCK: Simulating background check delay (${backgroundMockDelay}ms)...`);
+                await new Promise(resolve => setTimeout(resolve, backgroundMockDelay));
+                console.log("MOCK: Background check delay complete.");
+            }
+            // --- END: Add delay for mock background fetch ---
 
             // Pass true for isBackground parameter
             const latestThreads = await fetchLatestThreadListFromApi(true);
@@ -1126,19 +1191,24 @@
           const cachedCount = allComments.length;
           document.getElementById('load-time-info').textContent = `Displayed ${cachedCount} cached jobs. Checking for updates...`;
 
-
+          // --- Fetch Newer Comments (Mock or Real) ---
           let fetchedHits = [];
-
-          const lastCachedTimestampSeconds = Math.floor(lastCachedTimestampMs / 1000);
-          const updateApiUrl = `https://hn.algolia.com/api/v1/search_by_date?tags=comment,story_${id}&numericFilters=created_at_i>${lastCachedTimestampSeconds}&hitsPerPage=1000`;
-          console.log(`API: Fetching comments newer than ${new Date(lastCachedTimestampMs).toISOString()}`);
-          const updateRes = await fetch(updateApiUrl);
-          if (!updateRes.ok) {
-              throw new Error(`Failed to fetch updates: ${updateRes.statusText}`);
+          if (USE_MOCK_DATA) {
+              console.log(`MOCK: Fetching comments newer than ${new Date(lastCachedTimestampMs).toISOString()}`);
+              await new Promise(resolve => setTimeout(resolve, 400)); // Simulate delay
+              fetchedHits = MOCK_COMMENTS_UPDATE[id] || []; // Get mock updates for this thread ID
+              console.log(`MOCK: Returning ${fetchedHits.length} new mock comments.`);
+          } else {
+              const lastCachedTimestampSeconds = Math.floor(lastCachedTimestampMs / 1000);
+              const updateApiUrl = `https://hn.algolia.com/api/v1/search_by_date?tags=comment,story_${id}&numericFilters=created_at_i>${lastCachedTimestampSeconds}&hitsPerPage=1000`;
+              console.log(`API: Fetching comments newer than ${new Date(lastCachedTimestampMs).toISOString()}`);
+              const updateRes = await fetch(updateApiUrl);
+              if (!updateRes.ok) {
+                  throw new Error(`Failed to fetch updates: ${updateRes.statusText}`);
+              }
+              const updateData = await updateRes.json();
+              fetchedHits = updateData.hits || [];
           }
-          const updateData = await updateRes.json();
-          fetchedHits = updateData.hits || [];
-
 
           const newCommentsCount = fetchedHits.length;
           console.log(`Fetched ${newCommentsCount} potential new comments.`);
@@ -1163,13 +1233,21 @@
           document.getElementById('load-time-info').textContent = `Loaded ${allComments.length} jobs (${uniqueNewComments.length} new jobs added) in ${duration} seconds.`;
 
         } else {
-            console.log(`API: Fetching all comments for thread ${id} via items endpoint`);
-            const res = await fetch(`https://hn.algolia.com/api/v1/items/${id}`);
-            if (!res.ok) {
-                throw new Error(`Failed to fetch thread details: ${res.statusText}`);
-            }
-            const data = await res.json();
-            allComments = (data.children || []).slice().reverse();
+          // --- Cache Miss or Invalid Cache: Fetch All Comments (Mock or Real) ---
+          if (USE_MOCK_DATA) {
+              console.log(`MOCK: Fetching all comments for thread ${id}`);
+              await new Promise(resolve => setTimeout(resolve, 600)); // Simulate delay
+              allComments = (MOCK_COMMENTS_INITIAL[id] || []).slice().reverse(); // Get initial mock comments
+              console.log(`MOCK: Returning ${allComments.length} initial mock comments.`);
+          } else {
+              console.log(`API: Fetching all comments for thread ${id} via items endpoint`);
+              const res = await fetch(`https://hn.algolia.com/api/v1/items/${id}`);
+              if (!res.ok) {
+                  throw new Error(`Failed to fetch thread details: ${res.statusText}`);
+              }
+              const data = await res.json();
+              allComments = (data.children || []).slice().reverse();
+          }
 
           const minimizedCommentsForCache = allComments.map(minimizeCommentObject);
           setCache(cacheKey, { comments: minimizedCommentsForCache, cachedAt: Date.now() });
@@ -1916,7 +1994,7 @@
     }
 
     // Initialize
-    fetchHiringThreads();
+    fetchHiringThreads(); // This will now potentially use mock data based on the flag
   </script>
 </body>
 </html>
