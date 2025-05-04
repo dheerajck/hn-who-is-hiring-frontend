@@ -1065,8 +1065,10 @@
             // Prepend new comments
             allComments = [...uniqueNewComments, ...allComments];
 
-            // Update cache with merged list and new timestamp
-            setCache(cacheKey, { comments: allComments, cachedAt: Date.now() });
+            // --- Minimize before caching ---
+            const minimizedCommentsForCache = allComments.map(minimizeCommentObject);
+            setCache(cacheKey, { comments: minimizedCommentsForCache, cachedAt: Date.now() });
+
             renderJobs(allComments); // Re-render with merged list
           }
 
@@ -1086,8 +1088,9 @@
           // data.children from items endpoint are already top-level comments
           allComments = (data.children || []).slice().reverse();
 
-          // Store in cache
-          setCache(cacheKey, { comments: allComments, cachedAt: Date.now() });
+          // --- Minimize before caching (Cache Miss case) ---
+          const minimizedCommentsForCache = allComments.map(minimizeCommentObject);
+          setCache(cacheKey, { comments: minimizedCommentsForCache, cachedAt: Date.now() });
 
           renderJobs(allComments); // Render the fetched jobs
 
@@ -1495,7 +1498,8 @@
         }
 
         filteredComments.forEach(c => {
-            const jobId = c.id || c.objectID; // Use whichever ID is present
+            const jobId = c.itemId || c.id || c.objectID; // Use the minimized key first
+            // --- END FIX ---
             const appliedStatus = applied[currentThreadId]?.[jobId]; // Get applied date/status
             const note = notes[currentThreadId]?.[jobId] || ''; // Get note from notes object
             const date = appliedStatus ? new Date(appliedStatus).toLocaleString() : ''; // Format date if applied
@@ -1812,6 +1816,20 @@
         behavior: 'smooth'
       });
     };
+
+    function minimizeCommentObject(comment) {
+      // Select only the fields needed, storing a single consistent ID
+      const itemId = comment.id || comment.objectID; // Get the ID from whichever field exists
+      return {
+        itemId: itemId, // Store under a consistent name
+        text: comment.text || comment.comment_text,
+        author: comment.author,
+        created_at: comment.created_at,
+        created_at_i: comment.created_at_i,
+        parent_id: comment.parent_id
+        // Add any other fields *absolutely necessary*
+      };
+    }
 
     // Initialize
     fetchHiringThreads();
