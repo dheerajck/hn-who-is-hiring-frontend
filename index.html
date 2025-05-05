@@ -107,11 +107,38 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 1rem; /* Add gap between content and theme toggle */
     }
 
-    h1 {
-      margin-top: 0;
-      font-size: 2rem;
+    .header-content { /* Keep this for overall alignment */
+      display: flex;
+      align-items: center; /* Vertically center align items */
+      gap: 0.75rem;
+      flex-grow: 1;
+    }
+
+    /* New Text Logo Styles */
+    .text-logo {
+      display: flex;
+      align-items: center; /* Align HN and WHO'S/HIRING block */
+      gap: 0.5em; /* Space between HN and the rest */
+      line-height: 1.1; /* Adjust line height for the two lines */
+      margin-right: auto; /* Push theme toggle to the right */
+    }
+
+    .logo-hn {
+      font-size: 2.2rem; /* Make HN larger */
+      font-weight: bold;
+      color: var(--primary); /* Use primary color for HN */
+    }
+
+    .logo-wh {
+      font-size: 1rem; /* Smaller font size for WHO'S HIRING */
+      font-weight: 600; /* Medium weight */
+      color: var(--on-surface); /* Use standard text color */
+      opacity: 0.8; /* Slightly faded */
+      text-transform: uppercase; /* Make it uppercase */
+      display: inline-block; /* Needed for line-height to work well */
     }
 
     button,
@@ -802,7 +829,14 @@
 </head>
 <body class="dark">
   <header>
-    <h1>HN Who is hiring</h1>
+    <div class="header-content">
+      <!-- Text Logo Start -->
+      <div class="text-logo">
+        <span class="logo-hn">HN</span>
+        <span class="logo-wh">WHO'S<br>HIRING</span>
+      </div>
+      <!-- Text Logo End -->
+    </div>
     <button id="themeToggle" class="theme-toggle" aria-label="Switch theme">
       <i class="fas fa-moon"></i>
     </button>
