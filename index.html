@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>HN Who is hiring</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
@@ -96,12 +96,6 @@
       font-size: 16px;
     }
 
-    /* Improved accessibility - focus styles */
-    *:focus {
-      outline: 2px solid var(--primary);
-      outline-offset: 2px;
-    }
-
     header {
       margin-bottom: 1.5rem;
       display: flex;
@@ -122,14 +116,26 @@
       display: flex;
       align-items: center; /* Align HN and WHO'S/HIRING block */
       gap: 0.5em; /* Space between HN and the rest */
-      line-height: 1.1; /* Adjust line height for the two lines */
       margin-right: auto; /* Push theme toggle to the right */
     }
 
     .logo-hn {
-      font-size: 2.2rem; /* Make HN larger */
+      font-size: 2.8rem; /* Make HN larger */
       font-weight: bold;
       color: var(--primary); /* Use primary color for HN */
+    }
+
+    .logo-wh {
+      font-size: 1rem; /* Smaller font size for WHO'S HIRING */
+      font-weight: bold;
+      color: var(--on-surface); /* Use standard text color */
+      opacity: 0.8; /* Slightly faded */
+      text-transform: uppercase; /* Make it uppercase */
+      display: inline-block; /* Needed for line-height to work well */
+      line-height: 1.1;
+      top: 0.1rem;
+      position: relative; /* Allow manual positioning */
+
     }
 
     @keyframes pulse {
@@ -143,14 +149,7 @@
       }
     }
 
-    .logo-wh {
-      font-size: 1rem; /* Smaller font size for WHO'S HIRING */
-      font-weight: 600; /* Medium weight */
-      color: var(--on-surface); /* Use standard text color */
-      opacity: 0.8; /* Slightly faded */
-      text-transform: uppercase; /* Make it uppercase */
-      display: inline-block; /* Needed for line-height to work well */
-    }
+
 
     button,
     .btn {
@@ -647,7 +646,19 @@
       .switcher {
         overflow-x: auto;
         padding-bottom: 0.5rem;
-        gap: 0.25rem;
+        gap: 0.5em; /* Increased gap for mobile */
+        /* Add horizontal padding to prevent cutoff */
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+        padding-top: 0.75rem;
+        /* Adjust margin to compensate for added padding if needed */
+        margin-left: -0.75rem;
+        margin-right: -0.75rem;
+        margin-top: 0.75rem;
+        margin-bottom: 0.75rem;
+        /* Ensure it doesn't exceed viewport width */
+        width: 100%;
+        box-sizing: border-box; /* Include padding in width calculation */
       }
 
       .switcher button {
@@ -917,18 +928,83 @@
     ];
 
     const MOCK_COMMENTS_INITIAL = {
-        '43884796': [ // Comments for the first mock thread
-            { id: 101, text: 'Mock Job 1: We need a JavaScript wizard! Remote OK.', author: 'mock_company_a', created_at: '2025-05-03T10:00:00Z', created_at_i: 1746266400, parent_id: '43884796' },
-            { id: 102, text: 'Mock Job 2: Python developer wanted. On-site.', author: 'mock_company_b', created_at: '2025-05-03T09:30:00Z', created_at_i: 1746264600, parent_id: '43884796' },
-            { id: 103, text: 'Mock Job 3: Rust engineer needed. <pre><code>code example</code></pre>', author: 'mock_company_c', created_at: '2025-05-03T09:00:00Z', created_at_i: 1746262800, parent_id: '43884796' },
+        '43884796': [ // Comments for the first mock thread (simulating /api/v1/items/{id} response)
+            {
+                id: 101, // Corresponds to 'id' from /items/
+                text: 'Mock Job 1: We need a JavaScript wizard! Remote OK.', // Corresponds to 'text'
+                author: 'mock_company_1',
+                created_at: '2025-05-03T10:00:00Z',
+                created_at_i: 1746266400,
+                parent_id: 43884796, // parent_id of the comment is the story_id
+                story_id: 43884796, // story_id
+                children: [],
+                options: [],
+                points: null,
+                title: null,
+                type: 'comment',
+                url: null
+            },
+            {
+                id: 102,
+                text: 'Mock Job 2: Python developer wanted. On-site.',
+                author: 'mock_company_2',
+                created_at: '2025-05-03T09:30:00Z',
+                created_at_i: 1746264600,
+                parent_id: 43884796,
+                story_id: 43884796,
+                children: [],
+                options: [],
+                points: null,
+                title: null,
+                type: 'comment',
+                url: null
+            },
+            {
+                id: 103,
+                text: 'Mock Job 3: Rust engineer needed. <pre><code>code example</code></pre>',
+                author: 'mock_company_3',
+                created_at: '2025-05-03T09:00:00Z',
+                created_at_i: 1746262800,
+                parent_id: 43884796,
+                story_id: 43884796,
+                children: [],
+                options: [],
+                points: null,
+                title: null,
+                type: 'comment',
+                url: null
+            },
         ],
-
     };
 
     const MOCK_COMMENTS_UPDATE = {
-         '43884796': [ // New comments for the first mock thread
-            { objectID: 104, comment_text: 'Mock Job 4 (NEW): Go developer, remote.', author: 'mock_company_d', created_at: '2025-05-04T11:00:00Z', created_at_i: 1746356400, parent_id: '43884796' },
-            { objectID: 105, comment_text: 'Mock Job 5 (NEW): Data Scientist needed.', author: 'mock_company_e', created_at: '2025-05-04T10:30:00Z', created_at_i: 1746354600, parent_id: '43884796' },
+         '43884796': [ // New comments for the first mock thread (simulating /api/v1/search_by_date response)
+            {
+                objectID: 'mock104', // Corresponds to 'objectID' from /search_by_date
+                comment_text: 'Mock Job 5 (NEW): Go developer, remote.', // Corresponds to 'comment_text'
+                author: 'mock_company_5',
+                created_at: '2025-05-04T11:00:00Z',
+                created_at_i: 1746356400,
+                parent_id: 43884796, // parent_id of the comment is the story_id for top-level comments
+                story_id: 43884796,
+                story_title: 'Ask HN: Who is hiring? (May 2025 - Mock)',
+                updated_at: '2025-05-04T11:00:00Z',
+                _highlightResult: { /* ...mock highlight result... */ },
+                _tags: ['comment', 'author_mock_company_d', 'story_43884796']
+            },
+            {
+                objectID: 'mock105',
+                comment_text: 'Mock Job 4 (NEW): Data Scientist needed.',
+                author: 'mock_company_4',
+                created_at: '2025-05-04T10:30:00Z',
+                created_at_i: 1746354600,
+                parent_id: 43884796,
+                story_id: 43884796,
+                story_title: 'Ask HN: Who is hiring? (May 2025 - Mock)',
+                updated_at: '2025-05-04T10:30:00Z',
+                _highlightResult: { /* ...mock highlight result... */ },
+                _tags: ['comment', 'author_mock_company_e', 'story_43884796']
+            },
         ]
     };
     // --- END: Mock Data Definitions ---
@@ -949,15 +1025,13 @@
     let activeToastHideTimerId = null;
 
     const CACHE_KEY_THREAD_LIST = 'hn_thread_list'; // Key for the list cache
-    const CACHE_DURATION_LIST = 24 * 60 * 60 * 1000 * 30; // 30 days for thread list cache
-    const CACHE_DURATION_THREAD = 24 * 60 * 60 * 1000 * 30; // 30 days for individual thread comments
 
-    function setCache(key, data, ttl = CACHE_DURATION_THREAD) {
+
+    function setCache(key, data) {
       // 'data' for threads will be { comments: [...], cachedAt: timestamp }
       // 'data' for list will be the array of threads
       const item = {
         data: data,
-        expiry: Date.now() + ttl,
       };
       try {
         localStorage.setItem(key, JSON.stringify(item));
@@ -975,10 +1049,7 @@
         }
         const item = JSON.parse(itemStr);
         const now = Date.now();
-        if (now > item.expiry) {
-          localStorage.removeItem(key); // Remove expired item
-          return null;
-        }
+
         // Returns the 'data' part, which could be the list or { comments, cachedAt }
         return item.data;
       } catch (e) {
@@ -1091,7 +1162,7 @@
         try {
           const latestThreads = await fetchLatestThreadListFromApi();
           threads = latestThreads;
-          setCache(CACHE_KEY_THREAD_LIST, threads, CACHE_DURATION_LIST); // Cache the new list
+          setCache(CACHE_KEY_THREAD_LIST, threads); // Cache the new list
           renderThreadSwitcher();
 
           if (localStorage.getItem('darkMode') === 'disabled') {
@@ -1164,28 +1235,44 @@
 
             if (latestThreads.length > 0) {
                 const newestThreadId = latestThreads[0].objectID;
-                // Check if a *different* newest thread is found compared to the one initially loaded/cached
-                if (newestThreadId && cachedLatestThreadId && newestThreadId !== cachedLatestThreadId) {
-                    console.log(`Background Check: New thread found! ID: ${newestThreadId}. Updating cache, UI (showing 6), and showing toast.`); // Log detection
+
+                // Create Sets of thread IDs for comparison
+                const currentGlobalThreadIds = new Set(threads.map(t => t.objectID));
+                const newApiThreadIds = new Set(latestThreads.map(t => t.objectID));
+
+                let differenceLength = 0;
+
+                // If sizes are equal, check if all IDs from the new list are in the current list
+                for (const id of newApiThreadIds) {
+                    if (!currentGlobalThreadIds.has(id)) {
+                        differenceLength++; // Increment the difference length
+                    }
+
+                }
+
+                if (differenceLength > 0) {
+                    console.log(`Background Check: Thread list has changed (Set comparison). Newest API ID: ${latestThreads[0]?.objectID || 'N/A'}. Updating cache, UI, and showing toast.`);
 
                     // 1. Update the global threads array
-                    threads = latestThreads;
+                    threads = latestThreads; // Use the newly fetched list
 
                     // 2. Update the cache with the new list
-                    setCache(CACHE_KEY_THREAD_LIST, threads, CACHE_DURATION_LIST);
+                    setCache(CACHE_KEY_THREAD_LIST, threads);
 
-                    // 3. Re-render the thread switcher buttons, passing true to show 6
-                    renderThreadSwitcher(true); // <-- Pass true here
-                    console.log("Background Check: Updated thread switcher UI to show 6.");
+                    // 2.5 Remove unused comment caches
+                    removeUnusedCommentCache();
 
-                    // // 4. Show a toast indicating the UI was updated, including the new thread title
-                    // const newestTitle = latestThreads[0]?.title || 'New Thread'; // Get the title
-                    // showToast(`✨ New thread added: "${newestTitle}". Click the button to load it.`, 10000); // Include title in message
+                    // 3. Re-render the thread switcher buttons.
+                    // Passing true to showExtra will make it use threads.length, which is now latestThreads.length.
+                    renderThreadSwitcher(extraThreadsToShow=differenceLength);
+                    console.log("Background Check: Updated thread switcher UI to show all threads from the new list.");
 
-                } else if (newestThreadId === cachedLatestThreadId) {
-                    console.log("Background Check: Thread list is up-to-date."); // Log up-to-date
+                    // 4. Show a toast indicating the UI was updated
+                    const newestTitle = latestThreads[0]?.title || (threads.length > 0 ? 'Updated Threads' : 'Threads Cleared');
+                    // showToast(`✨ Hiring thread list updated. ${threads.length > 0 ? `Newest: "${newestTitle}"` : "List is now empty."}. Buttons refreshed.`, 10000);
+
                 } else {
-                    console.log("Background Check: Condition not met for update/toast.", { newestThreadId, cachedLatestThreadId }); // Log if condition fails unexpectedly
+                    console.log("Background Check: Thread list is up-to-date (Set comparison).");
                 }
             } else {
                  console.log("Background Check: Fetched list was empty."); // Log empty list
@@ -1194,6 +1281,65 @@
             console.error("Background check for new threads failed:", error);
             // Optionally show a toast for the error itself
             // showToast("⚠️ Failed to check for new threads in the background.", 5000);
+        }
+    }
+
+    // Function to remove comment caches for threads no longer in the main list
+    function removeUnusedCommentCache() {
+        if (!threads || threads.length === 0) {
+            console.log("Remove Cache: No current threads, clearing all comment caches.");
+            // If there are no current threads, remove all comment caches because we dont use it rn
+            try {
+                const keysToRemove = [];
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && key.startsWith('hn_thread_comments_')) {
+                        keysToRemove.push(key);
+                    }
+                }
+                keysToRemove.forEach(key => {
+                    localStorage.removeItem(key);
+                    console.log(`Remove Cache: Removed unused cache - ${key}`);
+                });
+                if (keysToRemove.length > 0) {
+                    showToast(`Cleaned up ${keysToRemove.length} old comment caches.`);
+                }
+            } catch (e) {
+                console.error("Error removing all comment caches from localStorage", e);
+            }
+            return;
+        }
+
+        const currentThreadIds = new Set(threads.map(t => String(t.objectID))); // Ensure IDs are strings for comparison
+        const commentCachePrefix = 'hn_thread_comments_';
+        let removedCount = 0;
+
+        try {
+            const keysToRemove = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith(commentCachePrefix)) {
+                    const threadIdFromKey = key.substring(commentCachePrefix.length);
+                    if (!currentThreadIds.has(threadIdFromKey)) {
+                        keysToRemove.push(key);
+                    }
+                }
+            }
+
+            keysToRemove.forEach(key => {
+                localStorage.removeItem(key);
+                removedCount++;
+                console.log(`Remove Cache: Removed unused cache - ${key}`);
+            });
+
+            if (removedCount > 0) {
+                console.log(`Remove Cache: Successfully removed ${removedCount} unused comment cache(s).`);
+                showToast(`Cleaned up ${removedCount} old comment cache(s).`);
+            } else {
+                console.log("Remove Cache: No unused comment caches found to remove.");
+            }
+        } catch (e) {
+            console.error("Error removing comment caches from localStorage", e);
         }
     }
 
@@ -1261,13 +1407,14 @@
           const newCommentsCount = fetchedHits.length;
           console.log(`Fetched ${newCommentsCount} potential new comments.`);
 
-          const newTopLevelComments = fetchedHits.filter(comment => String(comment.parent_id) === String(id)); // Ensure comparison is correct type
+          let newTopLevelComments = fetchedHits.filter(comment => String(comment.parent_id) === String(id)); // Ensure comparison is correct type
 
-          newTopLevelComments.map(comment => ({
+          // Transform new comments to the expected structure (id, text)
+          newTopLevelComments = newTopLevelComments.map(comment => ({
             ...comment,
-            id: comment.id || comment.objectID,
-            text: comment.text || comment.comment_text,
-          }))
+            id: comment.id || comment.objectID, // Use objectID if id is not present
+            text: comment.text || comment.comment_text, // Use comment_text if text is not present
+          }));
 
           const newTopLevelCount = newTopLevelComments.length;
           console.log(`Filtered down to ${newTopLevelCount} new top-level comments.`);
@@ -1324,12 +1471,14 @@
       }
     }
 
-    function renderThreadSwitcher(showExtra = false) {
+    function renderThreadSwitcher(extraThreadsToShow = 0) {
       const container = document.querySelector('.switcher');
       container.innerHTML = '';
 
       // Determine how many threads to show based on the flag
-      const numThreadsToShow = showExtra ? 6 : 5;
+
+      const numThreadsToShow = 5 + extraThreadsToShow;
+
       console.log(`Rendering switcher, showing top ${numThreadsToShow} threads.`); // Log how many are shown
 
       threads.slice(0, numThreadsToShow).forEach(t => { // Use the calculated number
@@ -1404,7 +1553,7 @@
 
     // Reset button click handler
     resetBtn.onclick = () => {
-        if (window.confirm('Are you sure you want to clear all applied statuses, notes, favorites, AND cached comments? This cannot be undone.')) {
+        if (window.confirm('Are you sure you want to clear all applied statuses, notes, favorites, AND caches rn ?? This cannot be undone.')) {
             // Clear user data
             applied = {};
             favorites = {};
@@ -1431,13 +1580,12 @@
 
             // Reset UI
             [favBtn, appliedBtn, notesBtn, hideAppliedBtn].forEach(b => b.classList.remove(highlightClass));
-            renderJobs(allComments); // Re-render with cleared data
-            showToast('All data and comment caches cleared.');
+            // No need to call renderJobs if we are reloading
+            // renderJobs(allComments);
+            showToast('All data cleared. Reloading...');
 
-            // Optional: Reload the current thread to fetch fresh data if needed
-            // if (currentThreadId) {
-            //     loadThread(currentThreadId);
-            // }
+            // Reload the page
+            window.location.reload();
         }
     };
 
@@ -1603,7 +1751,7 @@
             } catch (e) {
                 // Fallback to simple includes if regex fails (e.g., invalid pattern)
                 console.error(`Regex error for term "${actualTerm}":`, e);
-                termFound = commentText.includes(actualTerm) || author.includes(actualTerm) || noteText.includes(actualTerm);
+                termFound = commentText.includes(actualTerm) || regex.test(author) || regex.test(noteText);
             }
         }
 
