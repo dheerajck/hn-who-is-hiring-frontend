@@ -871,19 +871,18 @@
 
     const MOCK_COMMENTS_INITIAL = {
         '43884796': [ // Comments for the first mock thread
-            { id: 101, objectID: 101, text: 'Mock Job 1: We need a JavaScript wizard! Remote OK.', author: 'mock_company_a', created_at: '2025-05-03T10:00:00Z', created_at_i: 1746266400, parent_id: '43884796' },
-            { id: 102, objectID: 102, text: 'Mock Job 2: Python developer wanted. On-site.', author: 'mock_company_b', created_at: '2025-05-03T09:30:00Z', created_at_i: 1746264600, parent_id: '43884796' },
-            { id: 103, objectID: 103, text: 'Mock Job 3: Rust engineer needed. <pre><code>code example</code></pre>', author: 'mock_company_c', created_at: '2025-05-03T09:00:00Z', created_at_i: 1746262800, parent_id: '43884796' },
+            { id: 101, text: 'Mock Job 1: We need a JavaScript wizard! Remote OK.', author: 'mock_company_a', created_at: '2025-05-03T10:00:00Z', created_at_i: 1746266400, parent_id: '43884796' },
+            { id: 102, text: 'Mock Job 2: Python developer wanted. On-site.', author: 'mock_company_b', created_at: '2025-05-03T09:30:00Z', created_at_i: 1746264600, parent_id: '43884796' },
+            { id: 103, text: 'Mock Job 3: Rust engineer needed. <pre><code>code example</code></pre>', author: 'mock_company_c', created_at: '2025-05-03T09:00:00Z', created_at_i: 1746262800, parent_id: '43884796' },
         ],
-        // Add more mock comments for other thread IDs if needed
+
     };
 
     const MOCK_COMMENTS_UPDATE = {
          '43884796': [ // New comments for the first mock thread
-            { id: 104, objectID: 104, text: 'Mock Job 4 (NEW): Go developer, remote.', author: 'mock_company_d', created_at: '2025-05-04T11:00:00Z', created_at_i: 1746356400, parent_id: '43884796' },
-            { id: 105, objectID: 105, text: 'Mock Job 5 (NEW): Data Scientist needed.', author: 'mock_company_e', created_at: '2025-05-04T10:30:00Z', created_at_i: 1746354600, parent_id: '43884796' },
+            { objectID: 104, comment_text: 'Mock Job 4 (NEW): Go developer, remote.', author: 'mock_company_d', created_at: '2025-05-04T11:00:00Z', created_at_i: 1746356400, parent_id: '43884796' },
+            { objectID: 105, comment_text: 'Mock Job 5 (NEW): Data Scientist needed.', author: 'mock_company_e', created_at: '2025-05-04T10:30:00Z', created_at_i: 1746354600, parent_id: '43884796' },
         ]
-         // Add more mock updates for other thread IDs if needed
     };
     // --- END: Mock Data Definitions ---
 
@@ -903,7 +902,7 @@
     let activeToastHideTimerId = null;
 
     const CACHE_KEY_THREAD_LIST = 'hn_thread_list'; // Key for the list cache
-    const CACHE_DURATION_LIST = 4 * 60 * 60 * 1000; // 4 hours for thread list cache
+    const CACHE_DURATION_LIST = 24 * 60 * 60 * 1000 * 30; // 30 days for thread list cache
     const CACHE_DURATION_THREAD = 24 * 60 * 60 * 1000 * 30; // 30 days for individual thread comments
 
     function setCache(key, data, ttl = CACHE_DURATION_THREAD) {
@@ -1216,13 +1215,20 @@
           console.log(`Fetched ${newCommentsCount} potential new comments.`);
 
           const newTopLevelComments = fetchedHits.filter(comment => String(comment.parent_id) === String(id)); // Ensure comparison is correct type
+
+          newTopLevelComments.map(comment => ({
+            ...comment,
+            id: comment.id || comment.objectID,
+            text: comment.text || comment.comment_text,
+          }))
+
           const newTopLevelCount = newTopLevelComments.length;
           console.log(`Filtered down to ${newTopLevelCount} new top-level comments.`);
 
           let uniqueNewComments = [];
           if (newTopLevelCount > 0) {
-            const existingCommentIds = new Set(allComments.map(c => String(c.id || c.objectID))); // Ensure comparison is correct type
-            uniqueNewComments = newTopLevelComments.filter(nc => nc.objectID && !existingCommentIds.has(String(nc.objectID)));
+            const existingCommentIds = new Set(allComments.map(c => String(c.id))); // Ensure comparison is correct type
+            uniqueNewComments = newTopLevelComments.filter(nc => nc.c.id && !existingCommentIds.has(String(nc.id)));
 
             allComments = [...uniqueNewComments, ...allComments];
             const minimizedCommentsForCache = allComments.map(minimizeCommentObject);
@@ -1614,7 +1620,7 @@
         let filteredComments = comments; // Start with all comments
 
         // --- FIX: Use consistent Job ID access in filters ---
-        const getJobId = (comment) => comment.itemId || comment.id || comment.objectID;
+        const getJobId = (comment) =>  comment.id
 
         // Apply the single active filter
         if (showFavs) {
@@ -1971,16 +1977,13 @@
     };
 
     function minimizeCommentObject(comment) {
-      // Select only the fields needed, storing a single consistent ID
-      const itemId = comment.id || comment.objectID; // Get the ID from whichever field exists
       return {
-        itemId: itemId, // Store under a consistent name
-        text: comment.text || comment.comment_text,
+        id: comment.id,
+        text: comment.text,
         author: comment.author,
         created_at: comment.created_at,
         created_at_i: comment.created_at_i,
         parent_id: comment.parent_id
-        // Add any other fields *absolutely necessary*
       };
     }
 
