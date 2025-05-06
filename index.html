@@ -1355,6 +1355,9 @@
 
     async function loadThread(id) {
       const startTime = performance.now();
+      const requestedIdForThisCall = id; // Capture the ID for this specific call
+
+      // Optimistically update currentThreadId and UI for responsiveness
       currentThreadId = id;
       document.getElementById('jobs').innerHTML = `<div class="loading"><i class="fas fa-circle-notch"></i> Loading thread...</div>`;
       document.getElementById('load-time-info').textContent = '';
@@ -1363,39 +1366,46 @@
       const buttons = document.querySelectorAll('.switcher button');
       buttons.forEach(btn => {
         btn.classList.remove('active');
-        if (btn.dataset.threadId === String(id)) { // Ensure comparison is correct type
+        if (btn.dataset.threadId === String(requestedIdForThisCall)) { // Use requestedIdForThisCall
           btn.classList.add('active');
         }
       });
 
-      const cacheKey = `hn_thread_comments_${id}`;
+      const cacheKey = `hn_thread_comments_${requestedIdForThisCall}`; // Use requestedIdForThisCall for cache key
       let lastCachedTimestampMs = 0;
-      let initialLoadFromCache = false;
+      // let initialLoadFromCache = false; // This variable is not used after assignment
 
       try {
         const cachedData = getCache(cacheKey);
+        let commentsForThisRequest = []; // Local variable for comments of this specific request
 
         if (cachedData && cachedData.comments && cachedData.cachedAt) {
-          console.log(`Using cached comments for thread ${id}`);
-          allComments = cachedData.comments || [];
+          console.log(`Using cached comments for thread ${requestedIdForThisCall}`);
+          commentsForThisRequest = cachedData.comments || [];
           lastCachedTimestampMs = cachedData.cachedAt;
-          initialLoadFromCache = true;
 
+          // Check if this request is still current before rendering cached data
+          if (requestedIdForThisCall !== currentThreadId) {
+            console.log(`Load (cached path) for thread ${requestedIdForThisCall} aborted, new thread ${currentThreadId} selected.`);
+            return;
+          }
+
+          allComments = commentsForThisRequest; // Update global allComments
           renderJobs(allComments);
           const cachedCount = allComments.length;
-          document.getElementById('load-time-info').textContent = `Displayed ${cachedCount} cached jobs. Checking for updates...`;
+          document.getElementById('load-time-info').textContent = `Displayed ${cachedCount} job posts. Checking for updates...`;
 
           // --- Fetch Newer Comments (Mock or Real) ---
           let fetchedHits = [];
           if (USE_MOCK_DATA) {
-              console.log(`MOCK: Fetching comments newer than ${new Date(lastCachedTimestampMs).toISOString()}`);
-              await new Promise(resolve => setTimeout(resolve, 400)); // Simulate delay
-              fetchedHits = MOCK_COMMENTS_UPDATE[id] || []; // Get mock updates for this thread ID
-              console.log(`MOCK: Returning ${fetchedHits.length} new mock comments.`);
+              console.log(`MOCK: Fetching comments newer than ${new Date(lastCachedTimestampMs).toISOString()} for thread ${requestedIdForThisCall}`);
+              await new Promise(resolve => setTimeout(resolve, 400));
+              fetchedHits = MOCK_COMMENTS_UPDATE[requestedIdForThisCall] || [];
+              console.log(`MOCK: Returning ${fetchedHits.length} new mock comments for thread ${requestedIdForThisCall}.`);
           } else {
               const lastCachedTimestampSeconds = Math.floor(lastCachedTimestampMs / 1000);
-              const updateApiUrl = `https://hn.algolia.com/api/v1/search_by_date?tags=comment,story_${id}&numericFilters=created_at_i>${lastCachedTimestampSeconds}&hitsPerPage=1000`;
-              console.log(`API: Fetching comments newer than ${new Date(lastCachedTimestampMs).toISOString()}`);
+              const updateApiUrl = `https://hn.algolia.com/api/v1/search_by_date?tags=comment,story_${requestedIdForThisCall}&numericFilters=created_at_i>${lastCachedTimestampSeconds}&hitsPerPage=1000`;
+              console.log(`API: Fetching comments newer than ${new Date(lastCachedTimestampMs).toISOString()} for thread ${requestedIdForThisCall}`);
               const updateRes = await fetch(updateApiUrl);
               if (!updateRes.ok) {
                   throw new Error(`Failed to fetch updates: ${updateRes.statusText}`);
@@ -1404,70 +1414,91 @@
               fetchedHits = updateData.hits || [];
           }
 
+          // Check if this request is still current before processing updates
+          if (requestedIdForThisCall !== currentThreadId) {
+            console.log(`Load (update path) for thread ${requestedIdForThisCall} aborted, new thread ${currentThreadId} selected.`);
+            return;
+          }
+
           const newCommentsCount = fetchedHits.length;
-          console.log(`Fetched ${newCommentsCount} potential new comments.`);
+          console.log(`Fetched ${newCommentsCount} potential new comments for thread ${requestedIdForThisCall}.`);
 
-          let newTopLevelComments = fetchedHits.filter(comment => String(comment.parent_id) === String(id)); // Ensure comparison is correct type
+          let newTopLevelComments = fetchedHits.filter(comment => String(comment.parent_id) === String(requestedIdForThisCall));
 
-          // Transform new comments to the expected structure (id, text)
           newTopLevelComments = newTopLevelComments.map(comment => ({
             ...comment,
-            id: comment.id || comment.objectID, // Use objectID if id is not present
-            text: comment.text || comment.comment_text, // Use comment_text if text is not present
+            id: comment.id || comment.objectID,
+            text: comment.text || comment.comment_text,
           }));
 
           const newTopLevelCount = newTopLevelComments.length;
-          console.log(`Filtered down to ${newTopLevelCount} new top-level comments.`);
+          console.log(`Filtered down to ${newTopLevelCount} new top-level comments for thread ${requestedIdForThisCall}.`);
 
           let uniqueNewComments = [];
           if (newTopLevelCount > 0) {
-            const existingCommentIds = new Set(allComments.map(c => String(c.id))); // Ensure comparison is correct type
+            const existingCommentIds = new Set(commentsForThisRequest.map(c => String(c.id)));
             uniqueNewComments = newTopLevelComments.filter(nc => nc.id && !existingCommentIds.has(String(nc.id)));
 
-            allComments = [...uniqueNewComments, ...allComments];
-            const minimizedCommentsForCache = allComments.map(minimizeCommentObject);
+            commentsForThisRequest = [...uniqueNewComments, ...commentsForThisRequest];
+            const minimizedCommentsForCache = commentsForThisRequest.map(minimizeCommentObject);
             setCache(cacheKey, { comments: minimizedCommentsForCache, cachedAt: Date.now() });
-            renderJobs(allComments);
           }
 
-          const endTime = performance.now();
-          const duration = ((endTime - startTime) / 1000).toFixed(2);
-          document.getElementById('load-time-info').textContent = `Loaded ${allComments.length} jobs (${uniqueNewComments.length} new jobs added) in ${duration} seconds.`;
-
-        } else {
-          // --- Cache Miss or Invalid Cache: Fetch All Comments (Mock or Real) ---
-          if (USE_MOCK_DATA) {
-              console.log(`MOCK: Fetching all comments for thread ${id}`);
-              await new Promise(resolve => setTimeout(resolve, 600)); // Simulate delay
-              allComments = (MOCK_COMMENTS_INITIAL[id] || []).slice().reverse(); // Get initial mock comments
-              console.log(`MOCK: Returning ${allComments.length} initial mock comments.`);
-          } else {
-              console.log(`API: Fetching all comments for thread ${id} via items endpoint`);
-              const res = await fetch(`https://hn.algolia.com/api/v1/items/${id}`);
-              if (!res.ok) {
-                  throw new Error(`Failed to fetch thread details: ${res.statusText}`);
-              }
-              const data = await res.json();
-              allComments = (data.children || []).slice().reverse();
-          }
-
-          const minimizedCommentsForCache = allComments.map(minimizeCommentObject);
-          setCache(cacheKey, { comments: minimizedCommentsForCache, cachedAt: Date.now() });
+          allComments = commentsForThisRequest; // Update global allComments
           renderJobs(allComments);
 
           const endTime = performance.now();
           const duration = ((endTime - startTime) / 1000).toFixed(2);
-          document.getElementById('load-time-info').textContent = `Loaded ${allComments.length} jobs in ${duration} seconds.`;
+          document.getElementById('load-time-info').textContent = `Loaded ${allComments.length} jobs (${uniqueNewComments.length} new jobs added) in ${duration} seconds`;
+
+        } else {
+          // --- Cache Miss or Invalid Cache: Fetch All Comments (Mock or Real) ---
+          if (USE_MOCK_DATA) {
+              console.log(`MOCK: Fetching all comments for thread ${requestedIdForThisCall}`);
+              await new Promise(resolve => setTimeout(resolve, 600));
+              commentsForThisRequest = (MOCK_COMMENTS_INITIAL[requestedIdForThisCall] || []).slice().reverse();
+              console.log(`MOCK: Returning ${commentsForThisRequest.length} initial mock comments for thread ${requestedIdForThisCall}.`);
+          } else {
+              console.log(`API: Fetching all comments for thread ${requestedIdForThisCall} via items endpoint`);
+              const res = await fetch(`https://hn.algolia.com/api/v1/items/${requestedIdForThisCall}`);
+              if (!res.ok) {
+                  throw new Error(`Failed to fetch thread details: ${res.statusText}`);
+              }
+              const data = await res.json();
+              commentsForThisRequest = (data.children || []).slice().reverse();
+          }
+
+          // Check if this request is still current before setting cache and rendering
+          if (requestedIdForThisCall !== currentThreadId) {
+            console.log(`Load (full fetch path) for thread ${requestedIdForThisCall} aborted, new thread ${currentThreadId} selected.`);
+            return;
+          }
+
+          const minimizedCommentsForCache = commentsForThisRequest.map(minimizeCommentObject);
+          setCache(cacheKey, { comments: minimizedCommentsForCache, cachedAt: Date.now() });
+          allComments = commentsForThisRequest; // Update global allComments
+          renderJobs(allComments);
+
+          const endTime = performance.now();
+          const duration = ((endTime - startTime) / 1000).toFixed(2);
+          document.getElementById('load-time-info').textContent = `Loaded ${allComments.length} jobs in ${duration} seconds`;
         }
 
       } catch (error) {
-        console.error("Error loading thread:", error);
+        // Check if this error is for a request that is no longer current
+        if (requestedIdForThisCall !== currentThreadId) {
+          console.error(`Error loading thread ${requestedIdForThisCall} (but it's no longer the active request, current is ${currentThreadId}):`, error);
+          return; // Don't display error for an outdated request
+        }
+
+        // If it's an error for the currently selected thread, then display it
+        console.error(`Error loading thread ${requestedIdForThisCall}:`, error);
         document.getElementById('jobs').innerHTML = `
           <div class="loading">
             <i class="fas fa-exclamation-circle"></i>
-            Failed to load thread details. ${error.message || ''}
+            Failed to load thread details for ${requestedIdForThisCall}. ${error.message || ''}
           </div>`;
-        document.getElementById('load-time-info').textContent = 'Failed to load jobs.';
+        document.getElementById('load-time-info').textContent = `Failed to load jobs`;
       }
     }
 
