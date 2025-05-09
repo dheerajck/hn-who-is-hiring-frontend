@@ -1,4 +1,4 @@
-https://dheerajck.github.io/hn_thing/
+https://dheerajck.github.io/hn-who-is-hiring-frontend/
 
 
 Query: remote
