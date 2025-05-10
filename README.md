@@ -1,27 +1,33 @@
-https://dheerajck.github.io/hn-who-is-hiring-frontend/
+# Who's Hiring — Hacker News Job Search
 
+Try it out: [here](https://dheerajck.github.io/hn-who-is-hiring-frontend/)
 
-Query: remote
+An intuitive and easy to use frontend for Hacker News Who's Hiring threads in your browser -- completely local, no data leaves your browser.
 
-Explanation: Finds jobs mentioning the word "remote".
-Query: data scientist
+## Search Query Syntax
 
-Explanation: Finds jobs mentioning the exact phrase "data scientist".
-Query: "data scientist"
+Use the following syntax to filter job posts:
 
-Explanation: Finds jobs mentioning the exact phrase "data scientist" (same as above, quotes are explicit).
-Query: rust & backend
+- **`remote`**  
+  Finds jobs mentioning the word `remote`.
 
-Explanation: Finds jobs mentioning both the word "rust" AND the word "backend".
-Query: react | angular
+- **`data scientist`**  
+  Finds jobs mentioning the exact phrase `data scientist`.
 
-Explanation: Finds jobs mentioning either the word "react" OR the word "angular".
-Query: ~onsite
+- **`"data scientist"`**  
+  Same as above — quotes ensure it's treated as a single phrase.
 
-Explanation: Finds jobs that do NOT mention the word "onsite".
-Query: ~"bay area"
+- **`rust & backend`**  
+  Finds jobs that mention both `rust` **and** `backend`.
 
-Explanation: Finds jobs that do NOT mention the exact phrase "bay area".
-Query: full stack & (python | node) ~php
+- **`react | angular`**  
+  Finds jobs that mention **either** `react` **or** `angular`.
 
-Explanation: Finds jobs mentioning the phrase "full stack" AND ( either the word "python" OR the word "node" ) AND do NOT mention the word "php". (The & operator has higher precedence than |).
+- **`~onsite`**  
+  Excludes jobs that mention `onsite`.
+
+- **`~"bay area"`**  
+  Excludes jobs that mention the exact phrase `bay area`.
+
+- **`python | javascript & remote & ~us-based`**  
+  Finds jobs that mention either `python` **or** `javascript`, **and** `remote`, **but not** `us-based`.
