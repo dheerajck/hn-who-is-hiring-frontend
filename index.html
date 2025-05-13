@@ -1444,12 +1444,15 @@
             setCache(cacheKey, { comments: minimizedCommentsForCache, cachedAt: Date.now() });
           }
 
-          allComments = commentsForThisRequest; // Update global allComments
-          renderJobs(allComments);
+          // Only re-render if there are new unique comments
+          if (uniqueNewComments.length > 0) {
+            allComments = commentsForThisRequest; // Update global allComments
+            renderJobs(allComments);
+          }
 
           const endTime = performance.now();
           const duration = ((endTime - startTime) / 1000).toFixed(2);
-          document.getElementById('load-time-info').textContent = `Loaded ${allComments.length} jobs (${uniqueNewComments.length} new jobs added) in ${duration} seconds`;
+          document.getElementById('load-time-info').textContent = `Loaded ${commentsForThisRequest.length} jobs (${uniqueNewComments.length} new jobs added) in ${duration} seconds`;
 
         } else {
           // --- Cache Miss or Invalid Cache: Fetch All Comments (Mock or Real) ---
