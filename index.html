@@ -44,7 +44,7 @@
       --button-bg: #2c2c2c;        /* Darker Button Background */
       --button-hover: #3a3a3a;     /* Darker Button Hover */
       --input-bg: #282828;         /* Darker Input Background */
-      --card-shadow: 0 2px 6px rgba(0, 0, 0, 0.3); /* Slightly adjusted shadow */
+      --card-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
       --transition: all 0.3s ease;
     }
 
@@ -86,8 +86,8 @@
 
     body {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      padding: 1.5rem; /* Increased padding */
-      max-width: 1200px; /* Increased max-width */
+      padding: 1.5rem;
+      max-width: 1200px;
       margin: 0 auto;
       transition: var(--transition);
       background: var(--background);
@@ -149,8 +149,6 @@
       }
     }
 
-
-
     button,
     .btn {
       padding: 0.6rem 0.9rem;
@@ -177,13 +175,13 @@
 
     button:active,
     .btn:active {
-      transform: translateY(1px) scale(0.98); /* Adjust active state slightly */
+      transform: translateY(1px) scale(0.98);
     }
 
     .job-card {
       border: 1px solid var(--border); /* Ensure default border width */
-      margin: 1.2rem 0; /* Increased margin */
-      padding: 1.2rem; /* Increased padding */
+      margin: 1.2rem 0;
+      padding: 1.2rem;
       border-radius: 8px;
       background: var(--surface);
       box-shadow: var(--card-shadow);
@@ -290,15 +288,15 @@
       color: var(--on-surface);
       border: 1px solid var(--border);
       border-radius: 4px;
-      padding: 0.6rem; /* Increased padding */
+      padding: 0.6rem;
       font-family: inherit;
       resize: vertical;
-      min-height: 70px; /* Increased min-height */
-      font-size: 1rem; /* Increased note font size */
+      min-height: 70px;
+      font-size: 1rem;
     }
 
     .meta {
-      font-size: 0.9rem; /* Increased meta text size */
+      font-size: 0.9rem;
       color: #aaa;
       margin-top: 0;
       margin-bottom: 0;
@@ -308,20 +306,20 @@
     }
 
     .job-header-status .meta {
-        font-size: 0.95rem; /* Increased meta   text size */
+        font-size: 0.95rem;
     }
 
     .job-header-status .job-company.meta {
-        font-size: 1.1rem; /* Increased author link size */
+        font-size: 1.1rem;
         font-weight: bold;
         color: var(--on-surface); /* Use main text color */
     }
 
     .badge {
       display: inline-block;
-      padding: 0.2rem 0.5rem; /* Adjusted padding */
+      padding: 0.2rem 0.5rem;
       border-radius: 10px;
-      font-size: 0.85rem; /* Increased badge font size */
+      font-size: 0.85rem;
       background: var(--primary);
       color: #000;
       vertical-align: middle;
@@ -503,9 +501,9 @@
 
     .switcher button {
       background-color: transparent;
-      padding: 0.6rem 1.1rem; /* Increased padding */
+      padding: 0.6rem 1.1rem;
       border-radius: 20px;
-      font-size: 1rem; /* Increased switcher button font size */
+      font-size: 1rem;
       /* Add border for consistency */
       border: 1px solid var(--border);
       color: var(--on-surface);
@@ -542,13 +540,14 @@
       transition: transform 0.4s ease; /* Add transition for the icon */
     }
 
-    /* Add rotation for theme change */
-    body:not(.dark) .theme-toggle i.fa-moon {
+
+    body:not(.dark) .theme-toggle i.fa-sun {
         transform: rotate(90deg);
     }
-    body.dark .theme-toggle i.fa-sun {
+
+    /* body.dark .theme-toggle i.fa-sun {
         transform: rotate(90deg);
-    }
+    } */
 
     .loading {
       text-align: center;
@@ -671,9 +670,9 @@
       .filter-row {
         /* Allow wrapping instead of forcing column */
         flex-direction: row; /* Changed from column */
-        flex-wrap: wrap; /* Added */
-        align-items: center; /* Revert alignment if needed */
-        gap: 0.5rem; /* Adjust gap if needed */
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
       }
       /* Remove stretch alignment for filter row items */
       .filter-row > * {
@@ -784,9 +783,9 @@
       background: var(--button-bg);
       color: var(--on-surface);
       cursor: pointer;
-      padding: 0.6rem 0.85rem; /* Adjusted padding */
+      padding: 0.6rem 0.85rem;
       border-radius: 4px;
-      font-size: 1rem; /* Increased filter button font size */
+      font-size: 1rem;
       display: inline-flex;
       align-items: center;
       gap: 0.5rem;
@@ -910,6 +909,19 @@
     // const USE_MOCK_DATA = true;
     const USE_MOCK_DATA = false;
 
+    // Utility: Remove all localStorage keys with a given prefix (or array of prefixes)
+    function removeLocalStorageKeysWithPrefix(prefixOrPrefixes) {
+      const prefixes = Array.isArray(prefixOrPrefixes) ? prefixOrPrefixes : [prefixOrPrefixes];
+      const keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && prefixes.some(prefix => key.startsWith(prefix))) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach(key => localStorage.removeItem(key));
+      return keysToRemove.length;
+    }
 
     // --- START: Mock Data Definitions ---
     const MOCK_INITIAL_THREAD_HITS = [
@@ -1290,19 +1302,9 @@
             console.log("Remove Cache: No current threads, clearing all comment caches.");
             // If there are no current threads, remove all comment caches because we dont use it rn
             try {
-                const keysToRemove = [];
-                for (let i = 0; i < localStorage.length; i++) {
-                    const key = localStorage.key(i);
-                    if (key && key.startsWith('hn_thread_comments_')) {
-                        keysToRemove.push(key);
-                    }
-                }
-                keysToRemove.forEach(key => {
-                    localStorage.removeItem(key);
-                    console.log(`Remove Cache: Removed unused cache - ${key}`);
-                });
-                if (keysToRemove.length > 0) {
-                    showToast(`Cleaned up ${keysToRemove.length} old comment caches.`);
+                const removed = removeLocalStorageKeysWithPrefix('hn_thread_comments_');
+                if (removed > 0) {
+                    showToast(`Cleaned up ${removed} old comment caches.`);
                 }
             } catch (e) {
                 console.error("Error removing all comment caches from localStorage", e);
@@ -1598,15 +1600,8 @@
 
             // --- START: Clear comment caches ---
             try {
-                const keysToRemove = [];
-                for (let i = 0; i < localStorage.length; i++) {
-                    const key = localStorage.key(i);
-                    if (key && key.startsWith('hn_thread_comments_') || key.startsWith(CACHE_KEY_THREAD_LIST)) {
-                        keysToRemove.push(key);
-                    }
-                }
-                keysToRemove.forEach(key => localStorage.removeItem(key));
-                console.log(`Removed ${keysToRemove.length} thread and comment caches from localStorage.`);
+                removeLocalStorageKeysWithPrefix(['hn_thread_comments_', CACHE_KEY_THREAD_LIST]);
+                console.log(`Removed thread and comment caches from localStorage.`);
             } catch (e) {
                 console.error("Error clearing comment caches from localStorage", e);
             }
@@ -1725,8 +1720,6 @@
                 // Add specific styling if it's just a negated word (not phrase)
                 else if (isNegated) {
                      span.classList.add('token-word'); // Add class for single words
-                     // The .token-negated class already adds the ~ prefix via CSS
-                     // No inline styles needed here anymore
                 } else {
                     // Regular word (not phrase, not operator, not negated)
                      span.classList.add('token-word'); // Add class for single words
@@ -2084,28 +2077,31 @@
     function updateThemeIcon() {
       const themeToggle = document.getElementById('themeToggle');
       const icon = themeToggle.querySelector('i');
-
       if (document.body.classList.contains('dark')) {
-        icon.className = 'fas fa-sun';
+        // Show moon icon in dark mode
+        icon.className = 'fas fa-moon';
         themeToggle.setAttribute('aria-label', 'Switch to light mode');
       } else {
-        icon.className = 'fas fa-moon';
+        // Show sun icon in light mode
+        icon.className = 'fas fa-sun';
         themeToggle.setAttribute('aria-label', 'Switch to dark mode');
       }
     }
 
     function toggleDark() {
       document.body.classList.toggle('dark');
-
+      updateThemeIcon();
       if (document.body.classList.contains('dark')) {
         localStorage.removeItem('darkMode');
+        showToast('Dark mode enabled');
       } else {
         localStorage.setItem('darkMode', 'disabled');
+        showToast('Light mode enabled');
       }
-
-      updateThemeIcon();
-      showToast(document.body.classList.contains('dark') ? 'Dark mode enabled' : 'Light mode enabled');
     }
+
+    // On page load, call updateThemeIcon to sync the icon and label
+    updateThemeIcon();
 
     // Event listeners
     // Debounce the search input listener (e.g., 300ms delay)
