@@ -1886,17 +1886,20 @@
 
         if (filteredComments.length === 0) {
           let message = 'No matching jobs found.';
-          if (queryTokens.length > 0 && (showFavs || showApplied || showNotes || hideAppliedActive)) {
-            message = 'No matching jobs found for the current search and filter combination.';
+          if (showFavs) {
+            message = "You haven't added any jobs to favorites.";
+          } else if (showApplied) {
+            message = "You haven't marked any jobs as applied.";
+          } else if (showNotes) {
+            message = "You haven't added any notes to any jobs.";
+          } else if (hideAppliedActive) {
+            message = "All jobs are marked as applied. Try showing applied jobs.";
           } else if (queryTokens.length > 0) {
-            message = 'No matching jobs found for the current search.';
-          } else if (showFavs || showApplied || showNotes || hideAppliedActive) {
-             message = 'No matching jobs found for the active filter.';
+            message = 'I dont find any matching jobs for your current search rn.';
           }
-
           container.innerHTML = `
             <div class="loading fade-in">
-              <i class="far fa-meh" style="margin-right: 0.5rem;"></i> ${message} Try adjusting your search or filters.
+              <i class="far fa-meh" style="margin-right: 0.5rem;"></i> ${message}
             </div>`;
           return;
         }
