@@ -905,7 +905,7 @@
 
   <script>
 
-    console.log("Hi")
+    // console.log("Hi")
     // const USE_MOCK_DATA = true;
     const USE_MOCK_DATA = false;
 
@@ -1133,7 +1133,7 @@
           console.error("Toast element not found!"); // Check if element exists
           return;
       }
-      console.log(`Showing toast: "${message}"`); // Log toast message
+      // console.log(`Showing toast: "${message}"`); // Log toast message
       toast.textContent = message;
 
       // --- Force Reflow ---
@@ -1143,11 +1143,11 @@
       // --- End Force Reflow ---
 
       toast.classList.add('show');
-      console.log("Toast classes after adding 'show':", toast.className); // Log classes
+      // console.log("Toast classes after adding 'show':", toast.className); // Log classes
       if (activeToastHideTimerId) clearTimeout(activeToastHideTimerId);
       activeToastHideTimerId = setTimeout(() => {
         toast.classList.remove('show');
-        console.log("Hiding toast"); // Log when hiding
+        // console.log("Hiding toast"); // Log when hiding
       }, duration);
     }
 
@@ -1156,7 +1156,7 @@
       let initialLoadFromCache = false;
 
       if (cachedListData) {
-        console.log("Using cached thread list.");
+        // console.log("Using cached thread list.");
         threads = cachedListData; // Use cached list
         initialLoadFromCache = true;
         renderThreadSwitcher();
@@ -1169,7 +1169,7 @@
         // Fetch latest list in the background to check for updates
         fetchLatestThreadListInBackground(threads[0]?.objectID);
       } else {
-        console.log("Fetching fresh thread list.");
+        // console.log("Fetching fresh thread list.");
         // No valid cache, fetch fresh list
         try {
           const latestThreads = await fetchLatestThreadListFromApi();
@@ -1198,11 +1198,11 @@
 
 
         if (USE_MOCK_DATA) {
-            console.log(`MOCK: Fetching thread list (${isBackground ? 'background' : 'initial'})...`);
+            // console.log(`MOCK: Fetching thread list (${isBackground ? 'background' : 'initial'})...`);
             const mockData = isBackground ? MOCK_BACKGROUND_THREAD_HITS : MOCK_INITIAL_THREAD_HITS;
             return new Promise(resolve => {
                 setTimeout(() => { // Simulate network delay
-                    console.log("MOCK: Returning mock thread list.");
+                    // console.log("MOCK: Returning mock thread list.");
                     resolve([...mockData]); // Return a copy
                 }, 500); // 500ms delay
             });
@@ -1214,7 +1214,7 @@
 
 
         // --- Real API call ---
-        console.log("API: Fetching real thread list...");
+        // console.log("API: Fetching real thread list...");
         const searchQuery = '"Ask HN: Who is hiring?"';
         const encodedQuery = encodeURIComponent(searchQuery);
         const apiUrl = `https://hn.algolia.com/api/v1/search_by_date?query=${encodedQuery}&tags=ask_hn,author_whoishiring`;
@@ -1230,20 +1230,20 @@
     // Function to fetch in background and notify if new thread exists
     async function fetchLatestThreadListInBackground(cachedLatestThreadId) {
         try {
-            console.log(`Background Check: Starting. Cached latest ID: ${cachedLatestThreadId}`); // Log start
+            // console.log(`Background Check: Starting. Cached latest ID: ${cachedLatestThreadId}`); // Log start
 
             // --- START: Add delay for mock background fetch ---
             if (USE_MOCK_DATA) {
                 const backgroundMockDelay = 2000; // 2 seconds
-                console.log(`MOCK: Simulating background check delay (${backgroundMockDelay}ms)...`);
+                // console.log(`MOCK: Simulating background check delay (${backgroundMockDelay}ms)...`);
                 await new Promise(resolve => setTimeout(resolve, backgroundMockDelay));
-                console.log("MOCK: Background check delay complete.");
+                // console.log("MOCK: Background check delay complete.");
             }
             // --- END: Add delay for mock background fetch ---
 
             // Pass true for isBackground parameter
             const latestThreads = await fetchLatestThreadListFromApi(true);
-            console.log(`Background Check: Fetched list. Newest ID from API: ${latestThreads[0]?.objectID}`); // Log fetched ID
+            // console.log(`Background Check: Fetched list. Newest ID from API: ${latestThreads[0]?.objectID}`); // Log fetched ID
 
             if (latestThreads.length > 0) {
                 const newestThreadId = latestThreads[0].objectID;
@@ -1263,7 +1263,7 @@
                 }
 
                 if (differenceLength > 0) {
-                    console.log(`Background Check: Thread list has changed (Set comparison). Newest API ID: ${latestThreads[0]?.objectID || 'N/A'}. Updating cache, UI, and showing toast.`);
+                    // console.log(`Background Check: Thread list has changed (Set comparison). Newest API ID: ${latestThreads[0]?.objectID || 'N/A'}. Updating cache, UI, and showing toast.`);
 
                     // 1. Update the global threads array
                     threads = latestThreads; // Use the newly fetched list
@@ -1277,17 +1277,17 @@
                     // 3. Re-render the thread switcher buttons.
                     // Passing true to showExtra will make it use threads.length, which is now latestThreads.length.
                     renderThreadSwitcher(extraThreadsToShow=differenceLength);
-                    console.log("Background Check: Updated thread switcher UI to show all threads from the new list.");
+                    // console.log("Background Check: Updated thread switcher UI to show all threads from the new list.");
 
                     // 4. Show a toast indicating the UI was updated
                     const newestTitle = latestThreads[0]?.title || (threads.length > 0 ? 'Updated Threads' : 'Threads Cleared');
                     // showToast(`✨ Hiring thread list updated. ${threads.length > 0 ? `Newest: "${newestTitle}"` : "List is now empty."}. Buttons refreshed.`, 10000);
 
                 } else {
-                    console.log("Background Check: Thread list is up-to-date (Set comparison).");
+                    // console.log("Background Check: Thread list is up-to-date (Set comparison).");
                 }
             } else {
-                 console.log("Background Check: Fetched list was empty."); // Log empty list
+                 // console.log("Background Check: Fetched list was empty."); // Log empty list
             }
         } catch (error) {
             console.error("Background check for new threads failed:", error);
@@ -1299,7 +1299,7 @@
     // Function to remove comment caches for threads no longer in the main list
     function removeUnusedCommentCache() {
         if (!threads || threads.length === 0) {
-            console.log("Remove Cache: No current threads, clearing all comment caches.");
+            // console.log("Remove Cache: No current threads, clearing all comment caches.");
             // If there are no current threads, remove all comment caches because we dont use it rn
             try {
                 const removed = removeLocalStorageKeysWithPrefix('hn_thread_comments_');
@@ -1331,14 +1331,14 @@
             keysToRemove.forEach(key => {
                 localStorage.removeItem(key);
                 removedCount++;
-                console.log(`Remove Cache: Removed unused cache - ${key}`);
+                // console.log(`Remove Cache: Removed unused cache - ${key}`);
             });
 
             if (removedCount > 0) {
-                console.log(`Remove Cache: Successfully removed ${removedCount} unused comment cache(s).`);
+                // console.log(`Remove Cache: Successfully removed ${removedCount} unused comment cache(s).`);
                 showToast(`Cleaned up ${removedCount} old comment cache(s).`);
             } else {
-                console.log("Remove Cache: No unused comment caches found to remove.");
+                // console.log("Remove Cache: No unused comment caches found to remove.");
             }
         } catch (e) {
             console.error("Error removing comment caches from localStorage", e);
@@ -1382,13 +1382,13 @@
         let commentsForThisRequest = []; // Local variable for comments of this specific request
 
         if (cachedData && cachedData.comments && cachedData.cachedAt) {
-          console.log(`Using cached comments for thread ${requestedIdForThisCall}`);
+          // console.log(`Using cached comments for thread ${requestedIdForThisCall}`);
           commentsForThisRequest = cachedData.comments || [];
           lastCachedTimestampMs = cachedData.cachedAt;
 
           // Check if this request is still current before rendering cached data
           if (requestedIdForThisCall !== currentThreadId) {
-            console.log(`Load (cached path) for thread ${requestedIdForThisCall} aborted, new thread ${currentThreadId} selected.`);
+            // console.log(`Load (cached path) for thread ${requestedIdForThisCall} aborted, new thread ${currentThreadId} selected.`);
             return;
           }
 
@@ -1400,14 +1400,14 @@
           // --- Fetch Newer Comments (Mock or Real) ---
           let fetchedHits = [];
           if (USE_MOCK_DATA) {
-              console.log(`MOCK: Fetching comments newer than ${new Date(lastCachedTimestampMs).toISOString()} for thread ${requestedIdForThisCall}`);
+              // console.log(`MOCK: Fetching comments newer than ${new Date(lastCachedTimestampMs).toISOString()} for thread ${requestedIdForThisCall}`);
               await new Promise(resolve => setTimeout(resolve, 400));
               fetchedHits = MOCK_COMMENTS_UPDATE[requestedIdForThisCall] || [];
-              console.log(`MOCK: Returning ${fetchedHits.length} new mock comments for thread ${requestedIdForThisCall}.`);
+              // console.log(`MOCK: Returning ${fetchedHits.length} new mock comments for thread ${requestedIdForThisCall}.`);
           } else {
               const lastCachedTimestampSeconds = Math.floor(lastCachedTimestampMs / 1000);
               const updateApiUrl = `https://hn.algolia.com/api/v1/search_by_date?tags=comment,story_${requestedIdForThisCall}&numericFilters=created_at_i>${lastCachedTimestampSeconds}&hitsPerPage=1000`;
-              console.log(`API: Fetching comments newer than ${new Date(lastCachedTimestampMs).toISOString()} for thread ${requestedIdForThisCall}`);
+              // console.log(`API: Fetching comments newer than ${new Date(lastCachedTimestampMs).toISOString()} for thread ${requestedIdForThisCall}`);
               const updateRes = await fetch(updateApiUrl);
               if (!updateRes.ok) {
                   throw new Error(`Failed to fetch updates: ${updateRes.statusText}`);
@@ -1418,12 +1418,12 @@
 
           // Check if this request is still current before processing updates
           if (requestedIdForThisCall !== currentThreadId) {
-            console.log(`Load (update path) for thread ${requestedIdForThisCall} aborted, new thread ${currentThreadId} selected.`);
+            // console.log(`Load (update path) for thread ${requestedIdForThisCall} aborted, new thread ${currentThreadId} selected.`);
             return;
           }
 
           const newCommentsCount = fetchedHits.length;
-          console.log(`Fetched ${newCommentsCount} potential new comments for thread ${requestedIdForThisCall}.`);
+          // console.log(`Fetched ${newCommentsCount} potential new comments for thread ${requestedIdForThisCall}.`);
 
           let newTopLevelComments = fetchedHits.filter(comment => String(comment.parent_id) === String(requestedIdForThisCall));
 
@@ -1434,7 +1434,7 @@
           }));
 
           const newTopLevelCount = newTopLevelComments.length;
-          console.log(`Filtered down to ${newTopLevelCount} new top-level comments for thread ${requestedIdForThisCall}.`);
+          // console.log(`Filtered down to ${newTopLevelCount} new top-level comments for thread ${requestedIdForThisCall}.`);
 
           let uniqueNewComments = [];
           if (newTopLevelCount > 0) {
@@ -1459,12 +1459,12 @@
         } else {
           // --- Cache Miss or Invalid Cache: Fetch All Comments (Mock or Real) ---
           if (USE_MOCK_DATA) {
-              console.log(`MOCK: Fetching all comments for thread ${requestedIdForThisCall}`);
+              // console.log(`MOCK: Fetching all comments for thread ${requestedIdForThisCall}`);
               await new Promise(resolve => setTimeout(resolve, 600));
               commentsForThisRequest = (MOCK_COMMENTS_INITIAL[requestedIdForThisCall] || []).slice().reverse();
-              console.log(`MOCK: Returning ${commentsForThisRequest.length} initial mock comments for thread ${requestedIdForThisCall}.`);
+              // console.log(`MOCK: Returning ${commentsForThisRequest.length} initial mock comments for thread ${requestedIdForThisCall}.");
           } else {
-              console.log(`API: Fetching all comments for thread ${requestedIdForThisCall} via items endpoint`);
+              // console.log(`API: Fetching all comments for thread ${requestedIdForThisCall} via items endpoint`);
               const res = await fetch(`https://hn.algolia.com/api/v1/items/${requestedIdForThisCall}`);
               if (!res.ok) {
                   throw new Error(`Failed to fetch thread details: ${res.statusText}`);
@@ -1475,7 +1475,7 @@
 
           // Check if this request is still current before setting cache and rendering
           if (requestedIdForThisCall !== currentThreadId) {
-            console.log(`Load (full fetch path) for thread ${requestedIdForThisCall} aborted, new thread ${currentThreadId} selected.`);
+            // console.log(`Load (full fetch path) for thread ${requestedIdForThisCall} aborted, new thread ${currentThreadId} selected.`);
             return;
           }
 
@@ -1492,12 +1492,12 @@
       } catch (error) {
         // Check if this error is for a request that is no longer current
         if (requestedIdForThisCall !== currentThreadId) {
-          console.error(`Error loading thread ${requestedIdForThisCall} (but it's no longer the active request, current is ${currentThreadId}):`, error);
+          // console.error(`Error loading thread ${requestedIdForThisCall} (but it's no longer the active request, current is ${currentThreadId}):`, error);
           return; // Don't display error for an outdated request
         }
 
         // If it's an error for the currently selected thread, then display it
-        console.error(`Error loading thread ${requestedIdForThisCall}:`, error);
+        // console.error(`Error loading thread ${requestedIdForThisCall}:`, error);
         document.getElementById('jobs').innerHTML = `
           <div class="loading">
             <i class="fas fa-exclamation-circle"></i>
@@ -1515,7 +1515,7 @@
 
       const numThreadsToShow = 5 + extraThreadsToShow;
 
-      console.log(`Rendering switcher, showing top ${numThreadsToShow} threads.`); // Log how many are shown
+      // console.log(`Rendering switcher, showing top ${numThreadsToShow} threads.`); // Log how many are shown
 
       threads.slice(0, numThreadsToShow).forEach(t => { // Use the calculated number
         const button = document.createElement('button');
@@ -1601,7 +1601,7 @@
             // --- START: Clear comment caches ---
             try {
                 removeLocalStorageKeysWithPrefix(['hn_thread_comments_', CACHE_KEY_THREAD_LIST]);
-                console.log(`Removed thread and comment caches from localStorage.`);
+                // console.log(`Removed thread and comment caches from localStorage.`);
             } catch (e) {
                 console.error("Error clearing comment caches from localStorage", e);
             }
@@ -2136,12 +2136,12 @@
     // Add event listener for the 'Try example' link
     document.getElementById('try-example-search').addEventListener('click', (event) => {
       event.preventDefault(); // Prevent default link behavior
-      console.log("Try example link clicked"); // Debug log
+      // console.log("Try example link clicked"); // Debug log
 
       const searchInput = document.getElementById('search');
       // Define the example query directly here
       const exampleQuery = 'python | javascript & remote & ~us-based';
-      console.log("Setting input value to:", exampleQuery); // Debug log
+      // console.log("Setting input value to:", exampleQuery); // Debug log
 
       if (searchInput) {
           searchInput.value = exampleQuery; // Set input value
@@ -2149,7 +2149,7 @@
 
           // Ensure allComments is available before calling renderJobs
           if (typeof allComments !== 'undefined' && Array.isArray(allComments)) {
-              console.log("Calling renderJobs with example query"); // Debug log
+              // console.log("Calling renderJobs with example query"); // Debug log
               renderJobs(allComments); // Trigger the search/render
           } else {
               console.error("allComments is not ready yet."); // Debug log
