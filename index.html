@@ -524,7 +524,7 @@
         background-color: var(--button-hover);
     }
 
-    .theme-toggle {
+    .icon-link-button {
       background: transparent;
       border: none;
       cursor: pointer;
@@ -534,18 +534,19 @@
       padding: 0.5rem;
       font-size: 1.2rem;
       color: var(--on-surface);
+      text-decoration: none; /* Remove underline */
     }
 
-    .theme-toggle i {
+    .icon-link-button i {
       transition: transform 0.4s ease; /* Add transition for the icon */
     }
 
 
-    body:not(.dark) .theme-toggle i.fa-sun {
+    body:not(.dark) .icon-link-button i.fa-sun {
         transform: rotate(90deg);
     }
 
-    /* body.dark .theme-toggle i.fa-sun {
+    /* body.dark .icon-link-button i.fa-sun {
         transform: rotate(90deg);
     } */
 
@@ -860,7 +861,10 @@
       </div>
       <!-- Text Logo End -->
     </div>
-    <button id="themeToggle" class="theme-toggle" aria-label="Switch theme">
+    <a href="https://github.com/dheerajck/hnwhoishiring" target="_blank" rel="noopener noreferrer" class="icon-link-button" aria-label="View source on GitHub">
+      <i class="fab fa-github"></i>
+    </a>
+    <button id="themeToggle" class="icon-link-button" aria-label="Switch theme">
       <i class="fas fa-moon"></i>
     </button>
   </header>
