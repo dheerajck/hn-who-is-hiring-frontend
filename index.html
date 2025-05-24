@@ -224,7 +224,6 @@
             flex-basis: auto; /* Allow it side-by-side */
             margin-bottom: 0; /* Remove margin when side-by-side */
         }
-
     }
 
     .job-company {
@@ -261,6 +260,7 @@
         margin: 0.5em 0;
         overflow-x: auto;
     }
+
     /* If pre contains code, reset code styles */
     .job-content pre code {
         display: inline; /* Reset display if inside pre */
@@ -370,9 +370,9 @@
     }
 
     .op-btn {
-      padding: 0.2rem 0.6rem; /* Smaller padding */
-      font-size: 0.9rem; /* Smaller font size */
-      min-width: 30px; /* Ensure minimum tap target size */
+      padding: 0.2rem 0.6rem;
+      font-size: 0.9rem;
+      min-width: 30px;
       background-color: var(--button-bg);
       color: var(--on-surface);
       border: 1px solid var(--border);
@@ -427,9 +427,9 @@
     }
 
     .token-phrase {
-      background-color: var(--token-phrase-bg); /* Use variable */
-      color: var(--token-phrase-text);          /* Use variable */
-      border: 1px solid var(--token-phrase-border); /* Use variable */
+      background-color: var(--token-phrase-bg);
+      color: var(--token-phrase-text);
+      border: 1px solid var(--token-phrase-border);
     }
     /* Add quotes visually for phrases */
     .token-phrase::before,
@@ -440,16 +440,16 @@
     }
 
     .token-operator {
-      background-color: var(--token-operator-bg); /* Use variable */
-      color: var(--token-operator-text);          /* Use variable */
+      background-color: var(--token-operator-bg);
+      color: var(--token-operator-text);
       font-weight: bold;
-      border: 1px solid var(--token-operator-border); /* Use variable */
+      border: 1px solid var(--token-operator-border);
     }
 
     .token-negated {
-      background-color: var(--token-negated-bg); /* Use variable */
-      color: var(--token-negated-text);          /* Use variable */
-      border: 1px solid var(--token-negated-border); /* Use variable */
+      background-color: var(--token-negated-bg);
+      color: var(--token-negated-text);
+      border: 1px solid var(--token-negated-border);
     }
     /* Add quotes visually for negated phrases */
     .token-negated.token-phrase::before,
@@ -807,7 +807,7 @@
     }
     .reset-btn {
         background-color: var(--danger);
-        color: var(--danger-text); /* Use danger text color */
+        color: var(--danger-text);
         border-color: var(--danger);
     }
     .reset-btn:hover {
@@ -828,27 +828,6 @@
       text-decoration: underline;
     }
 
-    /* Operator buttons container */
-    .operator-buttons {
-      display: flex;
-      gap: 0.5rem;
-      margin-top: 0.5rem;
-    }
-
-    .op-btn {
-      padding: 0.5rem;
-      border: 1px solid var(--border);
-      background: var(--button-bg);
-      color: var(--on-surface);
-      cursor: pointer;
-      border-radius: 4px;
-      font-size: 0.9rem;
-      transition: var(--transition);
-    }
-
-    .op-btn:hover {
-      background-color: var(--button-hover);
-    }
   </style>
 </head>
 <body class="dark">
@@ -1845,7 +1824,6 @@
 
         let filteredComments = comments; // Start with all comments
 
-        // --- FIX: Use consistent Job ID access in filters ---
         const getJobId = (comment) =>  comment.id
 
         // Apply the single active filter
@@ -1861,7 +1839,6 @@
             return notes[currentThreadId]?.[jobId] && notes[currentThreadId][jobId].trim().length > 0;
           });
         }
-        // --- END FIX ---
 
         // Apply search query filter (runs after the main filter)
         const queryTokens = parseQuery(query); // Parse the raw query
@@ -2220,10 +2197,11 @@
     }
 
     // Initialize
-    fetchHiringThreads(); // This will now potentially use mock data based on the flag
+    fetchHiringThreads();
   </script>
 
-  <script data-goatcounter="https://dheerajck.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+  <script data-goatcounter="https://dheerajck.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+
 
 </body>
 </html>
