@@ -343,18 +343,49 @@
       margin-bottom: 0.5rem;
     }
 
-    .search-container i {
+    .search-field-wrapper { /* New wrapper style */
+      position: relative;
+    }
+
+    .search-icon-main { /* Style for the main search icon */
       position: absolute;
       left: 0.75rem;
-      top: 0.85rem;
+      top: 50%; /* Vertically center icon */
+      transform: translateY(-50%); /* Adjust for icon height */
       color: #999;
       font-size: 1.1rem;
       z-index: 2; /* Ensure icon is above the input background */
       pointer-events: none;
     }
 
+    /* Clear search button styles */
+    .clear-search-btn {
+      position: absolute;
+      right: 0.75rem;
+      top: 50%; /* Vertically center button */
+      transform: translateY(-50%); /* Adjust for button height */
+      background: transparent;
+      border: none;
+      color: #999;
+      cursor: pointer;
+      font-size: 1.1rem; /* Match search icon size */
+      padding: 0.2rem; /* Small padding for easier clicking */
+      line-height: 1; /* Ensure icon inside is centered */
+      z-index: 2; /* Ensure button is above input */
+      display: none; /* Hidden by default */
+      /* Override general button hover effects */
+      box-shadow: none;
+    }
+
+    .clear-search-btn:hover {
+      background-color: transparent; /* Keep background transparent */
+      transform: translateY(-50%); /* Keep original transform */
+      box-shadow: none; /* Ensure no shadow on hover */
+      color: #999; /* Keep color the same, or var(--on-surface) if you want hover color */
+    }
+
     #search {
-      padding: 0.8rem 1rem 0.8rem 2.6rem; /* Top padding is 0.8rem */
+      padding: 0.8rem 2.6rem 0.8rem 2.6rem; /* Adjusted padding: top/bottom, right (for clear btn), left (for search icon) */
       width: 100%;
       border-radius: 4px;
       border: 1px solid var(--border);
@@ -854,8 +885,13 @@
   <main>
     <section class="controls">
       <div class="search-container">
-        <i class="fas fa-search" aria-hidden="true"></i> <!-- Add the icon here -->
-        <input id="search" type="text" placeholder='e.g., python | javascript & remote & ~us-based' aria-label="Search jobs">
+        <div class="search-field-wrapper"> <!-- Added wrapper -->
+          <i class="fas fa-search search-icon-main" aria-hidden="true"></i>
+          <input id="search" type="text" placeholder='e.g., python | javascript & remote & ~us-based' aria-label="Search jobs">
+          <button id="clearSearchBtn" class="clear-search-btn" aria-label="Clear search" title="Clear search">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
         <!-- Add Operator Buttons Container -->
         <div class="operator-buttons">
           <button class="op-btn" data-op=" & " title="AND Operator">&</button>
@@ -1023,6 +1059,31 @@
     let activeToastHideTimerId = null;
 
     const CACHE_KEY_THREAD_LIST = 'hn_thread_list'; // Key for the list cache
+
+
+    // --- START: Clear Search Button Logic ---
+    const searchInput = document.getElementById('search');
+    const clearSearchBtn = document.getElementById('clearSearchBtn');
+
+    function setupClearSearchButton() {
+        if (!searchInput || !clearSearchBtn) return;
+
+        function toggleClearButtonVisibility() {
+            // This function correctly shows or hides the clear button based on input value
+            clearSearchBtn.style.display = searchInput.value.length > 0 ? 'inline-block' : 'none';
+        }
+
+        searchInput.addEventListener('input', toggleClearButtonVisibility);
+
+        clearSearchBtn.addEventListener('click', () => {
+            searchInput.value = '';
+            searchInput.dispatchEvent(new Event('input', { bubbles: true, cancelable: true }));
+            searchInput.focus();
+        });
+
+        toggleClearButtonVisibility(); // Initial check to set button state on page load
+    }
+    // --- END: Clear Search Button Logic ---
 
 
     function setCache(key, data) {
@@ -1811,6 +1872,7 @@
         // If the query consisted only of operators (e.g., "& |"), currentResult would be null.
         // In this case, or if the evaluation resulted in true, return true. Otherwise false.
         // A null result implies no terms were actually evaluated, which shouldn't block results.
+
         return currentResult === null ? true : currentResult;
     }
 
@@ -2087,6 +2149,9 @@
     // On page load, call updateThemeIcon to sync the icon and label
     updateThemeIcon();
 
+    // Initialize clear search button
+    setupClearSearchButton(); // Call the setup function
+
     // Event listeners
     // Debounce the search input listener (e.g., 300ms delay)
     const debouncedRender = debounce(() => {
@@ -2131,13 +2196,18 @@
           searchInput.value = exampleQuery; // Set input value
           searchInput.focus(); // focus the input
 
+          // Manually dispatch an input event to trigger clear button visibility and search
+          const inputEvent = new Event('input', { bubbles: true, cancelable: true });
+          searchInput.dispatchEvent(inputEvent);
+
           // Ensure allComments is available before calling renderJobs
-          if (typeof allComments !== 'undefined' && Array.isArray(allComments)) {
-              // console.log("Calling renderJobs with example query"); // Debug log
-              renderJobs(allComments); // Trigger the search/render
-          } else {
-              console.error("allComments is not ready yet."); // Debug log
-          }
+          // No longer need to call renderJobs here as the input event will trigger it via debouncedRender
+          // if (typeof allComments !== 'undefined' && Array.isArray(allComments)) {
+          //     // console.log("Calling renderJobs with example query"); // Debug log
+          //     renderJobs(allComments); // Trigger the search/render
+          // } else {
+          //     console.error("allComments is not ready yet."); // Debug log
+          // }
       } else {
           console.error("Search input element not found."); // Debug log
       }
