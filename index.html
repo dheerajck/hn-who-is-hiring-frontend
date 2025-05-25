@@ -864,6 +864,7 @@
 
   </style>
 </head>
+
 <body class="dark">
   <header>
     <div class="header-content">
@@ -1258,8 +1259,6 @@
 
     // Helper function to fetch the latest list from API
     async function fetchLatestThreadListFromApi(isBackground = false) { // Added isBackground parameter
-
-
         if (USE_MOCK_DATA) {
             // console.log(`MOCK: Fetching thread list (${isBackground ? 'background' : 'initial'})...`);
             const mockData = isBackground ? MOCK_BACKGROUND_THREAD_HITS : MOCK_INITIAL_THREAD_HITS;
@@ -2293,7 +2292,6 @@
   </script>
 
   <script data-goatcounter="https://dheerajck.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
-
 
 </body>
 </html>
