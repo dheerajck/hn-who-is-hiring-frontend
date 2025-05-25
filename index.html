@@ -1053,6 +1053,7 @@
     let allComments = [];
     const favoriteKey = 'favoriteHNv1';
     let favorites = JSON.parse(localStorage.getItem(favoriteKey) || '{}');
+    const themekey = 'themeHNv1';
 
     const searchDebounceTimeout = 300;
     const toastTimeout = 3000;
@@ -1223,11 +1224,6 @@
           threads = latestThreads;
           setCache(CACHE_KEY_THREAD_LIST, threads); // Cache the new list
           renderThreadSwitcher();
-
-          if (localStorage.getItem('darkMode') === 'disabled') {
-            document.body.classList.remove('dark');
-            updateThemeIcon();
-          }
 
           if (threads.length > 0) {
             loadThread(threads[0].objectID);
@@ -1644,6 +1640,7 @@
             localStorage.removeItem(appliedKey);
             localStorage.removeItem(favoriteKey);
             localStorage.removeItem(notesKey);
+            localStorage.removeItem(themekey);
 
             // --- START: Clear comment caches ---
             try {
@@ -2138,16 +2135,25 @@
       document.body.classList.toggle('dark');
       updateThemeIcon();
       if (document.body.classList.contains('dark')) {
-        localStorage.removeItem('darkMode');
+        localStorage.removeItem(themekey);
         showToast('Dark mode enabled');
       } else {
-        localStorage.setItem('darkMode', 'disabled');
+        localStorage.setItem(themekey, 'disabled');
         showToast('Light mode enabled');
       }
     }
 
     // On page load, call updateThemeIcon to sync the icon and label
     updateThemeIcon();
+
+    // Apply saved theme preference on initial load
+    if (localStorage.getItem(themekey) === 'disabled') {
+      document.body.classList.remove('dark');
+      updateThemeIcon(); // Ensure icon is correct after applying theme
+    } else {
+      document.body.classList.add('dark'); // Default to dark if no preference or preference is dark
+      updateThemeIcon(); // Ensure icon is correct
+    }
 
     // Initialize clear search button
     setupClearSearchButton(); // Call the setup function
