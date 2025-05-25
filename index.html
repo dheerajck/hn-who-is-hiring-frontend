@@ -2219,21 +2219,13 @@
       // console.log("Setting input value to:", exampleQuery); // Debug log
 
       if (searchInput) {
-          searchInput.value = exampleQuery; // Set input value
-          searchInput.focus(); // focus the input
-
-          // Manually dispatch an input event to trigger clear button visibility and search
-          const inputEvent = new Event('input', { bubbles: true, cancelable: true });
-          searchInput.dispatchEvent(inputEvent);
-
-          // Ensure allComments is available before calling renderJobs
-          // No longer need to call renderJobs here as the input event will trigger it via debouncedRender
-          // if (typeof allComments !== 'undefined' && Array.isArray(allComments)) {
-          //     // console.log("Calling renderJobs with example query"); // Debug log
-          //     renderJobs(allComments); // Trigger the search/render
-          // } else {
-          //     console.error("allComments is not ready yet."); // Debug log
-          // }
+        searchInput.value = exampleQuery;
+        searchInput.focus();
+        // Update clear button visibility directly (no input event, no debounce)
+        if (typeof clearSearchBtn !== 'undefined' && clearSearchBtn) {
+          clearSearchBtn.style.display = exampleQuery.length > 0 ? 'inline-block' : 'none';
+        }
+        renderJobs(allComments); // Only one refresh
       } else {
           console.error("Search input element not found."); // Debug log
       }
