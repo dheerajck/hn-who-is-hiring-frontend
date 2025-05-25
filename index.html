@@ -601,7 +601,7 @@
 
     .toast {
       position: fixed;
-      bottom: 2rem; /* Keep desired final position */
+      bottom: 2rem;
       right: 2rem;
       padding: 0.75rem 1.5rem;
       background: var(--primary);
@@ -1177,6 +1177,7 @@
     // Show toast notification
     function showToast(message, duration = toastTimeout) {
       const toast = document.getElementById('toast');
+      const goToTopButton = document.getElementById('goToTop');
       if (!toast) {
           console.error("Toast element not found!"); // Check if element exists
           return;
@@ -1192,12 +1193,31 @@
 
       toast.classList.add('show');
       // console.log("Toast classes after adding 'show':", toast.className); // Log classes
+
+      // Hide go-to-top while toast is visible
+      if (goToTopButton) goToTopButton.classList.remove('visible');
       if (activeToastHideTimerId) clearTimeout(activeToastHideTimerId);
+      // Hide the toast after the specified duration and restore the go-to-top button if needed
       activeToastHideTimerId = setTimeout(() => {
         toast.classList.remove('show');
-        // console.log("Hiding toast"); // Log when hiding
+        // Show go-to-top again if user has scrolled down
+        if (goToTopButton && window.pageYOffset > 300) {
+          goToTopButton.classList.add('visible');
+        }
       }, duration);
     }
+
+    // Hide toast on scroll
+    window.addEventListener('scroll', () => {
+      const toast = document.getElementById('toast');
+      if (toast && toast.classList.contains('show')) {
+        toast.classList.remove('show');
+        if (activeToastHideTimerId) {
+          clearTimeout(activeToastHideTimerId);
+          activeToastHideTimerId = null;
+        }
+      }
+    });
 
     async function fetchHiringThreads() {
       const cachedListData = getCache(CACHE_KEY_THREAD_LIST);
@@ -2241,7 +2261,8 @@
 
     // Show button when page is scrolled down
     window.addEventListener('scroll', () => {
-      if (window.pageYOffset > 300) {
+      const toast = document.getElementById('toast');
+      if (window.pageYOffset > 300 && (!toast || !toast.classList.contains('show'))) {
         goToTopButton.classList.add('visible');
       } else {
         goToTopButton.classList.remove('visible');
