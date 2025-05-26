@@ -1584,6 +1584,52 @@
       }
     }
 
+    // --- Add this helper to update a single job card in place ---
+function updateJobCardInPlace(jobId, appliedStatus) {
+    const jobCard = document.querySelector(`.job-card[data-job-id="${jobId}"]`);
+    if (!jobCard) return;
+    // Update class
+    if (appliedStatus) {
+        jobCard.classList.add('applied');
+    } else {
+        jobCard.classList.remove('applied');
+    }
+    // Update badge/date
+    const statusDiv = jobCard.querySelector('.job-header-status');
+    if (statusDiv) {
+        let badgeHtml = appliedStatus ? `<span class="badge">Applied</span>` : '';
+        let dateHtml = appliedStatus ? `<div class="meta"><i class="far fa-calendar"></i> ${new Date(appliedStatus).toLocaleString()}</div>` : '';
+        // Find author link (keep it)
+        const authorLink = statusDiv.querySelector('a.job-company.meta');
+        let authorHtml = '';
+        if (authorLink) {
+            authorHtml = authorLink.outerHTML;
+        }
+        statusDiv.innerHTML = `${badgeHtml}${dateHtml}${authorHtml}`;
+    }
+    // Update action buttons
+    const actionsDiv = jobCard.querySelector('.job-actions');
+    if (actionsDiv) {
+        // Remove existing apply/unapply button
+        actionsDiv.querySelectorAll('.btn-apply, .btn-unapply').forEach(btn => btn.remove());
+        if (appliedStatus) {
+            // Add unapply button
+            const unapplyBtn = document.createElement('button');
+            unapplyBtn.className = 'btn-unapply';
+            unapplyBtn.setAttribute('data-action', 'unapply');
+            unapplyBtn.innerHTML = '<i class="fas fa-times" aria-hidden="true"></i> Remove Applied Status';
+            actionsDiv.appendChild(unapplyBtn);
+        } else {
+            // Add apply button
+            const applyBtn = document.createElement('button');
+            applyBtn.className = 'job-action-button btn-apply';
+            applyBtn.setAttribute('data-action', 'apply');
+            applyBtn.innerHTML = '<i class="fas fa-check" aria-hidden="true"></i> Mark as Applied';
+            actionsDiv.appendChild(applyBtn);
+        }
+    }
+}
+
     function renderThreadSwitcher(extraThreadsToShow = 0) {
       const container = document.querySelector('.switcher');
       container.innerHTML = '';
@@ -2137,14 +2183,32 @@
             applied[currentThreadId][jobId] = new Date().toISOString();
             localStorage.setItem(appliedKey, JSON.stringify(applied));
             showToast('Marked as applied!');
-            renderJobs(allComments); // Re-render to show status change
+            // Only re-render if a filter that depends on applied status is active
+            if (
+                appliedBtn.classList.contains(highlightClass) ||
+                notesBtn.classList.contains(highlightClass) ||
+                hideAppliedBtn.classList.contains(highlightClass)
+            ) {
+                renderJobs(allComments);
+            } else {
+                updateJobCardInPlace(jobId, applied[currentThreadId][jobId]);
+            }
         }
         else if (action === 'unapply') {
             if (applied[currentThreadId]?.[jobId]) {
                 delete applied[currentThreadId][jobId];
                 localStorage.setItem(appliedKey, JSON.stringify(applied));
                 showToast('Removed applied status');
-                renderJobs(allComments); // Re-render to show status change
+                // Only re-render if a filter that depends on applied status is active
+                if (
+                    appliedBtn.classList.contains(highlightClass) ||
+                    notesBtn.classList.contains(highlightClass) ||
+                    hideAppliedBtn.classList.contains(highlightClass)
+                ) {
+                    renderJobs(allComments);
+                } else {
+                    updateJobCardInPlace(jobId, false);
+                }
             }
         }
     }
