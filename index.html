@@ -9,6 +9,10 @@
   <meta name="theme-color" content="#333333">
 
   <style>
+    html {
+      overflow-x: hidden;
+    }
+
     /* Add box-sizing globally for consistent layout */
     *, *::before, *::after {
       box-sizing: border-box;
@@ -97,6 +101,7 @@
       color: var(--on-surface);
       line-height: 1.6;
       font-size: 16px;
+      overflow-x: hidden; /* Prevent horizontal scrolling */
     }
 
     header {
@@ -865,6 +870,12 @@
     .try-example-link:hover {
       text-decoration: underline;
     }
+
+    /* This css helps to visualize what might be going over the edge right now
+    This will put a yellow border around every element */
+    /* * * {
+    border: 1px solid yellow !important;
+    } */
 
   </style>
 </head>
