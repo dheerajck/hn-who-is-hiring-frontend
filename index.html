@@ -2205,7 +2205,7 @@ function updateJobCardInPlace(jobId, appliedStatus) {
         <a href="https://news.ycombinator.com/item?id=${jobId}" class="action-btn" target="_blank" rel="noopener noreferrer" title="Open on Hacker News" aria-label="Open on Hacker News">
           <i class="fas fa-external-link-alt"></i>
         </a>
-        <button class="action-btn" data-action="copy" title="Copy job details" aria-label="Copy job details">
+        <button class="action-btn" data-action="copy-link" title="Copy link" aria-label="Copy link">
           <i class="fas fa-copy"></i>
         </button>
       </div>
@@ -2279,17 +2279,11 @@ function updateJobCardInPlace(jobId, appliedStatus) {
                 renderJobs(allComments);
             }
         }
-        else if (action === 'copy') {
-            const titleElement = jobCard.querySelector('.job-title');
-            const descriptionElement = jobCard.querySelector('.job-description');
-            const title = titleElement ? titleElement.innerText : '';
-            const description = descriptionElement ? descriptionElement.innerText : '';
+        else if (action === 'copy-link') {
             const url = `https://news.ycombinator.com/item?id=${jobId}`;
-            const fullCopyText = `${title}\n\n${description}\n\n${url}`;
-
-            navigator.clipboard.writeText(fullCopyText)
-              .then(() => showToast('Job details copied with link!'))
-              .catch(err => showToast('Failed to copy text.'));
+            navigator.clipboard.writeText(url)
+              .then(() => showToast('Link copied!'))
+              .catch(err => showToast('Failed to copy link.'));
         }
         else if (action === 'save-note') {
             const noteText = noteEl ? noteEl.value.trim() : '';
