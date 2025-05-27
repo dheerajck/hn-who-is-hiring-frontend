@@ -1104,6 +1104,8 @@
     const favoriteKey = 'favoriteHNv1';
     let favorites = JSON.parse(localStorage.getItem(favoriteKey) || '{}');
     const themekey = 'themeHNv1';
+    const hiddenKey = 'hiddenHNv1';
+    let hidden = JSON.parse(localStorage.getItem(hiddenKey) || '{}');
 
     const searchDebounceTimeout = 300;
     const toastTimeout = 3000;
@@ -1703,7 +1705,7 @@ function updateJobCardInPlace(jobId, appliedStatus) {
       });
     }
 
-    // Add filter buttons for favorites, applied, and notes
+    // Add filter buttons for favorites, applied, notes, and hidden
     const controlButtons = document.querySelector('.control-buttons');
     controlButtons.classList.add('filter-row');
 
@@ -1745,7 +1747,7 @@ function updateJobCardInPlace(jobId, appliedStatus) {
     // There should be one filter active at a time, allow deselecting by clicking again
     function setActiveFilter(btn) {
       const isActive = btn.classList.contains(highlightClass);
-      [favBtn, appliedBtn, notesBtn, hideAppliedBtn].forEach(b => b.classList.remove(highlightClass));
+      [favBtn, appliedBtn, notesBtn, hideAppliedBtn, showHiddenBtn].forEach(b => b.classList.remove(highlightClass));
       if (!isActive) {
         btn.classList.add(highlightClass);
       }
@@ -1757,6 +1759,14 @@ function updateJobCardInPlace(jobId, appliedStatus) {
     notesBtn.onclick = () => setActiveFilter(notesBtn);
     hideAppliedBtn.onclick = () => setActiveFilter(hideAppliedBtn);
 
+    // Show Excluded button
+    const showHiddenBtn = document.createElement('button');
+    showHiddenBtn.id = 'showHidden';
+    showHiddenBtn.className = 'filter-btn';
+    showHiddenBtn.innerHTML = '<i class="fas fa-xmark"></i> Show Excluded';
+
+    showHiddenBtn.onclick = () => setActiveFilter(showHiddenBtn);
+
     // Reset button click handler
     resetBtn.onclick = () => {
         if (window.confirm('Are you sure you want to clear all applied statuses, notes, favorites, AND caches rn ?? This cannot be undone.')) {
@@ -1764,9 +1774,11 @@ function updateJobCardInPlace(jobId, appliedStatus) {
             applied = {};
             favorites = {};
             notes = {};
+            hidden = {};
             localStorage.removeItem(appliedKey);
             localStorage.removeItem(favoriteKey);
             localStorage.removeItem(notesKey);
+            localStorage.removeItem(hiddenKey);
             localStorage.removeItem(themekey);
 
             // --- START: Clear comment caches ---
@@ -1779,7 +1791,7 @@ function updateJobCardInPlace(jobId, appliedStatus) {
             // --- END: Clear comment caches ---
 
             // Reset UI
-            [favBtn, appliedBtn, notesBtn, hideAppliedBtn].forEach(b => b.classList.remove(highlightClass));
+            [favBtn, appliedBtn, notesBtn, hideAppliedBtn, showHiddenBtn].forEach(b => b.classList.remove(highlightClass));
             // No need to call renderJobs if we are reloading
             // renderJobs(allComments);
             showToast('All data cleared. Reloading...');
@@ -1793,6 +1805,7 @@ function updateJobCardInPlace(jobId, appliedStatus) {
     controlButtons.appendChild(appliedBtn);
     controlButtons.appendChild(notesBtn);
     controlButtons.appendChild(hideAppliedBtn);
+    controlButtons.appendChild(showHiddenBtn);
     controlButtons.appendChild(resetBtn);
 
     // New parseQuery function - Treats single words as words, multi-word as phrases
@@ -1869,7 +1882,7 @@ function updateJobCardInPlace(jobId, appliedStatus) {
             const span = document.createElement('span');
             span.classList.add('query-token');
             let textContent = token;
-            let isNegated = false;
+                                             let isNegated = false;
             let isPhrase = false; // Track if it's a phrase
 
             if (token === '|' || token === '&') {
@@ -2008,6 +2021,7 @@ function updateJobCardInPlace(jobId, appliedStatus) {
         const showApplied = appliedBtn.classList.contains(highlightClass);
         const showNotes = notesBtn.classList.contains(highlightClass);
         const hideAppliedActive = hideAppliedBtn.classList.contains(highlightClass); // Check button state directly
+        const showHidden = showHiddenBtn.classList.contains(highlightClass);
 
         container.innerHTML = '';
 
@@ -2017,16 +2031,26 @@ function updateJobCardInPlace(jobId, appliedStatus) {
 
         // Apply the single active filter
         if (showFavs) {
-          filteredComments = filteredComments.filter(c => favorites[currentThreadId]?.[getJobId(c)]);
+          // Only show favorites that are NOT excluded
+          filteredComments = filteredComments.filter(c => favorites[currentThreadId]?.[getJobId(c)] && !hidden[currentThreadId]?.[getJobId(c)]);
         } else if (showApplied) {
-          filteredComments = filteredComments.filter(c => applied[currentThreadId]?.[getJobId(c)]);
+          // Only show applied that are NOT excluded
+          filteredComments = filteredComments.filter(c => applied[currentThreadId]?.[getJobId(c)] && !hidden[currentThreadId]?.[getJobId(c)]);
         } else if (hideAppliedActive) { // Use the button's active state
-          filteredComments = filteredComments.filter(c => !applied[currentThreadId]?.[getJobId(c)]);
+          // Only show jobs that are NOT applied and NOT excluded
+          filteredComments = filteredComments.filter(c => !applied[currentThreadId]?.[getJobId(c)] && !hidden[currentThreadId]?.[getJobId(c)]);
         } else if (showNotes) {
+          // Only show jobs with notes that are NOT excluded
           filteredComments = filteredComments.filter(c => {
             const jobId = getJobId(c);
-            return notes[currentThreadId]?.[jobId] && notes[currentThreadId][jobId].trim().length > 0;
+            return notes[currentThreadId]?.[jobId] && notes[currentThreadId][jobId].trim().length > 0 && !hidden[currentThreadId]?.[jobId];
           });
+        } else if (showHidden) {
+          // Only show excluded jobs
+          filteredComments = filteredComments.filter(c => hidden[currentThreadId]?.[getJobId(c)]);
+        } else {
+          // By default, hide excluded jobs
+          filteredComments = filteredComments.filter(c => !hidden[currentThreadId]?.[getJobId(c)]);
         }
 
         // Apply search query filter (runs after the main filter)
@@ -2068,12 +2092,12 @@ function updateJobCardInPlace(jobId, appliedStatus) {
         }
 
         filteredComments.forEach(c => {
-            const jobId = getJobId(c); // Use consistent ID getter
-            const appliedStatus = applied[currentThreadId]?.[jobId]; // Get applied date/status
-            const note = notes[currentThreadId]?.[jobId] || ''; // Get note from notes object
-            const date = appliedStatus ? new Date(appliedStatus).toLocaleString() : ''; // Format date if applied
+            const jobId = getJobId(c);
+            const appliedStatus = applied[currentThreadId]?.[jobId];
+            const note = notes[currentThreadId]?.[jobId] || '';
+            const date = appliedStatus ? new Date(appliedStatus).toLocaleString() : '';
             const isFav = favorites[currentThreadId]?.[jobId];
-
+            const isHidden = hidden[currentThreadId]?.[jobId];
             let postedTime = '';
             if (c.created_at) {
               const d = new Date(c.created_at);
@@ -2131,9 +2155,20 @@ function updateJobCardInPlace(jobId, appliedStatus) {
             article.className = 'job-card fade-in';
             article.tabIndex = 0;
             article.setAttribute('data-job-id', jobId);
-
-            if (appliedStatus) article.classList.add('applied'); // Add class if applied
-
+            if (appliedStatus) article.classList.add('applied');
+            // Render actions based on hidden state
+            let hideOrUnhideBtn = '';
+            if (showHidden) {
+              // Show Restore button with undo icon
+              hideOrUnhideBtn = `<button class="job-action-button btn-unhide" data-action="unhide" title="Restore" style="margin-right: auto;">
+                <i class="fas fa-undo" aria-hidden="true"></i> Restore
+              </button>`;
+            } else {
+              // Show Exclude button with ban icon
+              hideOrUnhideBtn = `<button class="job-action-button btn-remove" data-action="remove" title="Exclude" style="margin-right: auto;">
+                <i class="fas fa-xmark" aria-hidden="true"></i> Exclude
+              </button>`;
+            }
             article.innerHTML = `
   <div class="job-header">
     <div class="job-header-top" style="width:100%;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
@@ -2157,7 +2192,7 @@ function updateJobCardInPlace(jobId, appliedStatus) {
     </div>
 
     <div style="display:flex;align-items:flex-start;margin-bottom:0.75rem;gap:0.75rem;">
-      <button class="action-btn star-btn ${isFav ? '' : ' inactive'}" data-action="star" title="Add to Favorite" aria-label="Star job">
+      <button class="action-btn star-btn${isFav ? '' : ' inactive'}" data-action="star" title="Add to Favorite" aria-label="Star job">
         <i class="fas fa-star"></i>
       </button>
       <div class="job-title" style="font-weight:bold;font-size:1.25rem;flex-grow:1;color:var(--primary);line-height:1.3;">${jobTitle}</div>
@@ -2186,10 +2221,10 @@ function updateJobCardInPlace(jobId, appliedStatus) {
   </div>
 
   <div class="job-actions" style="display:flex;gap:0.75rem;flex-wrap:wrap;padding-top:0.75rem;border-top:1px solid var(--border);">
-
-  <button class="job-action-button btn-save-note" data-action="save-note" title="Update Note">
-    <i class="fas fa-edit" aria-hidden="true"></i> Update Note
-  </button>
+    ${hideOrUnhideBtn}
+    <button class="job-action-button btn-save-note" data-action="save-note" title="Update Note">
+      <i class="fas fa-edit" aria-hidden="true"></i> Update Note
+    </button>
 
     ${appliedStatus ?
       `<button class="btn-unapply" data-action="unapply">
@@ -2202,9 +2237,8 @@ function updateJobCardInPlace(jobId, appliedStatus) {
     }
   </div>
 `;
-
-            container.appendChild(article);
-          });
+    container.appendChild(article);
+  });
     }
 
     function handleJobCardClick(event) {
@@ -2227,6 +2261,7 @@ function updateJobCardInPlace(jobId, appliedStatus) {
         if (!applied[currentThreadId]) applied[currentThreadId] = {};
         if (!notes[currentThreadId]) notes[currentThreadId] = {};
         if (!favorites[currentThreadId]) favorites[currentThreadId] = {};
+        if (!hidden[currentThreadId]) hidden[currentThreadId] = {};
 
         if (action === 'star') {
             const starButton = actionTarget; // Get the button that was clicked
@@ -2301,6 +2336,20 @@ function updateJobCardInPlace(jobId, appliedStatus) {
                 } else {
                     updateJobCardInPlace(jobId, false);
                 }
+            }
+        }
+        else if (action === 'remove') {
+            hidden[currentThreadId][jobId] = true;
+            localStorage.setItem(hiddenKey, JSON.stringify(hidden));
+            showToast('Excluded!');
+            renderJobs(allComments);
+        }
+        else if (action === 'unhide') {
+            if (hidden[currentThreadId]?.[jobId]) {
+                delete hidden[currentThreadId][jobId];
+                localStorage.setItem(hiddenKey, JSON.stringify(hidden));
+                showToast('Restored!');
+                renderJobs(allComments);
             }
         }
     }
