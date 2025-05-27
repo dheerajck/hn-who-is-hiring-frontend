@@ -1715,17 +1715,17 @@ function updateJobCardInPlace(jobId, appliedStatus) {
     favBtn.className = 'filter-btn';
     favBtn.innerHTML = '<i class="fas fa-star"></i> Favorites';
 
-    // Show Applied button
-    const appliedBtn = document.createElement('button');
-    appliedBtn.id = 'showApplied';
-    appliedBtn.className = 'filter-btn';
-    appliedBtn.innerHTML = '<i class="fas fa-check"></i> Show Applied';
-
     // Show Notes button
     const notesBtn = document.createElement('button');
     notesBtn.id = 'showNotes';
     notesBtn.className = 'filter-btn';
     notesBtn.innerHTML = '<i class="fas fa-sticky-note"></i> Show Notes';
+
+    // Show Applied button
+    const appliedBtn = document.createElement('button');
+    appliedBtn.id = 'showApplied';
+    appliedBtn.className = 'filter-btn';
+    appliedBtn.innerHTML = '<i class="fas fa-check"></i> Show Applied';
 
     // Hide Applied toggle button (not a label+checkbox)
     const hideAppliedBtn = document.createElement('button');
@@ -1747,7 +1747,7 @@ function updateJobCardInPlace(jobId, appliedStatus) {
     // There should be one filter active at a time, allow deselecting by clicking again
     function setActiveFilter(btn) {
       const isActive = btn.classList.contains(highlightClass);
-      [favBtn, appliedBtn, notesBtn, hideAppliedBtn, showHiddenBtn].forEach(b => b.classList.remove(highlightClass));
+      [favBtn, notesBtn, appliedBtn, hideAppliedBtn, showHiddenBtn].forEach(b => b.classList.remove(highlightClass));
       if (!isActive) {
         btn.classList.add(highlightClass);
       }
@@ -1755,8 +1755,8 @@ function updateJobCardInPlace(jobId, appliedStatus) {
     }
 
     favBtn.onclick = () => setActiveFilter(favBtn);
-    appliedBtn.onclick = () => setActiveFilter(appliedBtn);
     notesBtn.onclick = () => setActiveFilter(notesBtn);
+    appliedBtn.onclick = () => setActiveFilter(appliedBtn);
     hideAppliedBtn.onclick = () => setActiveFilter(hideAppliedBtn);
 
     // Show Excluded button
@@ -1791,7 +1791,7 @@ function updateJobCardInPlace(jobId, appliedStatus) {
             // --- END: Clear comment caches ---
 
             // Reset UI
-            [favBtn, appliedBtn, notesBtn, hideAppliedBtn, showHiddenBtn].forEach(b => b.classList.remove(highlightClass));
+            [favBtn, notesBtn, appliedBtn, hideAppliedBtn, showHiddenBtn].forEach(b => b.classList.remove(highlightClass));
             // No need to call renderJobs if we are reloading
             // renderJobs(allComments);
             showToast('All data cleared. Reloading...');
@@ -1802,8 +1802,8 @@ function updateJobCardInPlace(jobId, appliedStatus) {
     };
 
     controlButtons.appendChild(favBtn);
-    controlButtons.appendChild(appliedBtn);
     controlButtons.appendChild(notesBtn);
+    controlButtons.appendChild(appliedBtn);
     controlButtons.appendChild(hideAppliedBtn);
     controlButtons.appendChild(showHiddenBtn);
     controlButtons.appendChild(resetBtn);
