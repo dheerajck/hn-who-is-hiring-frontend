@@ -186,6 +186,36 @@
       transform: translateY(1px) scale(0.98);
     }
 
+    /* Header action buttons (copy/link) */
+    .action-btn {
+      background: transparent;
+      border: none;
+      color: var(--on-surface) !important;
+      padding: 0.2rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      width: 28px;
+      height: 28px;
+      text-decoration: none;
+    }
+
+    .action-btn:hover {
+      background-color: var(--surface);
+      transform: translateY(-1px);
+      color: var(--on-surface);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .action-btn:active {
+      transform: translateY(0);
+      box-shadow: none;
+    }
+
     .job-card {
       border: 1px solid var(--border); /* Ensure default border width */
       margin: 1.2rem 0;
@@ -201,6 +231,13 @@
     }
 
     .job-header {
+      flex-direction: column; /* Stack badge and date */
+      align-items: flex-start; /* Align left */
+      gap: 0.1rem; /* Small gap between badge and date */
+      /* Order this first visually if needed, or adjust flex layout */
+      order: -1; /* Place it visually at the start */
+      flex-basis: 100%; /* Force it to a new line on smaller widths if needed */
+
       display: flex;
       flex-wrap: wrap; /* Allow wrapping */
       align-items: flex-start; /* Align items to the top */
@@ -217,12 +254,9 @@
 
     .job-header-status { /* New container for badge/date */
         display: flex;
-        flex-direction: column; /* Stack badge and date */
-        align-items: flex-start; /* Align left */
-        gap: 0.1rem; /* Small gap between badge and date */
-        /* Order this first visually if needed, or adjust flex layout */
-        order: -1; /* Place it visually at the start */
-        flex-basis: 100%; /* Force it to a new line on smaller widths if needed */
+        align-items: flex-start;
+        gap: 0.1rem;
+        flex-basis: 100%;
         margin-bottom: 0.5rem; /* Space below status block */
     }
 
@@ -792,7 +826,7 @@
       }
     }
 
-    .star-btn {
+    .star-btn i{
       background: transparent;
       border: none;
       color: gold;
@@ -802,7 +836,7 @@
       line-height: 1;
       transition: color 0.2s;
     }
-    .star-btn.inactive {
+    .star-btn.inactive i{
       color: #888;
     }
     .copy-btn {
@@ -1594,18 +1628,31 @@ function updateJobCardInPlace(jobId, appliedStatus) {
     } else {
         jobCard.classList.remove('applied');
     }
-    // Update badge/date
+    // Update badge and date in the header
     const statusDiv = jobCard.querySelector('.job-header-status');
     if (statusDiv) {
-        let badgeHtml = appliedStatus ? `<span class="badge">Applied</span>` : '';
-        let dateHtml = appliedStatus ? `<div class="meta"><i class="far fa-calendar"></i> ${new Date(appliedStatus).toLocaleString()}</div>` : '';
-        // Find author link (keep it)
-        const authorLink = statusDiv.querySelector('a.job-company.meta');
-        let authorHtml = '';
-        if (authorLink) {
-            authorHtml = authorLink.outerHTML;
+        // For applied status, show badge and date; otherwise, show nothing
+        if (appliedStatus) {
+            statusDiv.innerHTML = `
+                <span class="badge" style="font-weight:bold;letter-spacing:0.5px;">Applied</span>
+                <div class="meta">
+                    <i class="far fa-calendar"></i> ${new Date(appliedStatus).toLocaleString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          hour: 'numeric',
+                          minute: '2-digit',
+                          hour12: true
+                        })}
+                </div>`;
+        } else {
+            statusDiv.innerHTML = ''; // Clear the status div when not applied
         }
-        statusDiv.innerHTML = `${badgeHtml}${dateHtml}${authorHtml}`;
+    }
+
+    // Also update the margin below the header-top based on applied status
+    const headerTop = jobCard.querySelector('.job-header-top');
+    if (headerTop) {
+        headerTop.style.marginBottom = appliedStatus ? '0.5rem' : '0';
     }
     // Update action buttons
     const actionsDiv = jobCard.querySelector('.job-actions');
@@ -2060,6 +2107,26 @@ function updateJobCardInPlace(jobId, appliedStatus) {
               postedTime = `${formattedDate} <span title="${d.toLocaleString()}">(${timeAgo})</span>`;
             }
 
+            const commentTextHTML = c.text || '[No comment text]';
+            const authorName = c.author || '[unknown author]';
+
+            // Extract job title from first line of comment text and parse for pipe character
+            const plainTextComment = (commentTextHTML).replace(/<[^>]+>/g, '');
+            const firstLine = plainTextComment.split('\n')[0].trim();
+
+            // Extract title up to first pipe character (if it exists)
+            let jobTitle = '';
+            if (firstLine.includes('|')) {
+                jobTitle = firstLine.split('|')[0].trim();
+            }
+            else if (jobTitle.length < 2 || jobTitle.length > 80) {
+                jobTitle = 'Job Title Not Found'; // Fallback if title is too short or too long
+            }
+            else {
+                jobTitle = firstLine;
+            }
+
+
             const article = document.createElement('article');
             article.className = 'job-card fade-in';
             article.tabIndex = 0;
@@ -2067,55 +2134,74 @@ function updateJobCardInPlace(jobId, appliedStatus) {
 
             if (appliedStatus) article.classList.add('applied'); // Add class if applied
 
-            const commentTextHTML = c.text || '[No comment text]';
-            const authorName = c.author || '[unknown author]';
-
             article.innerHTML = `
-              <div class="job-header">
-                <!-- Status (Badge/Date) -->
-                <div class="job-header-status">
-                  ${appliedStatus ? `<span class="badge">Applied</span>` : ''}
-                  ${date ? `<div class="meta"><i class="far fa-calendar"></i> ${date}</div>` : ''}
-                  <a href="https://news.ycombinator.com/item?id=${jobId}" target="_blank" rel="noopener noreferrer" class="job-company meta" title="View original comment by ${authorName}"><i class="fas fa-user" aria-hidden="true"></i> ${authorName}</a>
-                </div>
-                <!-- Main Header Content -->
-                <div class="job-header-main"></div>
-                <!-- Posted Time -->
-                <div style="font-weight:normal; color:#999; font-size:0.9em; margin-left:auto; align-self: flex-start;">
-                  ${postedTime ? `${postedTime}` : ''}
-                </div>
-              </div>
-              <div class="job-content">${commentTextHTML}
-                <button class="copy-btn" data-action="copy" title="Copy job details" aria-label="Copy job details">
-                  <i class="fas fa-copy"></i>
-                </button>
-              </div>
-              <!-- Note Textarea (no longer wrapped with button) -->
-              <textarea class="note" placeholder="Add notes about this position..." style="margin-top: 0.75rem;">${note}</textarea>
+  <div class="job-header">
+    <div class="job-header-top" style="width:100%;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+      <div class="job-header-status" style="display:flex;align-items:center;gap:0.5rem;">
+        ${appliedStatus ?
+          `<span class="badge" style="font-weight:bold;letter-spacing:0.5px;">Applied</span>
+          <div class="meta">
+            <i class="far fa-calendar"></i> ${new Date(appliedStatus).toLocaleString('en-US', {
+              month: 'short',
+              day: 'numeric',
+              hour: 'numeric',
+              minute: '2-digit',
+              hour12: true
+            })}
+          </div>`
+          : ''}
+      </div>
+      <div style="font-weight:normal; color:#999; font-size:0.9em;">
+        ${postedTime ? `${postedTime}` : ''}
+      </div>
+    </div>
 
-              <div class="job-actions">
-                <button class="star-btn${isFav ? '' : ' inactive'}" data-action="star" title="Add to Favorite" aria-label="Star job" style="margin-right: auto;">
-                  <i class="fas fa-star"></i>
-                </button>
+    <div style="display:flex;align-items:flex-start;margin-bottom:0.75rem;gap:0.75rem;">
+      <button class="action-btn star-btn ${isFav ? '' : ' inactive'}" data-action="star" title="Add to Favorite" aria-label="Star job">
+        <i class="fas fa-star"></i>
+      </button>
+      <div class="job-title" style="font-weight:bold;font-size:1.25rem;flex-grow:1;color:var(--primary);line-height:1.3;">${jobTitle}</div>
+    </div>
 
-                <!-- Update Note Button (Moved here) -->
-                <button class="job-action-button btn-save-note" data-action="save-note" title="Update Note">
-                  <i class="fas fa-edit" aria-hidden="true"></i> Update Note
-                </button>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border); width: 100%;">
+      <div class="job-author" style="color:var(--on-surface);opacity:0.8;font-size:1.1em;font-weight:bold; display:flex; align-items:center; gap: 0.5rem;">
+        <span class="job-author-main">Posted by: ${authorName}</span>
 
-                ${appliedStatus ? // If job IS applied
-                  `<!-- Show Remove Applied Status button -->
-                   <button class="btn-unapply" data-action="unapply">
-                     <i class="fas fa-times" aria-hidden="true"></i> Remove Applied Status
-                   </button>`
-                  : // If job is NOT applied
-                  `<!-- Show Mark as Applied button -->
-                   <button class="job-action-button btn-apply" data-action="apply">
-                     <i class="fas fa-check" aria-hidden="true"></i> Mark as Applied
-                   </button>`
-                }
-              </div>
-            `;
+        <a href="https://news.ycombinator.com/item?id=${jobId}" class="action-btn" target="_blank" rel="noopener noreferrer" title="Open on Hacker News" aria-label="Open on Hacker News">
+          <i class="fas fa-external-link-alt"></i>
+        </a>
+        <button class="action-btn" data-action="copy" title="Copy job details" aria-label="Copy job details">
+          <i class="fas fa-copy"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="job-content">
+    <div class="job-description" style="margin-bottom:1rem;">${commentTextHTML.replace(firstLine, '')}</div>
+  </div>
+
+  <div class="job-notes" style="margin-bottom:1rem;">
+    <textarea class="note" placeholder="Add notes about this position..." style="width:100%;min-height:80px;resize:vertical;">${note}</textarea>
+  </div>
+
+  <div class="job-actions" style="display:flex;gap:0.75rem;flex-wrap:wrap;padding-top:0.75rem;border-top:1px solid var(--border);">
+
+  <button class="job-action-button btn-save-note" data-action="save-note" title="Update Note">
+    <i class="fas fa-edit" aria-hidden="true"></i> Update Note
+  </button>
+
+    ${appliedStatus ?
+      `<button class="btn-unapply" data-action="unapply">
+         <i class="fas fa-times" aria-hidden="true"></i> Remove Applied Status
+       </button>`
+      :
+      `<button class="job-action-button btn-apply" data-action="apply">
+         <i class="fas fa-check" aria-hidden="true"></i> Mark as Applied
+       </button>`
+    }
+  </div>
+`;
 
             container.appendChild(article);
           });
@@ -2159,9 +2245,15 @@ function updateJobCardInPlace(jobId, appliedStatus) {
             }
         }
         else if (action === 'copy') {
-            const contentToCopy = jobCard.querySelector('.job-content').innerText;
-            navigator.clipboard.writeText(contentToCopy)
-              .then(() => showToast('Job details copied!'))
+            const titleElement = jobCard.querySelector('.job-title');
+            const descriptionElement = jobCard.querySelector('.job-description');
+            const title = titleElement ? titleElement.innerText : '';
+            const description = descriptionElement ? descriptionElement.innerText : '';
+            const url = `https://news.ycombinator.com/item?id=${jobId}`;
+            const fullCopyText = `${title}\n\n${description}\n\n${url}`;
+
+            navigator.clipboard.writeText(fullCopyText)
+              .then(() => showToast('Job details copied with link!'))
               .catch(err => showToast('Failed to copy text.'));
         }
         else if (action === 'save-note') {
