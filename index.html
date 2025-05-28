@@ -1011,6 +1011,48 @@
     border: 1px solid yellow !important;
     } */
 
+    /* Modal styles */
+    .help-modal-overlay {
+      position: fixed; z-index: 1000; left: 0; top: 0; width: 100vw; height: 100vh;
+      background: rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center;
+    }
+
+    .help-modal-window {
+      background: var(--surface, #fff); color: var(--on-surface, #222); border-radius: 10px;
+      box-shadow: 0 4px 32px rgba(0,0,0,0.18); padding: 2.5rem 2.2rem 2.2rem 2.2rem; max-width: 650px; width: 98vw; position: relative;
+      font-size: 1.18rem;
+    }
+
+    .help-modal-window li {
+      margin-bottom: 1rem;
+    }
+
+    .help-modal-close {
+      position: absolute; top: 0.5rem; right: 0.7rem; background: none; border: none; font-size: 2rem; color: #888; cursor: pointer;
+    }
+
+    .help-modal-btn {
+      background: var(--surface, #fff); color: var(--on-surface, #222); border: 1px solid var(--border); border-radius: 6px; padding: 0.3em 1.1em; font-size: 1rem; cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+      display: flex; align-items: center; gap: 0.5em;
+    }
+
+    .help-modal-btn i {
+      font-size: 1rem;
+      line-height: 1;
+      vertical-align: middle;
+      transform: translateY(1px); /* or -1px based on your font */
+    }
+
+    .help-modal-btn:hover {
+      background: var(--button-hover);
+      border-color: var(--primary);
+    }
+
+    @media (max-width: 600px) {
+      .help-modal-window { padding: 1.2rem 0.5rem; font-size: 1.05rem; max-width: 98vw; }
+    }
+
   </style>
 </head>
 
@@ -1047,12 +1089,32 @@
           <button class="op-btn" data-op=" & " title="AND Operator">&</button>
           <button class="op-btn" data-op=" | " title="OR Operator">|</button>
           <button class="op-btn" data-op=" ~" title="NOT Operator">~</button>
+
+          <button id="openHelpModal" class="help-modal-btn" onclick="setupHelpModal()" style="margin-left: 1rem; font-weight: bold; display: flex; align-items: center; gap: 0.5em;">
+          Help
+          <i class="fas fa-question-circle" aria-hidden="true" style="font-size:1em;"></i>
+          </button>
+          <div id="helpModal" class="help-modal-overlay" style="display:none;">
+            <div class="help-modal-window">
+              <button id="closeHelpModal" class="help-modal-close" aria-label="Close help">&times;</button>
+              <h2 style="margin-top:0;">Search Help</h2>
+              <ul style="padding-left:1.2em;">
+                <li><b><code>remote</code></b><br>Matches jobs containing the word or substring <code>remote</code>.</li>
+                <li><b><code>"@gmail.com"</code></b><br>Matches jobs containing the exact string <code>"@gmail.com"</code>.</li>
+                <li><b><code>rust &amp; backend</code></b><br>Matches jobs that mention both <code>rust</code> <b>and</b> <code>backend</code>.</li>
+                <li><b><code>react | angular</code></b><br>Matches jobs that mention <b>either</b> <code>react</code> <b>or</b> <code>angular</code>.</li>
+                <li><b><code>~us-based</code></b><br>Excludes jobs that mention the word <code>us-based</code>.</li>
+                <li><b><code>~"bay area"</code></b><br>Excludes jobs that mention the exact string <code>"bay area"</code>.</li>
+                <li><b><code>python | javascript &amp; remote &amp; ~us-based</code></b><br>Matches jobs that mention <code>python</code> <b>or</b> <code>javascript</code>, <b>and</b> <code>remote</code>, but <b>not</b> <code>us-based</code>.</li>
+              </ul>
+            </div>
+          </div>
+
         </div>
 
         <div id="parsed-query-display" class="parsed-query-container"></div>
           <a href="#" id="try-example-search" class="try-example-link">Try example search</a>
         </div>
-
 
       <div class="control-buttons filter-row">
         <!-- Filter buttons will be injected here by JS -->
@@ -1838,6 +1900,24 @@
             });
         }
     }
+
+    function setupHelpModal() {
+      var openBtn = document.getElementById('openHelpModal');
+      var modal = document.getElementById('helpModal');
+      var closeBtn = document.getElementById('closeHelpModal');
+      if (openBtn && modal && closeBtn) {
+        openBtn.onclick = function() { modal.style.display = 'flex'; };
+        closeBtn.onclick = function() { modal.style.display = 'none'; };
+        window.addEventListener('click', function(e) {
+          if (e.target === modal) modal.style.display = 'none';
+        });
+        window.addEventListener('keydown', function(e) {
+          if (e.key === 'Escape') modal.style.display = 'none';
+        });
+      }
+      }
+
+    setupHelpModal();
 
     // Add filter buttons for favorites, applied, notes, and hidden
     const controlButtons = document.querySelector('.control-buttons');

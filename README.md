@@ -9,25 +9,22 @@ An intuitive and easy to use frontend for Hacker News Who's Hiring threads in yo
 Use the following syntax to filter job posts:
 
 - **`remote`**
-  Finds jobs mentioning the word `remote`.
+  Matches jobs containing the word or substring `remote`.
 
-- **`data scientist`**
-  Finds jobs mentioning the exact phrase `data scientist`.
-
-- **`"data scientist"`**
-  Same as above — quotes ensure it's treated as a single phrase.
+- **`"@gmail.com"`**
+  Matches jobs containing the exact string `"@gmail.com"`.
 
 - **`rust & backend`**
-  Finds jobs that mention both `rust` **and** `backend`.
+  Matches jobs that mention both `rust` **and** `backend`.
 
 - **`react | angular`**
-  Finds jobs that mention **either** `react` **or** `angular`.
+  Matches jobs that mention **either** `react` **or** `angular`.
 
-- **`~onsite`**
-  Excludes jobs that mention `onsite`.
+- **`~us-based`**
+  Excludes jobs that mention the word `us-based`.
 
 - **`~"bay area"`**
-  Excludes jobs that mention the exact phrase `bay area`.
+  Excludes jobs that mention the exact string `"bay area"`.
 
 - **`python | javascript & remote & ~us-based`**
-  Finds jobs that mention either `python` **or** `javascript`, **and** `remote`, **but not** `us-based`.
+  Matches jobs that mention `python` **or** `javascript`, **and** `remote`, but **not** `us-based`.
