@@ -560,40 +560,122 @@
     .token-negated.token-word {
         background-color: var(--token-negated-bg);
         color: var(--token-negated-text);
-        border: 1px solid var(--token-negated-border);
+        border: 1.5px solid var(--token-negated-border);
     }
 
-    .switcher {
+    /* New category switcher styles */
+    .category-switcher {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.5rem;
+      gap: 0.75rem;
       margin-bottom: 1rem;
+      padding-bottom: 1.5rem;
       border-bottom: 1px solid var(--border);
-      padding-bottom: 1rem;
+      position: relative; /* Ensures ::after is positioned relative to this */
+      overflow: visible !important; /* Attempt to prevent clipping of the ::after pseudo-element */
     }
 
-    .switcher button {
+    .category-switcher::after {
+      content: '';
+      display: block;
+      position: absolute;
+      bottom: 0; /* Positions the line at the bottom of .category-switcher's padding box */
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%; /* Makes the line full viewport width */
+      /* height: 1px; */
+      background-color: var(--border); /* Or your specific border color */
+      z-index: 1; /* Ensure it's visible, adjust if needed */
+      box-sizing: content-box; /* Be explicit that width is content width */
+    }
+
+    .category-btn {
       background-color: transparent;
       padding: 0.6rem 1.1rem;
       border-radius: 20px;
       font-size: 1rem;
-      /* Add border for consistency */
       border: 1px solid var(--border);
       color: var(--on-surface);
       cursor: pointer;
       transition: var(--transition);
+      flex-grow: 1; /* Allow buttons to grow to fill space */
+      text-align: center;
     }
 
-    /* Add this rule for the active state */
-    .switcher button.active {
+    .category-btn.active {
       background-color: var(--primary);
       color: #000;
       border-color: var(--primary);
       font-weight: bold;
     }
 
-    /* Add hover effect for non-active buttons */
-    .switcher button:not(.active):hover {
+    .category-btn:not(.active):hover {
+      background-color: var(--button-hover);
+    }
+
+    /* Month picker specific styles */
+    .switcher {
+      display: flex;
+      flex-direction: column; /* Stack year and month selectors */
+      gap: 1rem; /* Space between year and month selectors */
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1rem;
+    }
+
+    .year-selector, .month-selector {
+        display: flex;
+        flex-wrap: wrap; /* Allow buttons to wrap */
+        gap: 0.5rem;
+        /* Allow horizontal scroll on small screens */
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch; /* smooth scrolling for iOS */
+        scrollbar-width: thin; /* Firefox */
+        scrollbar-color: var(--primary) var(--button-bg); /* Firefox */
+        padding-bottom: 0.5rem; /* Space for scrollbar on desktop */
+    }
+
+    .year-selector::-webkit-scrollbar,
+    .month-selector::-webkit-scrollbar {
+        height: 6px; /* Height of horizontal scrollbar */
+    }
+
+    .year-selector::-webkit-scrollbar-track,
+    .month-selector::-webkit-scrollbar-track {
+        background: var(--button-bg); /* Color of the track */
+        border-radius: 3px;
+    }
+
+    .year-selector::-webkit-scrollbar-thumb,
+    .month-selector::-webkit-scrollbar-thumb {
+        background: var(--primary); /* Color of the scrollbar thumb */
+        border-radius: 3px;
+    }
+
+    .year-selector button,
+    .month-selector button {
+      background-color: transparent;
+      padding: 0.6rem 1.1rem;
+      border-radius: 20px;
+      font-size: 1rem;
+      border: 1px solid var(--border);
+      color: var(--on-surface);
+      cursor: pointer;
+      transition: var(--transition);
+      flex-shrink: 0; /* Prevent buttons from shrinking below content */
+      white-space: nowrap; /* Prevent text wrapping inside buttons */
+    }
+
+    .year-selector button.active,
+    .month-selector button.active {
+      background-color: var(--primary);
+      color: #000;
+      border-color: var(--primary);
+      font-weight: bold;
+    }
+
+    .year-selector button:not(.active):hover,
+    .month-selector button:not(.active):hover {
         background-color: var(--button-hover);
     }
 
@@ -610,7 +692,7 @@
       text-decoration: none; /* Remove underline */
     }
 
-    .icon-link-button i {
+    .icon-link-button i{
       transition: transform 0.4s ease; /* Add transition for the icon */
     }
 
@@ -716,7 +798,7 @@
           margin-bottom: 0;
       }
 
-      .switcher {
+      .category-switcher {
         overflow-x: auto;
         padding-bottom: 0.5rem;
         gap: 0.5em; /* Increased gap for mobile */
@@ -733,12 +815,29 @@
         width: 100%;
         box-sizing: border-box; /* Include padding in width calculation */
       }
-
-      .switcher button {
+      .category-btn {
         flex: 0 0 auto;
         white-space: nowrap;
         padding: 0.4rem 0.75rem;
         font-size: 0.9rem;
+      }
+
+      .category-switcher {
+        flex-direction: column !important;
+        align-items: stretch;
+        gap: 0.5rem;
+      }
+      .category-switcher .category-btn {
+        width: 100%;
+        text-align: left;
+      }
+
+      .switcher {
+        /* Adjust padding/margins for mobile layout */
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+        margin-left: -0.75rem;
+        margin-right: -0.75rem;
       }
 
       .filter-row {
@@ -854,6 +953,7 @@
       align-items: center;
       flex-wrap: wrap;
       margin-bottom: 0.5rem;
+      margin-bottom: 20px; /* Increased space below filters */
     }
     .filter-btn {
       margin: 0;
@@ -955,9 +1055,18 @@
       <div class="control-buttons filter-row">
         <!-- Filter buttons will be injected here by JS -->
       </div>
+
+      <!-- New Category Switcher -->
+      <div class="category-switcher" aria-label="Category navigation">
+        <!-- Category buttons will be injected here by JS -->
+      </div>
     </section>
 
-    <nav class="switcher" aria-label="Thread navigation"></nav>
+    <!-- Existing Month Switcher - now hierarchical -->
+    <nav class="switcher" aria-label="Thread navigation">
+        <div class="year-selector"></div>
+        <div class="month-selector"></div>
+    </nav>
 
     <div id="load-time-info" style="font-size: 0.85rem; color: #999; margin-bottom: 0.5rem;"></div>
 
@@ -996,8 +1105,8 @@
     }
 
     // --- START: Mock Data Definitions ---
-    const MOCK_INITIAL_THREAD_HITS = [
-        { objectID: '43884796', title: 'Ask HN: Who is hiring? (May 2025 - Mock)' }, // Newest in initial set
+    const MOCK_HIRING_THREADS_INITIAL = [
+        { objectID: '43884796', title: 'Ask HN: Who is hiring? (May 2025 - Mock)' }, // Newest
         { objectID: '43872046', title: 'Ask HN: Who is hiring? (April 2025 - Mock)' },
         { objectID: '43866535', title: 'Ask HN: Who is hiring? (March 2025 - Mock)' },
         { objectID: '43865039', title: 'Ask HN: Who is hiring? (Feb 2025 - Mock)' },
@@ -1005,102 +1114,90 @@
         { objectID: '43861420', title: 'Ask HN: Who is hiring? (Dec 2024 - Mock)' },
         { objectID: '43858638', title: 'Ask HN: Who is hiring? (Nov 2024 - Mock)' },
     ];
-
-    const MOCK_BACKGROUND_THREAD_HITS = [
+    const MOCK_HIRING_THREADS_UPDATE = [
         { objectID: '43864562', title: 'Ask HN: Who is hiring? (June 2025 - Mock NEW)' }, // The new one for background check
-        ...MOCK_INITIAL_THREAD_HITS // Include the previous ones
+        ...MOCK_HIRING_THREADS_INITIAL // Include the previous ones
+    ];
+
+    const MOCK_HIRED_THREADS_INITIAL = [
+        { objectID: '40000001', title: 'Ask HN: Who wants to be hired? (May 2025 - Mock)' },
+        { objectID: '40000002', title: 'Ask HN: Who wants to be hired? (April 2025 - Mock)' },
+        { objectID: '40000003', title: 'Ask HN: Who wants to be hired? (March 2025 - Mock)' },
+    ];
+    const MOCK_HIRED_THREADS_UPDATE = [
+        { objectID: '40000004', title: 'Ask HN: Who wants to be hired? (June 2025 - Mock NEW)' },
+        ...MOCK_HIRED_THREADS_INITIAL
+    ];
+
+    const MOCK_FREELANCER_THREADS_INITIAL = [
+        { objectID: '50000001', title: 'Ask HN: Freelancer? (May 2025 - Mock)' },
+        { objectID: '50000002', title: 'Ask HN: Freelancer? (April 2025 - Mock)' },
+        { objectID: '50000003', title: 'Ask HN: Freelancer? (March 2025 - Mock)' },
+    ];
+    const MOCK_FREELANCER_THREADS_UPDATE = [
+        { objectID: '50000004', title: 'Ask HN: Freelancer? (June 2025 - Mock NEW)' },
+        ...MOCK_FREELANCER_THREADS_INITIAL
     ];
 
     const MOCK_COMMENTS_INITIAL = {
-        '43884796': [ // Comments for the first mock thread (simulating /api/v1/items/{id} response)
-            {
-                id: 101, // Corresponds to 'id' from /items/
-                text: 'Mock Job 1: We need a JavaScript wizard! Remote OK.', // Corresponds to 'text'
-                author: 'mock_company_1',
-                created_at: '2025-05-03T10:00:00Z',
-                created_at_i: 1746266400,
-                parent_id: 43884796, // parent_id of the comment is the story_id
-                story_id: 43884796, // story_id
-                children: [],
-                options: [],
-                points: null,
-                title: null,
-                type: 'comment',
-                url: null
-            },
-            {
-                id: 102,
-                text: 'Mock Job 2: Python developer wanted. On-site.',
-                author: 'mock_company_2',
-                created_at: '2025-05-03T09:30:00Z',
-                created_at_i: 1746264600,
-                parent_id: 43884796,
-                story_id: 43884796,
-                children: [],
-                options: [],
-                points: null,
-                title: null,
-                type: 'comment',
-                url: null
-            },
-            {
-                id: 103,
-                text: 'Mock Job 3: Rust engineer needed. <pre><code>code example</code></pre>',
-                author: 'mock_company_3',
-                created_at: '2025-05-03T09:00:00Z',
-                created_at_i: 1746262800,
-                parent_id: 43884796,
-                story_id: 43884796,
-                children: [],
-                options: [],
-                points: null,
-                title: null,
-                type: 'comment',
-                url: null
-            },
+        '43884796': [ // Comments for the first mock hiring thread
+            { id: 101, text: 'Mock Job 1: We need a JavaScript wizard! Remote OK.', author: 'mock_company_1', created_at: '2025-05-03T10:00:00Z', created_at_i: 1746266400, parent_id: 43884796, story_id: 43884796, type: 'comment' },
+            { id: 102, text: 'Mock Job 2: Python developer wanted. On-site.', author: 'mock_company_2', created_at: '2025-05-03T09:30:00Z', created_at_i: 1746264600, parent_id: 43884796, story_id: 43884796, type: 'comment' },
+            { id: 103, text: 'Mock Job 3: Rust engineer needed. <pre><code>code example</code></pre>', author: 'mock_company_3', created_at: '2025-05-03T09:00:00Z', created_at_i: 1746262800, parent_id: 43884796, story_id: 43884796, type: 'comment' },
+        ],
+        '43861420': [ // Dec 2024 hiring
+            { id: 1001, text: 'Old Job 1: C++ developer. Remote.', author: 'old_company_1', created_at: '2024-12-05T10:00:00Z', created_at_i: 1733385600, parent_id: 43861420, story_id: 43861420, type: 'comment' },
+            { id: 1002, text: 'Old Job 2: QA tester. On-site.', author: 'old_company_2', created_at: '2024-12-05T09:30:00Z', created_at_i: 1733383800, parent_id: 43861420, story_id: 43861420, type: 'comment' },
+        ],
+        '40000001': [ // Comments for the first mock hired thread
+            { id: 201, text: 'Mock Person 1: Front-end developer available.', author: 'mock_person_1', created_at: '2025-05-03T11:00:00Z', created_at_i: 1746270000, parent_id: 40000001, story_id: 40000001, type: 'comment' },
+        ],
+        '50000001': [ // Comments for the first mock freelancer thread
+            { id: 301, text: 'Mock Freelancer 1: UI/UX Designer looking for projects.', author: 'mock_freelancer_1', created_at: '2025-05-03T12:00:00Z', created_at_i: 1746273600, parent_id: 50000001, story_id: 50000001, type: 'comment' },
         ],
     };
 
     const MOCK_COMMENTS_UPDATE = {
-         '43884796': [ // New comments for the first mock thread (simulating /api/v1/search_by_date response)
-            {
-                objectID: 'mock104', // Corresponds to 'objectID' from /search_by_date
-                comment_text: 'Mock Job 5 (NEW): Go developer, remote.', // Corresponds to 'comment_text'
-                author: 'mock_company_5',
-                created_at: '2025-05-04T11:00:00Z',
-                created_at_i: 1746356400,
-                parent_id: 43884796, // parent_id of the comment is the story_id for top-level comments
-                story_id: 43884796,
-                story_title: 'Ask HN: Who is hiring? (May 2025 - Mock)',
-                updated_at: '2025-05-04T11:00:00Z',
-                _highlightResult: { /* ...mock highlight result... */ },
-                _tags: ['comment', 'author_mock_company_d', 'story_43884796']
-            },
-            {
-                objectID: 'mock105',
-                comment_text: 'Mock Job 4 (NEW): Data Scientist needed.',
-                author: 'mock_company_4',
-                created_at: '2025-05-04T10:30:00Z',
-                created_at_i: 1746354600,
-                parent_id: 43884796,
-                story_id: 43884796,
-                story_title: 'Ask HN: Who is hiring? (May 2025 - Mock)',
-                updated_at: '2025-05-04T10:30:00Z',
-                _highlightResult: { /* ...mock highlight result... */ },
-                _tags: ['comment', 'author_mock_company_e', 'story_43884796']
-            },
-        ]
+         '43884796': [ // New comments for the first mock hiring thread
+            { objectID: 'mock104', comment_text: 'Mock Job 5 (NEW): Go developer, remote.', author: 'mock_company_5', created_at: '2025-05-04T11:00:00Z', created_at_i: 1746356400, parent_id: 43884796, story_id: 43884796, story_title: 'Ask HN: Who is hiring? (May 2025 - Mock)', type: 'comment' },
+            { objectID: 'mock105', comment_text: 'Mock Job 4 (NEW): Data Scientist needed.', author: 'mock_company_4', created_at: '2025-05-04T10:30:00Z', created_at_i: 1746354600, parent_id: 43884796, story_id: 43884796, story_title: 'Ask HN: Who is hiring? (May 2025 - Mock)', type: 'comment' },
+        ],
+        '40000001': [
+            { objectID: 'mock202', comment_text: 'Mock Person 2 (NEW): Backend engineer for hire.', author: 'mock_person_2', created_at: '2025-05-04T12:00:00Z', created_at_i: 1746360000, parent_id: 40000001, story_id: 40000001, story_title: 'Ask HN: Who wants to be hired? (May 2025 - Mock)', type: 'comment' },
+        ],
+        '50000001': [
+            { objectID: 'mock302', comment_text: 'Mock Freelancer 2 (NEW): Mobile dev for short projects.', author: 'mock_freelancer_2', created_at: '2025-05-04T13:00:00Z', created_at_i: 1746363600, parent_id: 50000001, story_id: 50000001, story_title: 'Ask HN: Freelancer? (May 2025 - Mock)', type: 'comment' },
+        ],
     };
-    // --- END: Mock Data Definitions ---
 
+    // Consolidated mock data for all categories, for background check
+    const MOCK_BACKGROUND_ALL_THREADS = {
+        hiring: MOCK_HIRING_THREADS_UPDATE,
+        hired: MOCK_HIRED_THREADS_UPDATE,
+        freelancer: MOCK_FREELANCER_THREADS_UPDATE
+    };
+    // Consolidated mock data for all categories, for initial load
+    const MOCK_INITIAL_ALL_THREADS = {
+        hiring: MOCK_HIRING_THREADS_INITIAL,
+        hired: MOCK_HIRED_THREADS_INITIAL,
+        freelancer: MOCK_FREELANCER_THREADS_INITIAL
+    };
+
+    // --- END: Mock Data Definitions ---
 
     const appliedKey = 'appliedHNv1';
     let applied = JSON.parse(localStorage.getItem(appliedKey) || '{}');
     const notesKey = 'notesHNv1';
     let notes = JSON.parse(localStorage.getItem(notesKey) || '{}');
-    let threads = [];
+    // Renamed 'threads' to 'allThreads' to hold multiple categories
+    let allThreads = {
+        hiring: [],
+        hired: [],
+        freelancer: []
+    };
+    let currentCategory = 'hiring'; // Default category
     let currentThreadId = null;
-    let allComments = [];
+    let allComments = []; // This will now hold comments for the *currently selected* thread only
     const favoriteKey = 'favoriteHNv1';
     let favorites = JSON.parse(localStorage.getItem(favoriteKey) || '{}');
     const themekey = 'themeHNv1';
@@ -1111,7 +1208,25 @@
     const toastTimeout = 3000;
     let activeToastHideTimerId = null;
 
-    const CACHE_KEY_THREAD_LIST = 'hn_thread_list'; // Key for the list cache
+    // New cache key for all categories' thread lists
+    const CATEGORY_CACHE_KEY = 'hn_category_threads';
+
+    // Map categories to their Algolia API queries and tags
+    const CATEGORY_API_MAP = {
+        hiring: { query: '"Ask HN: Who is hiring?"', tags: 'ask_hn', label: "Who is Hiring?" },
+        hired: { query: '"Ask HN: Who wants to be hired?"', tags: 'ask_hn', label: "Who Wants to be Hired?" },
+        freelancer: { query: '"Ask HN: Freelancer?"', tags: 'ask_hn', label: "Freelancer? Seeking freelancer?" }
+    };
+
+    // Keep track of the currently selected year in the month picker
+    let selectedYear = null;
+
+
+    // Month names for display and parsing
+    const MONTH_NAMES = [
+        "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    ];
 
 
     // --- START: Clear Search Button Logic ---
@@ -1138,10 +1253,7 @@
     }
     // --- END: Clear Search Button Logic ---
 
-
     function setCache(key, data) {
-      // 'data' for threads will be { comments: [...], cachedAt: timestamp }
-      // 'data' for list will be the array of threads
       const item = {
         data: data,
       };
@@ -1149,7 +1261,6 @@
         localStorage.setItem(key, JSON.stringify(item));
       } catch (e) {
         console.error("Error saving to localStorage", e);
-        // Consider clearing old cache items if quota is exceeded
       }
     }
 
@@ -1160,9 +1271,6 @@
           return null;
         }
         const item = JSON.parse(itemStr);
-        const now = Date.now();
-
-        // Returns the 'data' part, which could be the list or { comments, cachedAt }
         return item.data;
       } catch (e) {
         console.error("Error reading from localStorage", e);
@@ -1234,17 +1342,13 @@
           console.error("Toast element not found!"); // Check if element exists
           return;
       }
-      // console.log(`Showing toast: "${message}"`); // Log toast message
       toast.textContent = message;
 
       // --- Force Reflow ---
-      // Reading offsetHeight forces the browser to calculate the layout
-      // before proceeding to the next line where the class is added.
       void toast.offsetHeight;
       // --- End Force Reflow ---
 
       toast.classList.add('show');
-      // console.log("Toast classes after adding 'show':", toast.className); // Log classes
 
       // Hide go-to-top while toast is visible
       if (goToTopButton) goToTopButton.classList.remove('visible');
@@ -1271,201 +1375,118 @@
       }
     });
 
-    async function fetchHiringThreads() {
-      const cachedListData = getCache(CACHE_KEY_THREAD_LIST);
-      let initialLoadFromCache = false;
-
-      if (cachedListData) {
-        // console.log("Using cached thread list.");
-        threads = cachedListData; // Use cached list
-        initialLoadFromCache = true;
-        renderThreadSwitcher();
-        if (threads.length > 0) {
-          // Load the first thread from the cache immediately
-          loadThread(threads[0].objectID);
-        } else {
-           document.getElementById('jobs').innerHTML = `<div class="loading"><i class="fas fa-info-circle"></i> No threads found in cache. Checking for new ones...</div>`;
-        }
-        // Fetch latest list in the background to check for updates
-        fetchLatestThreadListInBackground(threads[0]?.objectID);
-      } else {
-        // console.log("Fetching fresh thread list.");
-        // No valid cache, fetch fresh list
-        try {
-          const latestThreads = await fetchLatestThreadListFromApi();
-          threads = latestThreads;
-          setCache(CACHE_KEY_THREAD_LIST, threads); // Cache the new list
-          renderThreadSwitcher();
-
-          if (threads.length > 0) {
-            loadThread(threads[0].objectID);
-          } else {
-             document.getElementById('jobs').innerHTML = `<div class="loading"><i class="fas fa-info-circle"></i> No hiring threads found.</div>`;
-          }
-        } catch (error) {
-          handleFetchError(error);
-        }
-      }
-    }
-
-    // Helper function to fetch the latest list from API
-    async function fetchLatestThreadListFromApi(isBackground = false) { // Added isBackground parameter
+    // Helper function to fetch the latest list from API for a specific category
+    async function fetchLatestThreadListFromApi(categoryConfig, isBackground = false) {
         if (USE_MOCK_DATA) {
-            // console.log(`MOCK: Fetching thread list (${isBackground ? 'background' : 'initial'})...`);
-            const mockData = isBackground ? MOCK_BACKGROUND_THREAD_HITS : MOCK_INITIAL_THREAD_HITS;
+            const { query } = categoryConfig;
+            let mockData;
+            if (query.includes("Who is hiring?")) {
+                mockData = isBackground ? MOCK_HIRING_THREADS_UPDATE : MOCK_HIRING_THREADS_INITIAL;
+            } else if (query.includes("Who wants to be hired?")) {
+                mockData = isBackground ? MOCK_HIRED_THREADS_UPDATE : MOCK_HIRED_THREADS_INITIAL;
+            } else if (query.includes("Freelancer?")) {
+                mockData = isBackground ? MOCK_FREELANCER_THREADS_UPDATE : MOCK_FREELANCER_THREADS_INITIAL;
+            } else {
+                mockData = [];
+            }
             return new Promise(resolve => {
-                setTimeout(() => { // Simulate network delay
-                    // console.log("MOCK: Returning mock thread list.");
-                    resolve([...mockData]); // Return a copy
-                }, 500); // 500ms delay
+                setTimeout(() => {
+                    resolve([...mockData]);
+                }, isBackground ? 2000 : 500); // Simulate network delay for background
             });
         }
 
-
-        // Example via their frontend to test things now
-        // https://hn.algolia.com/?dateRange=all&page=0&prefix=true&query=%22Ask%20HN%3A%20Who%20is%20hiring%3F%22&sort=byDate&type=story
-
-
-        // --- Real API call ---
-        // console.log("API: Fetching real thread list...");
-        const searchQuery = '"Ask HN: Who is hiring?"';
-        const encodedQuery = encodeURIComponent(searchQuery);
-        const apiUrl = `https://hn.algolia.com/api/v1/search_by_date?query=${encodedQuery}&tags=ask_hn,author_whoishiring`;
+        const { query, tags } = categoryConfig;
+        const encodedQuery = encodeURIComponent(query);
+        const apiUrl = `https://hn.algolia.com/api/v1/search_by_date?query=${encodedQuery}&tags=${tags}`;
 
         const res = await fetch(apiUrl);
         if (!res.ok) {
-            throw new Error(`Failed to fetch thread list: ${res.statusText}`);
+            throw new Error(`Failed to fetch thread list for category "${query}": ${res.statusText}`);
         }
         const data = await res.json();
-        return data.hits || []; // Return the hits array
+        return data.hits || [];
     }
 
-    // Function to fetch in background and notify if new thread exists
-    async function fetchLatestThreadListInBackground(cachedLatestThreadId) {
-        try {
-            // console.log(`Background Check: Starting. Cached latest ID: ${cachedLatestThreadId}`); // Log start
+    // New main function to fetch and store threads for all categories
+    async function fetchAndStoreThreads() {
+        const cachedData = getCache(CATEGORY_CACHE_KEY);
+        if (cachedData) {
+            allThreads = cachedData;
+            renderCategorySwitcher();
+            // Initial load: pick the latest thread of the default category
+            const latestThread = allThreads[currentCategory][0];
+            if (latestThread) {
+                // Extract year from the title for initial selectedYear
+                const match = latestThread.title.match(/\b(\d{4})\b/);
+                selectedYear = match ? parseInt(match[1]) : null;
 
-            // --- START: Add delay for mock background fetch ---
-            if (USE_MOCK_DATA) {
-                const backgroundMockDelay = 2000; // 2 seconds
-                // console.log(`MOCK: Simulating background check delay (${backgroundMockDelay}ms)...`);
-                await new Promise(resolve => setTimeout(resolve, backgroundMockDelay));
-                // console.log("MOCK: Background check delay complete.");
-            }
-            // --- END: Add delay for mock background fetch ---
-
-            // Pass true for isBackground parameter
-            const latestThreads = await fetchLatestThreadListFromApi(true);
-            // console.log(`Background Check: Fetched list. Newest ID from API: ${latestThreads[0]?.objectID}`); // Log fetched ID
-
-            if (latestThreads.length > 0) {
-                const newestThreadId = latestThreads[0].objectID;
-
-                // Create Sets of thread IDs for comparison
-                const currentGlobalThreadIds = new Set(threads.map(t => t.objectID));
-                const newApiThreadIds = new Set(latestThreads.map(t => t.objectID));
-
-                let differenceLength = 0;
-
-                // If sizes are equal, check if all IDs from the new list are in the current list
-                for (const id of newApiThreadIds) {
-                    if (!currentGlobalThreadIds.has(id)) {
-                        differenceLength++; // Increment the difference length
-                    }
-
-                }
-
-                if (differenceLength > 0) {
-                    // console.log(`Background Check: Thread list has changed (Set comparison). Newest API ID: ${latestThreads[0]?.objectID || 'N/A'}. Updating cache, UI, and showing toast.`);
-
-                    // 1. Update the global threads array
-                    threads = latestThreads; // Use the newly fetched list
-
-                    // 2. Update the cache with the new list
-                    setCache(CACHE_KEY_THREAD_LIST, threads);
-
-                    // 2.5 Remove unused comment caches
-                    removeUnusedCommentCache();
-
-                    // 3. Re-render the thread switcher buttons.
-                    // Passing true to showExtra will make it use threads.length, which is now latestThreads.length.
-                    renderThreadSwitcher(extraThreadsToShow=differenceLength);
-                    // console.log("Background Check: Updated thread switcher UI to show all threads from the new list.");
-
-                    // 4. Show a toast indicating the UI was updated
-                    const newestTitle = latestThreads[0]?.title || (threads.length > 0 ? 'Updated Threads' : 'Threads Cleared');
-                    // showToast(`✨ Hiring thread list updated. ${threads.length > 0 ? `Newest: "${newestTitle}"` : "List is now empty."}. Buttons refreshed.`, 10000);
-
-                } else {
-                    // console.log("Background Check: Thread list is up-to-date (Set comparison).");
-                }
+                renderThreadSwitcher(); // Render months for the default category
+                await loadThread(latestThread.objectID);
             } else {
-                 // console.log("Background Check: Fetched list was empty."); // Log empty list
+                 document.getElementById('jobs').innerHTML = `<div class="loading"><i class="fas fa-info-circle"></i> No threads found in cache for "${CATEGORY_API_MAP[currentCategory].label}". Checking for new ones...</div>`;
             }
-        } catch (error) {
-            console.error("Background check for new threads failed:", error);
-            // Optionally show a toast for the error itself
-            // showToast("⚠️ Failed to check for new threads in the background.", 5000);
+            fetchLatestCategoryThreadsInBackground(); // Check for updates in background
+        } else {
+            document.getElementById('jobs').innerHTML = `<div class="loading"><i class="fas fa-circle-notch"></i> Loading all job categories...</div>`;
+            await fetchAllCategoryThreads(); // Initial fetch for all categories
+            renderCategorySwitcher();
+            // Initial load: pick the latest thread of the default category
+            const latestThread = allThreads[currentCategory][0];
+            if (latestThread) {
+                const match = latestThread.title.match(/\b(\d{4})\b/);
+                selectedYear = match ? parseInt(match[1]) : null;
+
+                renderThreadSwitcher();
+                await loadThread(latestThread.objectID);
+            } else {
+                 document.getElementById('jobs').innerHTML = `<div class="loading"><i class="fas fa-info-circle"></i> No threads found for "${CATEGORY_API_MAP[currentCategory].label}".</div>`;
+            }
         }
     }
 
-    // Function to remove comment caches for threads no longer in the main list
-    function removeUnusedCommentCache() {
-        if (!threads || threads.length === 0) {
-            // console.log("Remove Cache: No current threads, clearing all comment caches.");
-            // If there are no current threads, remove all comment caches because we dont use it rn
+    // Function to fetch threads for all categories initially
+    async function fetchAllCategoryThreads() {
+        for (const category in CATEGORY_API_MAP) {
             try {
-                const removed = removeLocalStorageKeysWithPrefix('hn_thread_comments_');
-                if (removed > 0) {
-                    showToast(`Cleaned up ${removed} old comment caches.`);
-                }
-            } catch (e) {
-                console.error("Error removing all comment caches from localStorage", e);
+                const hits = await fetchLatestThreadListFromApi(CATEGORY_API_MAP[category]);
+                allThreads[category] = hits;
+            } catch (error) {
+                console.error(`Error fetching threads for category ${category}:`, error);
+                allThreads[category] = []; // Ensure it's an empty array on error
             }
-            return;
         }
-
-        const currentThreadIds = new Set(threads.map(t => String(t.objectID))); // Ensure IDs are strings for comparison
-        const commentCachePrefix = 'hn_thread_comments_';
-        let removedCount = 0;
-
-        try {
-            const keysToRemove = [];
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if (key && key.startsWith(commentCachePrefix)) {
-                    const threadIdFromKey = key.substring(commentCachePrefix.length);
-                    if (!currentThreadIds.has(threadIdFromKey)) {
-                        keysToRemove.push(key);
-                    }
-                }
-            }
-
-            keysToRemove.forEach(key => {
-                localStorage.removeItem(key);
-                removedCount++;
-                // console.log(`Remove Cache: Removed unused cache - ${key}`);
-            });
-
-            if (removedCount > 0) {
-                // console.log(`Remove Cache: Successfully removed ${removedCount} unused comment cache(s).`);
-                showToast(`Cleaned up ${removedCount} old comment cache(s).`);
-            } else {
-                // console.log("Remove Cache: No unused comment caches found to remove.");
-            }
-        } catch (e) {
-            console.error("Error removing comment caches from localStorage", e);
-        }
+        setCache(CATEGORY_CACHE_KEY, allThreads); // Cache the entire structure
     }
 
-    // Helper function to handle fetch errors
-    function handleFetchError(error) {
-        console.error("Error fetching threads:", error);
-        document.getElementById('jobs').innerHTML = `
-          <div class="loading">
-            <i class="fas fa-exclamation-circle"></i>
-            Failed to load job listings. Please try again later. (${error.message})
-          </div>`;
+    // Function to fetch and compare latest thread lists in background
+    async function fetchLatestCategoryThreadsInBackground() {
+        let updated = false;
+        // Simulate a delay for the background check to avoid immediate re-render
+        if (USE_MOCK_DATA) {
+            await new Promise(resolve => setTimeout(resolve, 2000));
+        }
+
+        const currentCachedThreads = { ...allThreads }; // Take a snapshot before background fetch
+
+        for (const category in CATEGORY_API_MAP) {
+            try {
+                const latestHits = await fetchLatestThreadListFromApi(CATEGORY_API_MAP[category], true);
+                // Compare fetched list with the current global list for that category
+                if (latestHits.length > 0 && JSON.stringify(latestHits) !== JSON.stringify(currentCachedThreads[category])) {
+                    allThreads[category] = latestHits; // Update the global list
+                    updated = true;
+                }
+            } catch (error) {
+                console.error(`Background fetch failed for category ${category}:`, error);
+            }
+        }
+        if (updated) {
+            setCache(CATEGORY_CACHE_KEY, allThreads); // Update the cache
+            renderCategorySwitcher(); // Re-render category buttons (in case new categories appear)
+            renderThreadSwitcher(); // Re-render month buttons for the current category
+            // showToast("✨ Thread lists updated in background!", 3000);
+        }
     }
 
     async function loadThread(id) {
@@ -1477,31 +1498,30 @@
       document.getElementById('jobs').innerHTML = `<div class="loading"><i class="fas fa-circle-notch"></i> Loading thread...</div>`;
       document.getElementById('load-time-info').textContent = '';
 
-      // Update active thread button immediately
-      const buttons = document.querySelectorAll('.switcher button');
-      buttons.forEach(btn => {
+      // Update active thread button for both years and months
+      document.querySelectorAll('.year-selector button, .month-selector button').forEach(btn => {
         btn.classList.remove('active');
-        if (btn.dataset.threadId === String(requestedIdForThisCall)) { // Use requestedIdForThisCall
-          btn.classList.add('active');
+        if (btn.dataset.threadId === String(requestedIdForThisCall)) {
+            btn.classList.add('active');
+            // If a month button is activated, also ensure its year button is active
+            const yearBtn = document.querySelector(`.year-selector button[data-year="${btn.dataset.year}"]`);
+            if (yearBtn) yearBtn.classList.add('active');
         }
       });
 
       const cacheKey = `hn_thread_comments_${requestedIdForThisCall}`; // Use requestedIdForThisCall for cache key
       let lastCachedTimestampMs = 0;
-      // let initialLoadFromCache = false; // This variable is not used after assignment
 
       try {
         const cachedData = getCache(cacheKey);
         let commentsForThisRequest = []; // Local variable for comments of this specific request
 
         if (cachedData && cachedData.comments && cachedData.cachedAt) {
-          // console.log(`Using cached comments for thread ${requestedIdForThisCall}`);
           commentsForThisRequest = cachedData.comments || [];
           lastCachedTimestampMs = cachedData.cachedAt;
 
           // Check if this request is still current before rendering cached data
           if (requestedIdForThisCall !== currentThreadId) {
-            // console.log(`Load (cached path) for thread ${requestedIdForThisCall} aborted, new thread ${currentThreadId} selected.`);
             return;
           }
 
@@ -1513,14 +1533,12 @@
           // --- Fetch Newer Comments (Mock or Real) ---
           let fetchedHits = [];
           if (USE_MOCK_DATA) {
-              // console.log(`MOCK: Fetching comments newer than ${new Date(lastCachedTimestampMs).toISOString()} for thread ${requestedIdForThisCall}`);
+              const mockUpdates = MOCK_COMMENTS_UPDATE[requestedIdForThisCall] || [];
               await new Promise(resolve => setTimeout(resolve, 400));
-              fetchedHits = MOCK_COMMENTS_UPDATE[requestedIdForThisCall] || [];
-              // console.log(`MOCK: Returning ${fetchedHits.length} new mock comments for thread ${requestedIdForThisCall}.`);
+              fetchedHits = mockUpdates;
           } else {
               const lastCachedTimestampSeconds = Math.floor(lastCachedTimestampMs / 1000);
               const updateApiUrl = `https://hn.algolia.com/api/v1/search_by_date?tags=comment,story_${requestedIdForThisCall}&numericFilters=created_at_i>${lastCachedTimestampSeconds}&hitsPerPage=1000`;
-              // console.log(`API: Fetching comments newer than ${new Date(lastCachedTimestampMs).toISOString()} for thread ${requestedIdForThisCall}`);
               const updateRes = await fetch(updateApiUrl);
               if (!updateRes.ok) {
                   throw new Error(`Failed to fetch updates: ${updateRes.statusText}`);
@@ -1531,12 +1549,8 @@
 
           // Check if this request is still current before processing updates
           if (requestedIdForThisCall !== currentThreadId) {
-            // console.log(`Load (update path) for thread ${requestedIdForThisCall} aborted, new thread ${currentThreadId} selected.`);
             return;
           }
-
-          const newCommentsCount = fetchedHits.length;
-          // console.log(`Fetched ${newCommentsCount} potential new comments for thread ${requestedIdForThisCall}.`);
 
           let newTopLevelComments = fetchedHits.filter(comment => String(comment.parent_id) === String(requestedIdForThisCall));
 
@@ -1546,11 +1560,8 @@
             text: comment.text || comment.comment_text,
           }));
 
-          const newTopLevelCount = newTopLevelComments.length;
-          // console.log(`Filtered down to ${newTopLevelCount} new top-level comments for thread ${requestedIdForThisCall}.`);
-
           let uniqueNewComments = [];
-          if (newTopLevelCount > 0) {
+          if (newTopLevelComments.length > 0) {
             const existingCommentIds = new Set(commentsForThisRequest.map(c => String(c.id)));
             uniqueNewComments = newTopLevelComments.filter(nc => nc.id && !existingCommentIds.has(String(nc.id)));
 
@@ -1572,23 +1583,20 @@
         } else {
           // --- Cache Miss or Invalid Cache: Fetch All Comments (Mock or Real) ---
           if (USE_MOCK_DATA) {
-              // console.log(`MOCK: Fetching all comments for thread ${requestedIdForThisCall}`);
               await new Promise(resolve => setTimeout(resolve, 600));
               commentsForThisRequest = (MOCK_COMMENTS_INITIAL[requestedIdForThisCall] || []).slice().reverse();
-              // console.log(`MOCK: Returning ${commentsForThisRequest.length} initial mock comments for thread ${requestedIdForThisCall}.");
           } else {
-              // console.log(`API: Fetching all comments for thread ${requestedIdForThisCall} via items endpoint`);
               const res = await fetch(`https://hn.algolia.com/api/v1/items/${requestedIdForThisCall}`);
               if (!res.ok) {
                   throw new Error(`Failed to fetch thread details: ${res.statusText}`);
               }
               const data = await res.json();
-              commentsForThisRequest = (data.children || []).slice().reverse();
+              // Only include top-level comments (those whose parent_id is the story_id itself)
+              commentsForThisRequest = (data.children || []).filter(c => c.parent_id === data.id).slice().reverse();
           }
 
           // Check if this request is still current before setting cache and rendering
           if (requestedIdForThisCall !== currentThreadId) {
-            // console.log(`Load (full fetch path) for thread ${requestedIdForThisCall} aborted, new thread ${currentThreadId} selected.`);
             return;
           }
 
@@ -1605,12 +1613,10 @@
       } catch (error) {
         // Check if this error is for a request that is no longer current
         if (requestedIdForThisCall !== currentThreadId) {
-          // console.error(`Error loading thread ${requestedIdForThisCall} (but it's no longer the active request, current is ${currentThreadId}):`, error);
           return; // Don't display error for an outdated request
         }
 
         // If it's an error for the currently selected thread, then display it
-        // console.error(`Error loading thread ${requestedIdForThisCall}:`, error);
         document.getElementById('jobs').innerHTML = `
           <div class="loading">
             <i class="fas fa-exclamation-circle"></i>
@@ -1621,89 +1627,214 @@
     }
 
     // --- Add this helper to update a single job card in place ---
-function updateJobCardInPlace(jobId, appliedStatus) {
-    const jobCard = document.querySelector(`.job-card[data-job-id="${jobId}"]`);
-    if (!jobCard) return;
-    // Update class
-    if (appliedStatus) {
-        jobCard.classList.add('applied');
-    } else {
-        jobCard.classList.remove('applied');
-    }
-    // Update badge and date in the header
-    const statusDiv = jobCard.querySelector('.job-header-status');
-    if (statusDiv) {
-        // For applied status, show badge and date; otherwise, show nothing
+    function updateJobCardInPlace(jobId, appliedStatus) {
+        const jobCard = document.querySelector(`.job-card[data-job-id="${jobId}"]`);
+        if (!jobCard) return;
+        // Update class
         if (appliedStatus) {
-            statusDiv.innerHTML = `
-                <span class="badge" style="font-weight:bold;letter-spacing:0.5px;">Applied</span>
-                <div class="meta">
-                    <i class="far fa-calendar"></i> ${new Date(appliedStatus).toLocaleString('en-US', {
-                          month: 'short',
-                          day: 'numeric',
-                          hour: 'numeric',
-                          minute: '2-digit',
-                          hour12: true
-                        })}
-                </div>`;
+            jobCard.classList.add('applied');
         } else {
-            statusDiv.innerHTML = ''; // Clear the status div when not applied
+            jobCard.classList.remove('applied');
+        }
+        // Update badge and date in the header
+        const statusDiv = jobCard.querySelector('.job-header-status');
+        if (statusDiv) {
+            // For applied status, show badge and date; otherwise, show nothing
+            if (appliedStatus) {
+                statusDiv.innerHTML = `
+                    <span class="badge" style="font-weight:bold;letter-spacing:0.5px;">Applied</span>
+                    <div class="meta">
+                        <i class="far fa-calendar"></i> ${new Date(appliedStatus).toLocaleString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                              hour: 'numeric',
+                              minute: '2-digit',
+                              hour12: true
+                            })}
+                    </div>`;
+            } else {
+                statusDiv.innerHTML = ''; // Clear the status div when not applied
+            }
+        }
+
+        // Also update the margin below the header-top based on applied status
+        const headerTop = jobCard.querySelector('.job-header-top');
+        if (headerTop) {
+            headerTop.style.marginBottom = appliedStatus ? '0.5rem' : '0';
+        }
+        // Update action buttons
+        const actionsDiv = jobCard.querySelector('.job-actions');
+        if (actionsDiv) {
+            // Remove existing apply/unapply button
+            actionsDiv.querySelectorAll('.btn-apply, .btn-unapply').forEach(btn => btn.remove());
+            if (appliedStatus) {
+                // Add unapply button
+                const unapplyBtn = document.createElement('button');
+                unapplyBtn.className = 'btn-unapply';
+                unapplyBtn.setAttribute('data-action', 'unapply');
+                unapplyBtn.innerHTML = '<i class="fas fa-times" aria-hidden="true"></i> Remove Applied Status';
+                actionsDiv.appendChild(unapplyBtn);
+            } else {
+                // Add apply button
+                const applyBtn = document.createElement('button');
+                applyBtn.className = 'job-action-button btn-apply';
+                applyBtn.setAttribute('data-action', 'apply');
+                applyBtn.innerHTML = '<i class="fas fa-check" aria-hidden="true"></i> Mark as Applied';
+                actionsDiv.appendChild(applyBtn);
+            }
         }
     }
 
-    // Also update the margin below the header-top based on applied status
-    const headerTop = jobCard.querySelector('.job-header-top');
-    if (headerTop) {
-        headerTop.style.marginBottom = appliedStatus ? '0.5rem' : '0';
-    }
-    // Update action buttons
-    const actionsDiv = jobCard.querySelector('.job-actions');
-    if (actionsDiv) {
-        // Remove existing apply/unapply button
-        actionsDiv.querySelectorAll('.btn-apply, .btn-unapply').forEach(btn => btn.remove());
-        if (appliedStatus) {
-            // Add unapply button
-            const unapplyBtn = document.createElement('button');
-            unapplyBtn.className = 'btn-unapply';
-            unapplyBtn.setAttribute('data-action', 'unapply');
-            unapplyBtn.innerHTML = '<i class="fas fa-times" aria-hidden="true"></i> Remove Applied Status';
-            actionsDiv.appendChild(unapplyBtn);
-        } else {
-            // Add apply button
-            const applyBtn = document.createElement('button');
-            applyBtn.className = 'job-action-button btn-apply';
-            applyBtn.setAttribute('data-action', 'apply');
-            applyBtn.innerHTML = '<i class="fas fa-check" aria-hidden="true"></i> Mark as Applied';
-            actionsDiv.appendChild(applyBtn);
+    // New function to render the category switcher buttons
+    function renderCategorySwitcher() {
+        const container = document.querySelector('.category-switcher');
+        container.innerHTML = ''; // Clear previous buttons
+
+        for (const category in CATEGORY_API_MAP) {
+            const button = document.createElement('button');
+            button.id = `category${category.charAt(0).toUpperCase() + category.slice(1)}`; // e.g., categoryHiring
+            button.className = 'category-btn';
+            button.textContent = CATEGORY_API_MAP[category].label; // Use predefined label
+            button.dataset.category = category;
+
+            // Set active class for the current category
+            if (category === currentCategory) {
+                button.classList.add('active');
+            }
+
+            button.addEventListener('click', async () => {
+                if (currentCategory !== category) {
+                    currentCategory = category;
+                    // Update active category button
+                    document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+
+                    // Reset selectedYear to the latest for the new category
+                    const latestThreadForNewCategory = allThreads[currentCategory][0];
+                    if (latestThreadForNewCategory) {
+                        const match = latestThreadForNewCategory.title.match(/\b(\d{4})\b/);
+                        selectedYear = match ? parseInt(match[1]) : null;
+                    } else {
+                        selectedYear = null;
+                    }
+
+                    // Re-render month switcher for the newly selected category
+                    renderThreadSwitcher();
+                    // Load the latest thread for the new category
+                    if (latestThreadForNewCategory) {
+                        await loadThread(latestThreadForNewCategory.objectID);
+                    } else {
+                        document.getElementById('jobs').innerHTML = `<div class="loading"><i class="fas fa-info-circle"></i> No threads found for this category.</div>`;
+                        currentThreadId = null; // Reset currentThreadId if no threads
+                        document.getElementById('load-time-info').textContent = '';
+                    }
+                }
+            });
+            container.appendChild(button);
         }
     }
-}
 
-    function renderThreadSwitcher(extraThreadsToShow = 0) {
-      const container = document.querySelector('.switcher');
-      container.innerHTML = '';
+    // New helper to extract year and month from thread title
+    function getYearAndMonthFromTitle(title) {
+        const lowerTitle = title.toLowerCase();
+        let yearMatch = lowerTitle.match(/\b(\d{4})\b/);
+        let year = yearMatch ? parseInt(yearMatch[1]) : null;
 
-      // Determine how many threads to show based on the flag
+        let month = null;
+        for (let i = 0; i < MONTH_NAMES.length; i++) {
+            if (lowerTitle.includes(MONTH_NAMES[i].toLowerCase())) {
+                month = MONTH_NAMES[i];
+                break;
+            }
+        }
+        return { year, month };
+    }
 
-      const numThreadsToShow = 5 + extraThreadsToShow;
+    // Modified renderThreadSwitcher to use threads from the current category
+    function renderThreadSwitcher() {
+        const yearSelector = document.querySelector('.switcher .year-selector');
+        const monthSelector = document.querySelector('.switcher .month-selector');
+        yearSelector.innerHTML = '';
+        monthSelector.innerHTML = '';
 
-      // console.log(`Rendering switcher, showing top ${numThreadsToShow} threads.`); // Log how many are shown
+        const currentCategoryThreads = allThreads[currentCategory];
 
-      threads.slice(0, numThreadsToShow).forEach(t => { // Use the calculated number
-        const button = document.createElement('button');
-        button.textContent = t.title;
-        button.setAttribute('data-thread-id', t.objectID);
-        button.setAttribute('aria-label', `Load thread: ${t.title}`);
-
-        // Ensure comparison is correct type (string vs string)
-        if (String(t.objectID) === String(currentThreadId)) {
-          button.classList.add('active');
+        if (!currentCategoryThreads || currentCategoryThreads.length === 0) {
+            return;
         }
 
-        button.addEventListener('click', () => loadThread(t.objectID));
-        container.appendChild(button);
-      });
+        // Group threads by year and month
+        const threadsByYearMonth = new Map(); // year -> Map<month, thread>
+        currentCategoryThreads.forEach(t => {
+            const { year, month } = getYearAndMonthFromTitle(t.title);
+            if (year && month) {
+                if (!threadsByYearMonth.has(year)) {
+                    threadsByYearMonth.set(year, new Map());
+                }
+                threadsByYearMonth.get(year).set(month, t);
+            }
+        });
+
+        const years = Array.from(threadsByYearMonth.keys()).sort((a, b) => b - a); // Sort years descending
+
+        // If no year is pre-selected, default to the latest year
+        if (selectedYear === null && years.length > 0) {
+            selectedYear = years[0];
+        }
+
+        // Render year buttons
+        years.forEach(year => {
+            const yearBtn = document.createElement('button');
+            yearBtn.textContent = year;
+            yearBtn.dataset.year = year;
+            yearBtn.classList.add('year-btn');
+            if (year === selectedYear) {
+                yearBtn.classList.add('active');
+            }
+            yearBtn.addEventListener('click', () => {
+                if (selectedYear !== year) {
+                    selectedYear = year;
+                    renderThreadSwitcher(); // Re-render to show months for new year
+                    // Automatically load the first month of the newly selected year
+                    const monthsForYear = Array.from(threadsByYearMonth.get(selectedYear).keys())
+                                            .sort((a, b) => MONTH_NAMES.indexOf(MONTH_NAMES.find(m => m.toLowerCase() === b.toLowerCase())) - MONTH_NAMES.indexOf(MONTH_NAMES.find(m => m.toLowerCase() === a.toLowerCase()))); // Sort months descending
+                    if (monthsForYear.length > 0) {
+                        const latestMonthThread = threadsByYearMonth.get(selectedYear).get(monthsForYear[0]);
+                        if (latestMonthThread) {
+                            loadThread(latestMonthThread.objectID);
+                        }
+                    }
+                }
+            });
+            yearSelector.appendChild(yearBtn);
+        });
+
+        // Render month buttons for the selected year
+        if (selectedYear && threadsByYearMonth.has(selectedYear)) {
+            const monthsMap = threadsByYearMonth.get(selectedYear);
+            const months = Array.from(monthsMap.keys())
+                                .sort((a, b) => MONTH_NAMES.indexOf(MONTH_NAMES.find(m => m.toLowerCase() === b.toLowerCase())) - MONTH_NAMES.indexOf(MONTH_NAMES.find(m => m.toLowerCase() === a.toLowerCase()))); // Sort months descending
+
+            months.forEach(month => {
+                const thread = monthsMap.get(month);
+                if (thread) {
+                    const monthBtn = document.createElement('button');
+                    monthBtn.textContent = month;
+                    monthBtn.dataset.month = month;
+                    monthBtn.dataset.year = selectedYear; // Store year for activation
+                    monthBtn.dataset.threadId = thread.objectID;
+                    monthBtn.classList.add('month-btn');
+
+                    if (String(thread.objectID) === String(currentThreadId)) {
+                        monthBtn.classList.add('active');
+                    }
+                    monthBtn.addEventListener('click', () => loadThread(thread.objectID));
+                    monthSelector.appendChild(monthBtn);
+                }
+            });
+        }
     }
+
 
     // Add filter buttons for favorites, applied, notes, and hidden
     const controlButtons = document.querySelector('.control-buttons');
@@ -1769,7 +1900,7 @@ function updateJobCardInPlace(jobId, appliedStatus) {
 
     // Reset button click handler
     resetBtn.onclick = () => {
-        if (window.confirm('Are you sure you want to clear all applied statuses, notes, favorites, AND caches rn ?? This cannot be undone.')) {
+        if (window.confirm('Are you sure you want to clear all applied statuses, notes, favorites, hidden jobs, AND caches? This cannot be undone.')) {
             // Clear user data
             applied = {};
             favorites = {};
@@ -1781,19 +1912,17 @@ function updateJobCardInPlace(jobId, appliedStatus) {
             localStorage.removeItem(hiddenKey);
             localStorage.removeItem(themekey);
 
-            // --- START: Clear comment caches ---
+            // Clear all thread and comment caches
             try {
-                removeLocalStorageKeysWithPrefix(['hn_thread_comments_', CACHE_KEY_THREAD_LIST]);
-                // console.log(`Removed thread and comment caches from localStorage.`);
+                // Removing all hn_thread_comments_ and hn_category_threads as per instructions
+                const removedCount = removeLocalStorageKeysWithPrefix(['hn_thread_comments_', CATEGORY_CACHE_KEY]);
+                console.log(`Removed ${removedCount} cached items from localStorage.`);
             } catch (e) {
-                console.error("Error clearing comment caches from localStorage", e);
+                console.error("Error clearing caches from localStorage", e);
             }
-            // --- END: Clear comment caches ---
 
             // Reset UI
             [favBtn, notesBtn, appliedBtn, hideAppliedBtn, showHiddenBtn].forEach(b => b.classList.remove(highlightClass));
-            // No need to call renderJobs if we are reloading
-            // renderJobs(allComments);
             showToast('All data cleared. Reloading...');
 
             // Reload the page
@@ -2140,14 +2269,22 @@ function updateJobCardInPlace(jobId, appliedStatus) {
 
             // Extract title up to first pipe character (if it exists)
             let jobTitle = '';
-            if (firstLine.includes('|')) {
-                jobTitle = firstLine.split('|')[0].trim();
+            // Using a more robust regex to find the first line (up to first newline, if any)
+            // and then splitting by the first `|` if present.
+            const titleLineMatch = plainTextComment.match(/^.*?(?=\n|$)/); // Matches until newline or end of string
+            const rawTitleLine = titleLineMatch ? titleLineMatch[0].trim() : '';
+
+            if (rawTitleLine.includes('|')) {
+                jobTitle = rawTitleLine.split('|')[0].trim();
+            } else {
+                jobTitle = rawTitleLine;
             }
-            else if (jobTitle.length < 2 || jobTitle.length > 80) {
-                jobTitle = 'Job Title Not Found'; // Fallback if title is too short or too long
-            }
-            else {
-                jobTitle = firstLine;
+
+            // Fallback for title being too short or too long - if not extracted properly, default.
+            if (jobTitle.length < 2 || jobTitle.length > 80) {
+                // Set a different default job title for each thread type
+                let defaultTitle = 'Job Post';
+                jobTitle = defaultTitle;
             }
 
 
@@ -2424,23 +2561,16 @@ function updateJobCardInPlace(jobId, appliedStatus) {
     // Add event listener for the 'Try example' link
     document.getElementById('try-example-search').addEventListener('click', (event) => {
       event.preventDefault(); // Prevent default link behavior
-      // console.log("Try example link clicked"); // Debug log
-
       const searchInput = document.getElementById('search');
-      // Define the example query directly here
       const exampleQuery = 'python | javascript & remote & ~us-based';
-      // console.log("Setting input value to:", exampleQuery); // Debug log
 
       if (searchInput) {
         searchInput.value = exampleQuery;
         searchInput.focus();
-        // Update clear button visibility directly (no input event, no debounce)
         if (typeof clearSearchBtn !== 'undefined' && clearSearchBtn) {
           clearSearchBtn.style.display = exampleQuery.length > 0 ? 'inline-block' : 'none';
         }
-        renderJobs(allComments); // Only one refresh
-      } else {
-          console.error("Search input element not found."); // Debug log
+        renderJobs(allComments);
       }
     });
 
@@ -2501,8 +2631,9 @@ function updateJobCardInPlace(jobId, appliedStatus) {
       };
     }
 
-    // Initialize
-    fetchHiringThreads();
+    // Initialize the application by fetching all threads for all categories
+    fetchAndStoreThreads();
+
   </script>
 
   <script data-goatcounter="https://dheerajck.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
