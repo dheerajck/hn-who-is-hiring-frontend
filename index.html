@@ -1048,9 +1048,11 @@
           <button class="op-btn" data-op=" | " title="OR Operator">|</button>
           <button class="op-btn" data-op=" ~" title="NOT Operator">~</button>
         </div>
+
         <div id="parsed-query-display" class="parsed-query-container"></div>
-        <a href="#" id="try-example-search" class="try-example-link">Try example search</a>
-      </div>
+          <a href="#" id="try-example-search" class="try-example-link">Try example search</a>
+        </div>
+
 
       <div class="control-buttons filter-row">
         <!-- Filter buttons will be injected here by JS -->
@@ -1213,9 +1215,9 @@
 
     // Map categories to their Algolia API queries and tags
     const CATEGORY_API_MAP = {
-        hiring: { query: '"Ask HN: Who is hiring?"', tags: 'ask_hn', label: "Who is Hiring?" },
-        hired: { query: '"Ask HN: Who wants to be hired?"', tags: 'ask_hn', label: "Who Wants to be Hired?" },
-        freelancer: { query: '"Ask HN: Freelancer?"', tags: 'ask_hn', label: "Freelancer? Seeking freelancer?" }
+        hiring: { query: '"Ask HN: Who is hiring?"', tags: 'ask_hn', label: "Who is Hiring?", example_query: 'python | javascript & remote & ~us-based' },
+        hired: { query: '"Ask HN: Who wants to be hired?"', tags: 'ask_hn', label: "Who Wants to be Hired?" , example_query: 'dheerajck18@gmail.com & python' },
+        freelancer: { query: '"Ask HN: Freelancer?"', tags: 'ask_hn', label: "Freelancer? Seeking freelancer?", example_query: 'dheerajck18@gmail.com & python'}
     };
 
     // Keep track of the currently selected year in the month picker
@@ -1710,6 +1712,7 @@
                     button.classList.add('active');
 
                     // Reset selectedYear to the latest for the new category
+
                     const latestThreadForNewCategory = allThreads[currentCategory][0];
                     if (latestThreadForNewCategory) {
                         const match = latestThreadForNewCategory.title.match(/\b(\d{4})\b/);
@@ -1728,6 +1731,7 @@
                         currentThreadId = null; // Reset currentThreadId if no threads
                         document.getElementById('load-time-info').textContent = '';
                     }
+                    // document.getElementById('search').placeholder = CATEGORY_API_MAP[category].example_query;
                 }
             });
             container.appendChild(button);
@@ -1834,7 +1838,6 @@
             });
         }
     }
-
 
     // Add filter buttons for favorites, applied, notes, and hidden
     const controlButtons = document.querySelector('.control-buttons');
@@ -2284,6 +2287,11 @@
             if (jobTitle.length < 2 || jobTitle.length > 80) {
                 // Set a different default job title for each thread type
                 let defaultTitle = 'Job Post';
+                if (CATEGORY_API_MAP[currentCategory]?.label) {
+                  if (currentCategory === 'hiring') defaultTitle = 'Job Opening';
+                  else if (currentCategory === 'hired') defaultTitle = 'Candidate Profile';
+                  else if (currentCategory === 'freelancer') defaultTitle = 'Title not Found';
+                }
                 jobTitle = defaultTitle;
             }
 
@@ -2562,9 +2570,9 @@
     document.getElementById('try-example-search').addEventListener('click', (event) => {
       event.preventDefault(); // Prevent default link behavior
       const searchInput = document.getElementById('search');
-      const exampleQuery = 'python | javascript & remote & ~us-based';
 
       if (searchInput) {
+        let exampleQuery = CATEGORY_API_MAP[currentCategory].example_query;
         searchInput.value = exampleQuery;
         searchInput.focus();
         if (typeof clearSearchBtn !== 'undefined' && clearSearchBtn) {
