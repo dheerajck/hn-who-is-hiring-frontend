@@ -1,0 +1,1044 @@
+html {
+  overflow-x: hidden;
+}
+
+/* Add box-sizing globally for consistent layout */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+/* Dark Mode (Default) */
+:root {
+  /* Primary Colors */
+  --primary: #82aaff;          /* Soft Blue */
+  --surface: #1e1e1e;          /* Darker Surface */
+  --background: #121212;       /* Very Dark Background (Near Black) */
+  --on-surface: #c9d1d9;       /* Light Gray Text (Kept for readability) */
+  --border: #333333;           /* Darker Border */
+
+  /* Status Colors */
+  --danger: #c0392b;           /* Darker Red */
+  --danger-hover: #962d22;     /* Darker on hover */
+  --danger-text: #ffffff;      /* White text */
+
+  /* Token Colors (Dark) */
+  --token-phrase-bg: #3d3d3d; /* Darker gray to match dark mode theme */
+  --token-phrase-text: #f0f0f0; /* Light text for readability on dark background */
+  --token-phrase-border: #555;  /* Subtle grey border for better contrast */
+  --token-word-bg: #388E3C;     /* Rich dark green background for word tokens */
+  --token-word-text: #ffffff;   /* White text for high contrast */
+  --token-word-border: #2E7D32; /* Slightly darker green border for emphasis */
+  --token-operator-bg: var(--primary); /* Soft blue for operators, consistent with primary */
+  --token-operator-text: #ffffff; /* White text for contrast on blue background */
+  --token-operator-border: var(--primary); /* Matching blue border */
+  --token-negated-bg: var(--danger); /* Deep red background for negated tokens */
+  --token-negated-text: var(--danger-text); /* White text for contrast */
+  --token-negated-border: #a03a27; /* Darker red hover for better emphasis */
+
+
+  /* UI Elements */
+  --button-bg: #2c2c2c;        /* Darker Button Background */
+  --button-hover: #3a3a3a;     /* Darker Button Hover */
+  --input-bg: #282828;         /* Darker Input Background */
+  --card-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  --transition: all 0.3s ease;
+}
+
+/* Light Mode */
+body:not(.dark) {
+  /* Primary Colors */
+  --primary: #4c8bf5;          /* Gentle blue accent */
+  --surface: #f5f5f4;          /* Soft warm surface (used on cards, modals) */
+  --background: #eae9e6;       /* Warm light-gray background (no bright white) */
+  --on-surface: #2d2d2d;       /* Comfortable dark-gray text */
+  --border: #d6d5d2;           /* Light warm-gray border */
+
+  /* Status Colors */
+  --danger: #c0392b;           /* Darker Red */
+  --danger-hover: #962d22;     /* Darker on hover */
+  --danger-text: #ffffff;      /* White text */
+
+  /* Token Colors (Dark) */
+  --token-phrase-bg: #3d3d3d; /* Darker gray to match dark mode theme */
+  --token-phrase-text: #f0f0f0; /* Light text for readability on dark background */
+  --token-phrase-border: #555;  /* Subtle grey border for better contrast */
+  --token-word-bg: #4b8c4f;     /* Muted forest green for word tokens */
+  --token-word-text: #ffffff;   /* White text for high contrast */
+  --token-word-border: #3b7f40; /* Darker green border for emphasis */
+  --token-operator-bg: var(--primary); /* Soft blue for operators, consistent with primary */
+  --token-operator-text: #ffffff; /* White text for contrast on blue background */
+  --token-operator-border: var(--primary); /* Matching blue border */
+  --token-negated-bg: var(--danger); /* Deep red background for negated tokens */
+  --token-negated-text: var(--danger-text); /* White text for contrast */
+  --token-negated-border: #a03a27; /* Darker red hover for better emphasis */
+
+  /* UI Elements */
+  --button-bg: #dadad7;        /* Soft neutral button */
+  --button-hover: #c8c8c5;     /* Button hover state */
+  --input-bg: #f0f0ed;         /* Light, natural input */
+  --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.04); /* Minimal elevation */
+  --transition: all 0.2s ease-in-out;
+}
+
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  padding: 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  transition: var(--transition);
+  background: var(--background);
+  color: var(--on-surface);
+  line-height: 1.6;
+  font-size: 16px;
+  overflow-x: hidden; /* Prevent horizontal scrolling */
+}
+
+header {
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem; /* Add gap between content and theme toggle */
+}
+
+.header-content { /* Keep this for overall alignment */
+  display: flex;
+  align-items: center; /* Vertically center align items */
+  gap: 0.75rem;
+  flex-grow: 1;
+}
+
+/* New Text Logo Styles */
+.text-logo {
+  display: flex;
+  align-items: center; /* Align HN and WHO'S/HIRING block */
+  gap: 0.5em; /* Space between HN and the rest */
+  margin-right: auto; /* Push theme toggle to the right */
+}
+
+.logo-hn {
+  font-size: 2.8rem; /* Make HN larger */
+  font-weight: bold;
+  color: var(--primary); /* Use primary color for HN */
+}
+
+.logo-wh {
+  font-size: 1rem; /* Smaller font size for WHO'S HIRING */
+  font-weight: bold;
+  color: var(--on-surface); /* Use standard text color */
+  opacity: 0.8; /* Slightly faded */
+  text-transform: uppercase; /* Make it uppercase */
+  display: inline-block; /* Needed for line-height to work well */
+  line-height: 1.1;
+  top: 0.1rem;
+  position: relative; /* Allow manual positioning */
+
+}
+
+@keyframes pulse {
+  from {
+    transform: scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: scale(1.05);
+    opacity: 0.85;
+  }
+}
+
+button,
+.btn {
+  padding: 0.6rem 0.9rem;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background-color: var(--button-bg);
+  color: var(--on-surface);
+  cursor: pointer;
+  transition: var(--transition);
+  font-family: inherit;
+  font-size: 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+button:hover,
+.btn:hover {
+  background-color: var(--button-hover);
+  transform: translateY(-2px) scale(1.02); /* Add slight lift and scale */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Optional: enhance shadow on hover */
+}
+
+button:active,
+.btn:active {
+  transform: translateY(1px) scale(0.98);
+}
+
+/* Header action buttons (copy/link) */
+.action-btn {
+  background: transparent;
+  border: none;
+  color: var(--on-surface) !important;
+  padding: 0.2rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  width: 28px;
+  height: 28px;
+  text-decoration: none;
+}
+
+.action-btn:hover {
+  background-color: var(--surface);
+  transform: translateY(-1px);
+  color: var(--on-surface);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.action-btn:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+.job-card {
+  border: 1px solid var(--border); /* Ensure default border width */
+  margin: 1.2rem 0;
+  padding: 1.2rem;
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: var(--card-shadow);
+  transition: var(--transition);
+}
+
+.job-card.applied {
+  border: 2px solid var(--primary); /* Use a thicker primary color border */
+}
+
+.job-header {
+  flex-direction: column; /* Stack badge and date */
+  align-items: flex-start; /* Align left */
+  gap: 0.1rem; /* Small gap between badge and date */
+  /* Order this first visually if needed, or adjust flex layout */
+  order: -1; /* Place it visually at the start */
+  flex-basis: 100%; /* Force it to a new line on smaller widths if needed */
+
+  display: flex;
+  flex-wrap: wrap; /* Allow wrapping */
+  align-items: flex-start; /* Align items to the top */
+  gap: 0.5em 1em; /* Row and column gap */
+  margin-bottom: 0.75rem; /* Add some space below the header */
+}
+
+.job-header-main { /* New container for company/star */
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    flex-grow: 1; /* Allow it to take available space */
+}
+
+.job-header-status { /* New container for badge/date */
+    display: flex;
+    align-items: flex-start;
+    gap: 0.1rem;
+    flex-basis: 100%;
+    margin-bottom: 0.5rem; /* Space below status block */
+}
+
+@media (min-width: 450px) { /* Adjust breakpoint as needed */
+    .job-header-status {
+        order: 0; /* Reset order on wider screens */
+        flex-basis: auto; /* Allow it side-by-side */
+        margin-bottom: 0; /* Remove margin when side-by-side */
+    }
+}
+
+.job-company {
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.job-content {
+  margin-bottom: 1rem;
+  font-size: 1.05rem;
+}
+
+.job-content a {
+  color: var(--primary);
+}
+
+/* Add these styles for code blocks within job content */
+.job-content code {
+  white-space: pre-wrap;       /* Preserve whitespace but wrap lines */
+  word-wrap: break-word;       /* Break long words/strings if necessary */
+  display: block;              /* Make it block-level for better layout control */
+  background-color: rgba(255, 255, 255, 0.05); /* Subtle background */
+  padding: 0.5em;              /* Add some padding */
+  border-radius: 4px;          /* Rounded corners */
+  margin: 0.5em 0;             /* Add some vertical margin */
+  overflow-x: auto;            /* Add horizontal scroll if still too wide */
+  font-size: 0.9em;            /* Slightly smaller font size for code */
+}
+
+/* Style pre tags if they are used */
+.job-content pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    margin: 0.5em 0;
+    overflow-x: auto;
+}
+
+/* If pre contains code, reset code styles */
+.job-content pre code {
+    display: inline; /* Reset display if inside pre */
+    background-color: transparent;
+    padding: 0;
+    margin: 0;
+    border-radius: 0;
+    font-size: inherit; /* Inherit size from pre */
+    white-space: inherit; /* Inherit wrapping from pre */
+    word-wrap: inherit;
+    overflow-x: initial; /* Let pre handle scrolling */
+}
+
+.job-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.note {
+  margin-top: 0.75rem;
+  width: 100%;
+  background: var(--input-bg);
+  color: var(--on-surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.6rem;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 70px;
+  font-size: 1rem;
+}
+
+.meta {
+  font-size: 0.9rem;
+  color: #aaa;
+  margin-top: 0;
+  margin-bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.3em;
+}
+
+.job-header-status .meta {
+    font-size: 0.95rem;
+}
+
+.job-header-status .job-company.meta {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: var(--on-surface); /* Use main text color */
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.2rem 0.5rem;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  background: var(--primary);
+  color: #000;
+  vertical-align: middle;
+  margin-bottom: 0;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  align-items: center;
+}
+
+.search-container {
+  width: 100%;
+  position: relative;
+  margin-bottom: 0.5rem;
+}
+
+.search-field-wrapper { /* New wrapper style */
+  position: relative;
+}
+
+.search-icon-main { /* Style for the main search icon */
+  position: absolute;
+  left: 0.75rem;
+  top: 50%; /* Vertically center icon */
+  transform: translateY(-50%); /* Adjust for icon height */
+  color: #999;
+  font-size: 1.1rem;
+  z-index: 2; /* Ensure icon is above the input background */
+  pointer-events: none;
+}
+
+/* Clear search button styles */
+.clear-search-btn {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%; /* Vertically center button */
+  transform: translateY(-50%); /* Adjust for button height */
+  background: transparent;
+  border: none;
+  color: #999;
+  cursor: pointer;
+  font-size: 1.1rem; /* Match search icon size */
+  padding: 0.2rem; /* Small padding for easier clicking */
+  line-height: 1; /* Ensure icon inside is centered */
+  z-index: 2; /* Ensure button is above input */
+  display: none; /* Hidden by default */
+  /* Override general button hover effects */
+  box-shadow: none;
+}
+
+.clear-search-btn:hover {
+  background-color: transparent; /* Keep background transparent */
+  transform: translateY(-50%); /* Keep original transform */
+  box-shadow: none; /* Ensure no shadow on hover */
+  color: #999; /* Keep color the same, or var(--on-surface) if you want hover color */
+}
+
+#search {
+  padding: 0.8rem 2.6rem 0.8rem 2.6rem; /* Adjusted padding: top/bottom, right (for clear btn), left (for search icon) */
+  width: 100%;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: var(--input-bg);
+  color: var(--on-surface);
+  transition: var(--transition);
+  font-size: 1rem;
+}
+
+/* Styles for Operator Buttons */
+.operator-buttons {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem; /* Space below search input */
+  margin-bottom: 0.25rem; /* Space above parsed query */
+}
+
+.op-btn {
+  padding: 0.2rem 0.6rem;
+  font-size: 0.9rem;
+  min-width: 30px;
+  background-color: var(--button-bg);
+  color: var(--on-surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: var(--transition);
+  font-weight: bold;
+}
+
+.op-btn:hover {
+  background-color: var(--button-hover);
+}
+
+.op-btn:active {
+  transform: translateY(1px);
+}
+
+/* Adjust spacing for parsed query display if needed */
+.parsed-query-container {
+  margin-top: 6px;
+}
+
+/* Styles for Parsed Query Display */
+.parsed-query-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px; /* Spacing between tokens */
+  margin-top: 8px; /* Space below search input */
+  padding: 5px;
+  border-radius: 4px;
+  min-height: 28px; /* Ensure container has some height even when empty */
+}
+
+.query-token {
+  padding: 4px 10px; /* Padding inside each token */
+  border-radius: 15px; /* Rounded corners for pill shape */
+  font-size: 0.9em;
+  display: inline-flex;
+  align-items: center;
+  line-height: 1.2;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1); /* Subtle shadow */
+  animation: scaleIn 0.3s ease forwards;
+  opacity: 0; /* Start hidden */
+  transform: scale(0.9); /* Start slightly smaller */
+}
+
+@keyframes scaleIn {
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.token-phrase {
+  background-color: var(--token-phrase-bg);
+  color: var(--token-phrase-text);
+  border: 1px solid var(--token-phrase-border);
+}
+/* Add quotes visually for phrases */
+.token-phrase::before,
+.token-phrase::after {
+    content: '"';
+    opacity: 0.7;
+    margin: 0 2px;
+}
+
+.token-operator {
+  background-color: var(--token-operator-bg);
+  color: var(--token-operator-text);
+  font-weight: bold;
+  border: 1px solid var(--token-operator-border);
+}
+
+.token-negated {
+  background-color: var(--token-negated-bg);
+  color: var(--token-negated-text);
+  border: 1px solid var(--token-negated-border);
+}
+/* Add quotes visually for negated phrases */
+.token-negated.token-phrase::before,
+.token-negated.token-phrase::after {
+    content: '"';
+    opacity: 0.7;
+    margin: 0 2px;
+}
+/* Add ~ visually for negated terms */
+.token-negated::before {
+    content: '~';
+    margin-right: 3px;
+    font-weight: bold;
+}
+/* Remove double quotes if ~ is already there */
+.token-negated.token-phrase::before {
+    content: '~"'; /* Combine ~ and opening quote */
+    margin-right: 2px;
+    font-weight: normal; /* Reset weight if needed */
+}
+  .token-negated.token-phrase::after {
+    content: '"'; /* Keep closing quote */
+    opacity: 0.7;
+    margin: 0 2px;
+}
+
+/* Add rule for positive words */
+.token-word {
+  background-color: var(--token-word-bg);
+  color: var(--token-word-text);
+  border: 1px solid var(--token-word-border);
+}
+
+/* Ensure negated styles override word styles if both classes are present */
+.token-negated.token-word {
+    background-color: var(--token-negated-bg);
+    color: var(--token-negated-text);
+    border: 1.5px solid var(--token-negated-border);
+}
+
+/* New category switcher styles */
+.category-switcher {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
+  position: relative; /* Ensures ::after is positioned relative to this */
+  overflow: visible !important; /* Attempt to prevent clipping of the ::after pseudo-element */
+}
+
+.category-switcher::after {
+  content: '';
+  display: block;
+  position: absolute;
+  bottom: 0; /* Positions the line at the bottom of .category-switcher's padding box */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%; /* Makes the line full viewport width */
+  /* height: 1px; */
+  background-color: var(--border); /* Or your specific border color */
+  z-index: 1; /* Ensure it's visible, adjust if needed */
+  box-sizing: content-box; /* Be explicit that width is content width */
+}
+
+.category-btn {
+  background-color: transparent;
+  padding: 0.6rem 1.1rem;
+  border-radius: 20px;
+  font-size: 1rem;
+  border: 1px solid var(--border);
+  color: var(--on-surface);
+  cursor: pointer;
+  transition: var(--transition);
+  flex-grow: 1; /* Allow buttons to grow to fill space */
+  text-align: center;
+}
+
+.category-btn.active {
+  background-color: var(--primary);
+  color: #000;
+  border-color: var(--primary);
+  font-weight: bold;
+}
+
+.category-btn:not(.active):hover {
+  background-color: var(--button-hover);
+}
+
+/* Month picker specific styles */
+.switcher {
+  display: flex;
+  flex-direction: column; /* Stack year and month selectors */
+  gap: 1rem; /* Space between year and month selectors */
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 1rem;
+}
+
+.year-selector, .month-selector {
+    display: flex;
+    flex-wrap: wrap; /* Allow buttons to wrap */
+    gap: 0.5rem;
+    /* Allow horizontal scroll on small screens */
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch; /* smooth scrolling for iOS */
+    scrollbar-width: thin; /* Firefox */
+    scrollbar-color: var(--primary) var(--button-bg); /* Firefox */
+    padding-bottom: 0.5rem; /* Space for scrollbar on desktop */
+}
+
+.year-selector::-webkit-scrollbar,
+.month-selector::-webkit-scrollbar {
+    height: 6px; /* Height of horizontal scrollbar */
+}
+
+.year-selector::-webkit-scrollbar-track,
+.month-selector::-webkit-scrollbar-track {
+    background: var(--button-bg); /* Color of the track */
+    border-radius: 3px;
+}
+
+.year-selector::-webkit-scrollbar-thumb,
+.month-selector::-webkit-scrollbar-thumb {
+    background: var(--primary); /* Color of the scrollbar thumb */
+    border-radius: 3px;
+}
+
+.year-selector button,
+.month-selector button {
+  background-color: transparent;
+  padding: 0.6rem 1.1rem;
+  border-radius: 20px;
+  font-size: 1rem;
+  border: 1px solid var(--border);
+  color: var(--on-surface);
+  cursor: pointer;
+  transition: var(--transition);
+  flex-shrink: 0; /* Prevent buttons from shrinking below content */
+  white-space: nowrap; /* Prevent text wrapping inside buttons */
+}
+
+.year-selector button.active,
+.month-selector button.active {
+  background-color: var(--primary);
+  color: #000;
+  border-color: var(--primary);
+  font-weight: bold;
+}
+
+.year-selector button:not(.active):hover,
+.month-selector button:not(.active):hover {
+    background-color: var(--button-hover);
+}
+
+.icon-link-button {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  font-size: 1.2rem;
+  color: var(--on-surface);
+  text-decoration: none; /* Remove underline */
+}
+
+.icon-link-button i{
+  transition: transform 0.4s ease; /* Add transition for the icon */
+}
+
+
+body:not(.dark) .icon-link-button i.fa-sun {
+    transform: rotate(90deg);
+}
+
+/* body.dark .icon-link-button i.fa-sun {
+    transform: rotate(90deg);
+} */
+
+.loading {
+  text-align: center;
+  padding: 2rem;
+  font-size: 1.2rem;
+}
+
+.loading i.fa-circle-notch {
+  animation: spin 1s linear infinite;
+  margin-right: 0.5rem;
+}
+
+.loading i:not(.fa-circle-notch) {
+    margin-right: 0.5rem;
+}
+
+.toast {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  padding: 0.75rem 1.5rem;
+  background: var(--primary);
+  color: #000;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  opacity: 0; /* Start fully transparent */
+  transform: translateY(10px); /* Start slightly lower */
+  transition: opacity 0.3s ease, transform 0.3s ease; /* Animate opacity and transform */
+  z-index: 1000;
+  pointer-events: none; /* Prevent interaction when hidden */
+}
+
+.toast.show {
+  opacity: 1; /* Fade in */
+  transform: translateY(0); /* Move to final position */
+  pointer-events: auto; /* Allow interaction when shown */
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.fade-in {
+  animation: fadeInSlideUp 0.6s cubic-bezier(0.25, 0.8, 0.25, 1) forwards; /* Slightly longer, smoother easing */
+}
+
+@keyframes fadeInSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98); /* Start slightly lower and smaller */
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1); /* End at normal position and size */
+  }
+}
+
+/* Mobile responsive styles */
+@media (max-width: 600px) {
+  body {
+    padding: 0.75rem;
+  }
+
+  .controls {
+    /* Keep as column for search + filters */
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .controls > * {
+    width: 100%;
+  }
+
+  .job-actions {
+    /* Keep horizontal but allow wrapping */
+    flex-direction: row; /* Changed from column */
+    flex-wrap: wrap; /* Allow wrapping */
+    justify-content: flex-end; /* Align to the right */
+  }
+
+  .job-actions button {
+    /* Allow buttons to shrink/wrap, don't force full width */
+    width: auto; /* Changed from 100% */
+    flex-grow: 1; /* Allow buttons to grow if space allows */
+    flex-basis: auto; /* Reset basis */
+    /* Add some bottom margin when wrapped */
+    margin-bottom: 0.25rem;
+  }
+  /* Ensure the last button doesn't have bottom margin */
+  .job-actions button:last-child {
+      margin-bottom: 0;
+  }
+
+  .category-switcher {
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+    gap: 0.5em; /* Increased gap for mobile */
+    /* Add horizontal padding to prevent cutoff */
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+    padding-top: 0.75rem;
+    /* Adjust margin to compensate for added padding if needed */
+    margin-left: -0.75rem;
+    margin-right: -0.75rem;
+    margin-top: 0.75rem;
+    margin-bottom: 0.75rem;
+    /* Ensure it doesn't exceed viewport width */
+    width: 100%;
+    box-sizing: border-box; /* Include padding in width calculation */
+  }
+  .category-btn {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    padding: 0.4rem 0.75rem;
+    font-size: 0.9rem;
+  }
+
+  .category-switcher {
+    flex-direction: column !important;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+  .category-switcher .category-btn {
+    width: 100%;
+    text-align: left;
+  }
+
+  .switcher {
+    /* Adjust padding/margins for mobile layout */
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+    margin-left: -0.75rem;
+    margin-right: -0.75rem;
+  }
+
+  .filter-row {
+    /* Allow wrapping instead of forcing column */
+    flex-direction: row; /* Changed from column */
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  /* Remove stretch alignment for filter row items */
+  .filter-row > * {
+      align-self: auto;
+  }
+
+  .hide-applied-label {
+    margin-left: 0;
+  }
+
+  .operator-buttons {
+    /* Ensure buttons are easily tappable */
+    gap: 0.75rem;
+  }
+  .op-btn {
+    padding: 0.4rem 0.8rem; /* Slightly larger padding on mobile */
+    font-size: 1rem;
+  }
+
+  .toast {
+    display: none !important;
+  }
+}
+
+/* Screen reader only class */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Go to top button */
+.go-to-top {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 10px;
+  background-color: var(--primary);
+  color: #000;
+  border: none;
+  border-radius: 50%;
+  width: 45px;
+  height: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s, visibility 0.3s;
+  z-index: 1000;
+}
+
+.go-to-top.visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.go-to-top:hover {
+  transform: translateY(-3px);
+}
+
+/* Mobile adjustments for go-to-top button */
+@media (max-width: 600px) {
+  .go-to-top {
+    bottom: 10px;
+    right: 10px;
+    width: 40px;
+    height: 40px;
+  }
+}
+
+.star-btn i{
+  background: transparent;
+  border: none;
+  color: gold;
+  font-size: 1.2em;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  transition: color 0.2s;
+}
+.star-btn.inactive i{
+  color: #888;
+}
+.copy-btn {
+  background: transparent;
+  border: none;
+  color: var(--primary);
+  cursor: pointer;
+  font-size: 1em;
+  margin-left: 0.5em;
+}
+
+.filter-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
+  margin-bottom: 20px; /* Increased space below filters */
+}
+.filter-btn {
+  margin: 0;
+  border: 1px solid var(--border);
+  background: var(--button-bg);
+  color: var(--on-surface);
+  cursor: pointer;
+  padding: 0.6rem 0.85rem;
+  border-radius: 4px;
+  font-size: 1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: var(--transition); /* Add transition */
+}
+.filter-btn.active {
+  background-color: var(--primary);
+  color: #000;
+  border-color: var(--primary);
+}
+.hide-applied-label {
+  display: flex;
+  align-items: center;
+  gap: 0.3em;
+  margin-left: 0.5em;
+  font-size: 0.95em;
+  cursor: pointer;
+}
+.reset-btn {
+    background-color: var(--danger);
+    color: var(--danger-text);
+    border-color: var(--danger);
+}
+.reset-btn:hover {
+    background-color: var(--danger-hover); /* Darker hover for danger button */
+}
+
+/* Style for the 'Try example' link */
+.try-example-link {
+  display: inline-block; /* Allow margin */
+  margin-top: 6px; /* Space above the link */
+  font-size: 0.85em;
+  color: var(--primary);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.try-example-link:hover {
+  text-decoration: underline;
+}
+
+/* This css helps to visualize what might be going over the edge right now
+This will put a yellow border around every element */
+/* * * {
+border: 1px solid yellow !important;
+} */
+
+/* Modal styles */
+.help-modal-overlay {
+  position: fixed; z-index: 1000; left: 0; top: 0; width: 100vw; height: 100vh;
+  background: rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center;
+}
+
+.help-modal-window {
+  background: var(--surface, #fff); color: var(--on-surface, #222); border-radius: 10px;
+  box-shadow: 0 4px 32px rgba(0,0,0,0.18); padding: 2.5rem 2.2rem 2.2rem 2.2rem; max-width: 650px; width: 98vw; position: relative;
+  font-size: 1.18rem;
+}
+
+.help-modal-window li {
+  margin-bottom: 1rem;
+}
+
+.help-modal-close {
+  position: absolute; top: 0.5rem; right: 0.7rem; background: none; border: none; font-size: 2rem; color: #888; cursor: pointer;
+}
+
+.help-modal-btn {
+  background: var(--surface, #fff); color: var(--on-surface, #222); border: 1px solid var(--border); border-radius: 6px; padding: 0.3em 1.1em; font-size: 1rem; cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  display: flex; align-items: center; gap: 0.5em;
+}
+
+.help-modal-btn i {
+  font-size: 1rem;
+  line-height: 1;
+  vertical-align: middle;
+  transform: translateY(1px); /* or -1px based on your font */
+}
+
+.help-modal-btn:hover {
+  background: var(--button-hover);
+  border-color: var(--primary);
+}
+
+@media (max-width: 600px) {
+  .help-modal-window { padding: 1.2rem 0.5rem; font-size: 1.05rem; max-width: 98vw; }
+}
+

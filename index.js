@@ -1,0 +1,1572 @@
+// console.log("Hi")
+// const USE_MOCK_DATA = true;
+const USE_MOCK_DATA = false;
+
+// Utility: Remove all localStorage keys with a given prefix (or array of prefixes)
+function removeLocalStorageKeysWithPrefix(prefixOrPrefixes) {
+  const prefixes = Array.isArray(prefixOrPrefixes) ? prefixOrPrefixes : [prefixOrPrefixes];
+  const keysToRemove = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key && prefixes.some(prefix => key.startsWith(prefix))) {
+      keysToRemove.push(key);
+    }
+  }
+  keysToRemove.forEach(key => localStorage.removeItem(key));
+  return keysToRemove.length;
+}
+
+// --- START: Mock Data Definitions ---
+const MOCK_HIRING_THREADS_INITIAL = [
+    { objectID: '43884796', title: 'Ask HN: Who is hiring? (May 2025 - Mock)' }, // Newest
+    { objectID: '43872046', title: 'Ask HN: Who is hiring? (April 2025 - Mock)' },
+    { objectID: '43866535', title: 'Ask HN: Who is hiring? (March 2025 - Mock)' },
+    { objectID: '43865039', title: 'Ask HN: Who is hiring? (Feb 2025 - Mock)' },
+    { objectID: '43861861', title: 'Ask HN: Who is hiring? (Jan 2025 - Mock)' },
+    { objectID: '43861420', title: 'Ask HN: Who is hiring? (Dec 2024 - Mock)' },
+    { objectID: '43858638', title: 'Ask HN: Who is hiring? (Nov 2024 - Mock)' },
+];
+const MOCK_HIRING_THREADS_UPDATE = [
+    { objectID: '43864562', title: 'Ask HN: Who is hiring? (June 2025 - Mock NEW)' }, // The new one for background check
+    ...MOCK_HIRING_THREADS_INITIAL // Include the previous ones
+];
+
+const MOCK_HIRED_THREADS_INITIAL = [
+    { objectID: '40000001', title: 'Ask HN: Who wants to be hired? (May 2025 - Mock)' },
+    { objectID: '40000002', title: 'Ask HN: Who wants to be hired? (April 2025 - Mock)' },
+    { objectID: '40000003', title: 'Ask HN: Who wants to be hired? (March 2025 - Mock)' },
+];
+const MOCK_HIRED_THREADS_UPDATE = [
+    { objectID: '40000004', title: 'Ask HN: Who wants to be hired? (June 2025 - Mock NEW)' },
+    ...MOCK_HIRED_THREADS_INITIAL
+];
+
+const MOCK_FREELANCER_THREADS_INITIAL = [
+    { objectID: '50000001', title: 'Ask HN: Freelancer? (May 2025 - Mock)' },
+    { objectID: '50000002', title: 'Ask HN: Freelancer? (April 2025 - Mock)' },
+    { objectID: '50000003', title: 'Ask HN: Freelancer? (March 2025 - Mock)' },
+];
+const MOCK_FREELANCER_THREADS_UPDATE = [
+    { objectID: '50000004', title: 'Ask HN: Freelancer? (June 2025 - Mock NEW)' },
+    ...MOCK_FREELANCER_THREADS_INITIAL
+];
+
+const MOCK_COMMENTS_INITIAL = {
+    '43884796': [ // Comments for the first mock hiring thread
+        { id: 101, text: 'Mock Job 1: We need a JavaScript wizard! Remote OK.', author: 'mock_company_1', created_at: '2025-05-03T10:00:00Z', created_at_i: 1746266400, parent_id: 43884796, story_id: 43884796, type: 'comment' },
+        { id: 102, text: 'Mock Job 2: Python developer wanted. On-site.', author: 'mock_company_2', created_at: '2025-05-03T09:30:00Z', created_at_i: 1746264600, parent_id: 43884796, story_id: 43884796, type: 'comment' },
+        { id: 103, text: 'Mock Job 3: Rust engineer needed. <pre><code>code example</code></pre>', author: 'mock_company_3', created_at: '2025-05-03T09:00:00Z', created_at_i: 1746262800, parent_id: 43884796, story_id: 43884796, type: 'comment' },
+    ],
+    '43861420': [ // Dec 2024 hiring
+        { id: 1001, text: 'Old Job 1: C++ developer. Remote.', author: 'old_company_1', created_at: '2024-12-05T10:00:00Z', created_at_i: 1733385600, parent_id: 43861420, story_id: 43861420, type: 'comment' },
+        { id: 1002, text: 'Old Job 2: QA tester. On-site.', author: 'old_company_2', created_at: '2024-12-05T09:30:00Z', created_at_i: 1733383800, parent_id: 43861420, story_id: 43861420, type: 'comment' },
+    ],
+    '40000001': [ // Comments for the first mock hired thread
+        { id: 201, text: 'Mock Person 1: Front-end developer available.', author: 'mock_person_1', created_at: '2025-05-03T11:00:00Z', created_at_i: 1746270000, parent_id: 40000001, story_id: 40000001, type: 'comment' },
+    ],
+    '50000001': [ // Comments for the first mock freelancer thread
+        { id: 301, text: 'Mock Freelancer 1: UI/UX Designer looking for projects.', author: 'mock_freelancer_1', created_at: '2025-05-03T12:00:00Z', created_at_i: 1746273600, parent_id: 50000001, story_id: 50000001, type: 'comment' },
+    ],
+};
+
+const MOCK_COMMENTS_UPDATE = {
+      '43884796': [ // New comments for the first mock hiring thread
+        { objectID: 'mock104', comment_text: 'Mock Job 5 (NEW): Go developer, remote.', author: 'mock_company_5', created_at: '2025-05-04T11:00:00Z', created_at_i: 1746356400, parent_id: 43884796, story_id: 43884796, story_title: 'Ask HN: Who is hiring? (May 2025 - Mock)', type: 'comment' },
+        { objectID: 'mock105', comment_text: 'Mock Job 4 (NEW): Data Scientist needed.', author: 'mock_company_4', created_at: '2025-05-04T10:30:00Z', created_at_i: 1746354600, parent_id: 43884796, story_id: 43884796, story_title: 'Ask HN: Who is hiring? (May 2025 - Mock)', type: 'comment' },
+    ],
+    '40000001': [
+        { objectID: 'mock202', comment_text: 'Mock Person 2 (NEW): Backend engineer for hire.', author: 'mock_person_2', created_at: '2025-05-04T12:00:00Z', created_at_i: 1746360000, parent_id: 40000001, story_id: 40000001, story_title: 'Ask HN: Who wants to be hired? (May 2025 - Mock)', type: 'comment' },
+    ],
+    '50000001': [
+        { objectID: 'mock302', comment_text: 'Mock Freelancer 2 (NEW): Mobile dev for short projects.', author: 'mock_freelancer_2', created_at: '2025-05-04T13:00:00Z', created_at_i: 1746363600, parent_id: 50000001, story_id: 50000001, story_title: 'Ask HN: Freelancer? (May 2025 - Mock)', type: 'comment' },
+    ],
+};
+
+// Consolidated mock data for all categories, for background check
+const MOCK_BACKGROUND_ALL_THREADS = {
+    hiring: MOCK_HIRING_THREADS_UPDATE,
+    hired: MOCK_HIRED_THREADS_UPDATE,
+    freelancer: MOCK_FREELANCER_THREADS_UPDATE
+};
+// Consolidated mock data for all categories, for initial load
+const MOCK_INITIAL_ALL_THREADS = {
+    hiring: MOCK_HIRING_THREADS_INITIAL,
+    hired: MOCK_HIRED_THREADS_INITIAL,
+    freelancer: MOCK_FREELANCER_THREADS_INITIAL
+};
+
+// --- END: Mock Data Definitions ---
+
+const appliedKey = 'appliedHNv1';
+let applied = JSON.parse(localStorage.getItem(appliedKey) || '{}');
+const notesKey = 'notesHNv1';
+let notes = JSON.parse(localStorage.getItem(notesKey) || '{}');
+// Renamed 'threads' to 'allThreads' to hold multiple categories
+let allThreads = {
+    hiring: [],
+    hired: [],
+    freelancer: []
+};
+let currentCategory = 'hiring'; // Default category
+let currentThreadId = null;
+let allComments = []; // This will now hold comments for the *currently selected* thread only
+const favoriteKey = 'favoriteHNv1';
+let favorites = JSON.parse(localStorage.getItem(favoriteKey) || '{}');
+const themekey = 'themeHNv1';
+const hiddenKey = 'hiddenHNv1';
+let hidden = JSON.parse(localStorage.getItem(hiddenKey) || '{}');
+
+const searchDebounceTimeout = 300;
+const toastTimeout = 3000;
+let activeToastHideTimerId = null;
+
+// New cache key for all categories' thread lists
+const CATEGORY_CACHE_KEY = 'hn_category_threads';
+
+// Map categories to their Algolia API queries and tags
+const CATEGORY_API_MAP = {
+    hiring: { query: '"Ask HN: Who is hiring?"', tags: 'ask_hn', label: "Who is Hiring?", example_query: 'python | javascript & remote & ~us-based' },
+    hired: { query: '"Ask HN: Who wants to be hired?"', tags: 'ask_hn', label: "Who Wants to be Hired?" , example_query: 'dheerajck18@gmail.com & python' },
+    freelancer: { query: '"Ask HN: Freelancer?"', tags: 'ask_hn', label: "Freelancer? Seeking freelancer?", example_query: 'dheerajck18@gmail.com & python'}
+};
+
+// Keep track of the currently selected year in the month picker
+let selectedYear = null;
+
+
+// Month names for display and parsing
+const MONTH_NAMES = [
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+];
+
+
+// --- START: Clear Search Button Logic ---
+const searchInput = document.getElementById('search');
+const clearSearchBtn = document.getElementById('clearSearchBtn');
+
+function setupClearSearchButton() {
+    if (!searchInput || !clearSearchBtn) return;
+
+    function toggleClearButtonVisibility() {
+        // This function correctly shows or hides the clear button based on input value
+        clearSearchBtn.style.display = searchInput.value.length > 0 ? 'inline-block' : 'none';
+    }
+
+    searchInput.addEventListener('input', toggleClearButtonVisibility);
+
+    clearSearchBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        searchInput.dispatchEvent(new Event('input', { bubbles: true, cancelable: true }));
+        searchInput.focus();
+    });
+
+    toggleClearButtonVisibility(); // Initial check to set button state on page load
+}
+// --- END: Clear Search Button Logic ---
+
+function setCache(key, data) {
+  const item = {
+    data: data,
+  };
+  try {
+    localStorage.setItem(key, JSON.stringify(item));
+  } catch (e) {
+    console.error("Error saving to localStorage", e);
+  }
+}
+
+function getCache(key) {
+  try {
+    const itemStr = localStorage.getItem(key);
+    if (!itemStr) {
+      return null;
+    }
+    const item = JSON.parse(itemStr);
+    return item.data;
+  } catch (e) {
+    console.error("Error reading from localStorage", e);
+    localStorage.removeItem(key); // Remove potentially corrupted item
+    return null; // Treat errors as cache miss
+  }
+}
+
+// Debounce utility function
+function debounce(func, delay) {
+  let timeoutId;
+  return function(...args) {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => {
+      func.apply(this, args);
+    }, delay);
+  };
+}
+
+// Keyboard navigation support
+const keyboardShortcuts = {
+  'j': () => navigateJobs('next'),
+  'k': () => navigateJobs('prev'),
+  '/': () => document.getElementById('search').focus(),
+  'Escape': () => document.activeElement.blur(),
+  'a': () => handleJobAction()
+};
+
+function navigateJobs(direction) {
+  const jobCards = document.querySelectorAll('.job-card');
+  if (!jobCards.length) return;
+
+  const focused = document.activeElement;
+  let currentIndex = -1;
+
+  // Find currently focused job
+  jobCards.forEach((card, index) => {
+    if (card === focused || card.contains(focused)) {
+      currentIndex = index;
+    }
+  });
+
+  let nextIndex;
+  if (direction === 'next') {
+    nextIndex = (currentIndex + 1) % jobCards.length;
+  } else {
+    nextIndex = (currentIndex - 1 + jobCards.length) % jobCards.length;
+  }
+
+  jobCards[nextIndex].focus();
+  jobCards[nextIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function handleJobAction() {
+  const focused = document.activeElement;
+  const jobCard = focused.closest('.job-card');
+
+  if (jobCard) {
+    const actionButton = jobCard.querySelector('.job-action-button');
+    if (actionButton) actionButton.click();
+  }
+}
+
+// Show toast notification
+function showToast(message, duration = toastTimeout) {
+  const toast = document.getElementById('toast');
+  const goToTopButton = document.getElementById('goToTop');
+  if (!toast) {
+      console.error("Toast element not found!"); // Check if element exists
+      return;
+  }
+  toast.textContent = message;
+
+  // --- Force Reflow ---
+  void toast.offsetHeight;
+  // --- End Force Reflow ---
+
+  toast.classList.add('show');
+
+  // Hide go-to-top while toast is visible
+  if (goToTopButton) goToTopButton.classList.remove('visible');
+  if (activeToastHideTimerId) clearTimeout(activeToastHideTimerId);
+  // Hide the toast after the specified duration and restore the go-to-top button if needed
+  activeToastHideTimerId = setTimeout(() => {
+    toast.classList.remove('show');
+    // Show go-to-top again if user has scrolled down
+    if (goToTopButton && window.pageYOffset > 300) {
+      goToTopButton.classList.add('visible');
+    }
+  }, duration);
+}
+
+// Hide toast on scroll
+window.addEventListener('scroll', () => {
+  const toast = document.getElementById('toast');
+  if (toast && toast.classList.contains('show')) {
+    toast.classList.remove('show');
+    if (activeToastHideTimerId) {
+      clearTimeout(activeToastHideTimerId);
+      activeToastHideTimerId = null;
+    }
+  }
+});
+
+// Helper function to fetch the latest list from API for a specific category
+async function fetchLatestThreadListFromApi(categoryConfig, isBackground = false) {
+    if (USE_MOCK_DATA) {
+        const { query } = categoryConfig;
+        let mockData;
+        if (query.includes("Who is hiring?")) {
+            mockData = isBackground ? MOCK_HIRING_THREADS_UPDATE : MOCK_HIRING_THREADS_INITIAL;
+        } else if (query.includes("Who wants to be hired?")) {
+            mockData = isBackground ? MOCK_HIRED_THREADS_UPDATE : MOCK_HIRED_THREADS_INITIAL;
+        } else if (query.includes("Freelancer?")) {
+            mockData = isBackground ? MOCK_FREELANCER_THREADS_UPDATE : MOCK_FREELANCER_THREADS_INITIAL;
+        } else {
+            mockData = [];
+        }
+        return new Promise(resolve => {
+            setTimeout(() => {
+                resolve([...mockData]);
+            }, isBackground ? 2000 : 500); // Simulate network delay for background
+        });
+    }
+
+    const { query, tags } = categoryConfig;
+    const encodedQuery = encodeURIComponent(query);
+    const apiUrl = `https://hn.algolia.com/api/v1/search_by_date?query=${encodedQuery}&tags=${tags}`;
+
+    const res = await fetch(apiUrl);
+    if (!res.ok) {
+        throw new Error(`Failed to fetch thread list for category "${query}": ${res.statusText}`);
+    }
+    const data = await res.json();
+    return data.hits || [];
+}
+
+// New main function to fetch and store threads for all categories
+async function fetchAndStoreThreads() {
+    const cachedData = getCache(CATEGORY_CACHE_KEY);
+    if (cachedData) {
+        allThreads = cachedData;
+        renderCategorySwitcher();
+        // Initial load: pick the latest thread of the default category
+        const latestThread = allThreads[currentCategory][0];
+        if (latestThread) {
+            // Extract year from the title for initial selectedYear
+            const match = latestThread.title.match(/\b(\d{4})\b/);
+            selectedYear = match ? parseInt(match[1]) : null;
+
+            renderThreadSwitcher(); // Render months for the default category
+            await loadThread(latestThread.objectID);
+        } else {
+              document.getElementById('jobs').innerHTML = `<div class="loading"><i class="fas fa-info-circle"></i> No threads found in cache for "${CATEGORY_API_MAP[currentCategory].label}". Checking for new ones...</div>`;
+        }
+        fetchLatestCategoryThreadsInBackground(); // Check for updates in background
+    } else {
+        document.getElementById('jobs').innerHTML = `<div class="loading"><i class="fas fa-circle-notch"></i> Loading all job categories...</div>`;
+        await fetchAllCategoryThreads(); // Initial fetch for all categories
+        renderCategorySwitcher();
+        // Initial load: pick the latest thread of the default category
+        const latestThread = allThreads[currentCategory][0];
+        if (latestThread) {
+            const match = latestThread.title.match(/\b(\d{4})\b/);
+            selectedYear = match ? parseInt(match[1]) : null;
+
+            renderThreadSwitcher();
+            await loadThread(latestThread.objectID);
+        } else {
+              document.getElementById('jobs').innerHTML = `<div class="loading"><i class="fas fa-info-circle"></i> No threads found for "${CATEGORY_API_MAP[currentCategory].label}".</div>`;
+        }
+    }
+}
+
+// Function to fetch threads for all categories initially
+async function fetchAllCategoryThreads() {
+    for (const category in CATEGORY_API_MAP) {
+        try {
+            const hits = await fetchLatestThreadListFromApi(CATEGORY_API_MAP[category]);
+            allThreads[category] = hits;
+        } catch (error) {
+            console.error(`Error fetching threads for category ${category}:`, error);
+            allThreads[category] = []; // Ensure it's an empty array on error
+        }
+    }
+    setCache(CATEGORY_CACHE_KEY, allThreads); // Cache the entire structure
+}
+
+// Function to fetch and compare latest thread lists in background
+async function fetchLatestCategoryThreadsInBackground() {
+    let updated = false;
+    // Simulate a delay for the background check to avoid immediate re-render
+    if (USE_MOCK_DATA) {
+        await new Promise(resolve => setTimeout(resolve, 2000));
+    }
+
+    const currentCachedThreads = { ...allThreads }; // Take a snapshot before background fetch
+
+    for (const category in CATEGORY_API_MAP) {
+        try {
+            const latestHits = await fetchLatestThreadListFromApi(CATEGORY_API_MAP[category], true);
+            // Compare fetched list with the current global list for that category
+            if (latestHits.length > 0 && JSON.stringify(latestHits) !== JSON.stringify(currentCachedThreads[category])) {
+                allThreads[category] = latestHits; // Update the global list
+                updated = true;
+            }
+        } catch (error) {
+            console.error(`Background fetch failed for category ${category}:`, error);
+        }
+    }
+    if (updated) {
+        setCache(CATEGORY_CACHE_KEY, allThreads); // Update the cache
+        renderCategorySwitcher(); // Re-render category buttons (in case new categories appear)
+        renderThreadSwitcher(); // Re-render month buttons for the current category
+        // showToast("✨ Thread lists updated in background!", 3000);
+    }
+}
+
+async function loadThread(id) {
+  const startTime = performance.now();
+  const requestedIdForThisCall = id; // Capture the ID for this specific call
+
+  // Optimistically update currentThreadId and UI for responsiveness
+  currentThreadId = id;
+  document.getElementById('jobs').innerHTML = `<div class="loading"><i class="fas fa-circle-notch"></i> Loading thread...</div>`;
+  document.getElementById('load-time-info').textContent = '';
+
+  // Update active thread button for both years and months
+  document.querySelectorAll('.year-selector button, .month-selector button').forEach(btn => {
+    btn.classList.remove('active');
+    if (btn.dataset.threadId === String(requestedIdForThisCall)) {
+        btn.classList.add('active');
+        // If a month button is activated, also ensure its year button is active
+        const yearBtn = document.querySelector(`.year-selector button[data-year="${btn.dataset.year}"]`);
+        if (yearBtn) yearBtn.classList.add('active');
+    }
+  });
+
+  const cacheKey = `hn_thread_comments_${requestedIdForThisCall}`; // Use requestedIdForThisCall for cache key
+  let lastCachedTimestampMs = 0;
+
+  try {
+    const cachedData = getCache(cacheKey);
+    let commentsForThisRequest = []; // Local variable for comments of this specific request
+
+    if (cachedData && cachedData.comments && cachedData.cachedAt) {
+      commentsForThisRequest = cachedData.comments || [];
+      lastCachedTimestampMs = cachedData.cachedAt;
+
+      // Check if this request is still current before rendering cached data
+      if (requestedIdForThisCall !== currentThreadId) {
+        return;
+      }
+
+      allComments = commentsForThisRequest; // Update global allComments
+      renderJobs(allComments);
+      const cachedCount = allComments.length;
+      document.getElementById('load-time-info').textContent = `Displayed ${cachedCount} job posts. Checking for updates...`;
+
+      // --- Fetch Newer Comments (Mock or Real) ---
+      let fetchedHits = [];
+      if (USE_MOCK_DATA) {
+          const mockUpdates = MOCK_COMMENTS_UPDATE[requestedIdForThisCall] || [];
+          await new Promise(resolve => setTimeout(resolve, 400));
+          fetchedHits = mockUpdates;
+      } else {
+          const lastCachedTimestampSeconds = Math.floor(lastCachedTimestampMs / 1000);
+          const updateApiUrl = `https://hn.algolia.com/api/v1/search_by_date?tags=comment,story_${requestedIdForThisCall}&numericFilters=created_at_i>${lastCachedTimestampSeconds}&hitsPerPage=1000`;
+          const updateRes = await fetch(updateApiUrl);
+          if (!updateRes.ok) {
+              throw new Error(`Failed to fetch updates: ${updateRes.statusText}`);
+          }
+          const updateData = await updateRes.json();
+          fetchedHits = updateData.hits || [];
+      }
+
+      // Check if this request is still current before processing updates
+      if (requestedIdForThisCall !== currentThreadId) {
+        return;
+      }
+
+      let newTopLevelComments = fetchedHits.filter(comment => String(comment.parent_id) === String(requestedIdForThisCall));
+
+      newTopLevelComments = newTopLevelComments.map(comment => ({
+        ...comment,
+        id: comment.id || comment.objectID,
+        text: comment.text || comment.comment_text,
+      }));
+
+      let uniqueNewComments = [];
+      if (newTopLevelComments.length > 0) {
+        const existingCommentIds = new Set(commentsForThisRequest.map(c => String(c.id)));
+        uniqueNewComments = newTopLevelComments.filter(nc => nc.id && !existingCommentIds.has(String(nc.id)));
+
+        commentsForThisRequest = [...uniqueNewComments, ...commentsForThisRequest];
+        const minimizedCommentsForCache = commentsForThisRequest.map(minimizeCommentObject);
+        setCache(cacheKey, { comments: minimizedCommentsForCache, cachedAt: Date.now() });
+      }
+
+      // Only re-render if there are new unique comments
+      if (uniqueNewComments.length > 0) {
+        allComments = commentsForThisRequest; // Update global allComments
+        renderJobs(allComments);
+      }
+
+      const endTime = performance.now();
+      const duration = ((endTime - startTime) / 1000).toFixed(2);
+      document.getElementById('load-time-info').textContent = `Loaded ${commentsForThisRequest.length} jobs (${uniqueNewComments.length} new jobs added) in ${duration} seconds`;
+
+    } else {
+      // --- Cache Miss or Invalid Cache: Fetch All Comments (Mock or Real) ---
+      if (USE_MOCK_DATA) {
+          await new Promise(resolve => setTimeout(resolve, 600));
+          commentsForThisRequest = (MOCK_COMMENTS_INITIAL[requestedIdForThisCall] || []).slice().reverse();
+      } else {
+          const res = await fetch(`https://hn.algolia.com/api/v1/items/${requestedIdForThisCall}`);
+          if (!res.ok) {
+              throw new Error(`Failed to fetch thread details: ${res.statusText}`);
+          }
+          const data = await res.json();
+          // Only include top-level comments (those whose parent_id is the story_id itself)
+          commentsForThisRequest = (data.children || []).filter(c => c.parent_id === data.id).slice().reverse();
+      }
+
+      // Check if this request is still current before setting cache and rendering
+      if (requestedIdForThisCall !== currentThreadId) {
+        return;
+      }
+
+      const minimizedCommentsForCache = commentsForThisRequest.map(minimizeCommentObject);
+      setCache(cacheKey, { comments: minimizedCommentsForCache, cachedAt: Date.now() });
+      allComments = commentsForThisRequest; // Update global allComments
+      renderJobs(allComments);
+
+      const endTime = performance.now();
+      const duration = ((endTime - startTime) / 1000).toFixed(2);
+      document.getElementById('load-time-info').textContent = `Loaded ${allComments.length} jobs in ${duration} seconds`;
+    }
+
+  } catch (error) {
+    // Check if this error is for a request that is no longer current
+    if (requestedIdForThisCall !== currentThreadId) {
+      return; // Don't display error for an outdated request
+    }
+
+    // If it's an error for the currently selected thread, then display it
+    document.getElementById('jobs').innerHTML = `
+      <div class="loading">
+        <i class="fas fa-exclamation-circle"></i>
+        Failed to load thread details for ${requestedIdForThisCall}. ${error.message || ''}
+      </div>`;
+    document.getElementById('load-time-info').textContent = `Failed to load jobs`;
+  }
+}
+
+// --- Add this helper to update a single job card in place ---
+function updateJobCardInPlace(jobId, appliedStatus) {
+    const jobCard = document.querySelector(`.job-card[data-job-id="${jobId}"]`);
+    if (!jobCard) return;
+    // Update class
+    if (appliedStatus) {
+        jobCard.classList.add('applied');
+    } else {
+        jobCard.classList.remove('applied');
+    }
+    // Update badge and date in the header
+    const statusDiv = jobCard.querySelector('.job-header-status');
+    if (statusDiv) {
+        // For applied status, show badge and date; otherwise, show nothing
+        if (appliedStatus) {
+            statusDiv.innerHTML = `
+                <span class="badge" style="font-weight:bold;letter-spacing:0.5px;">Applied</span>
+                <div class="meta">
+                    <i class="far fa-calendar"></i> ${new Date(appliedStatus).toLocaleString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          hour: 'numeric',
+                          minute: '2-digit',
+                          hour12: true
+                        })}
+                </div>`;
+        } else {
+            statusDiv.innerHTML = ''; // Clear the status div when not applied
+        }
+    }
+
+    // Also update the margin below the header-top based on applied status
+    const headerTop = jobCard.querySelector('.job-header-top');
+    if (headerTop) {
+        headerTop.style.marginBottom = appliedStatus ? '0.5rem' : '0';
+    }
+    // Update action buttons
+    const actionsDiv = jobCard.querySelector('.job-actions');
+    if (actionsDiv) {
+        // Remove existing apply/unapply button
+        actionsDiv.querySelectorAll('.btn-apply, .btn-unapply').forEach(btn => btn.remove());
+        if (appliedStatus) {
+            // Add unapply button
+            const unapplyBtn = document.createElement('button');
+            unapplyBtn.className = 'btn-unapply';
+            unapplyBtn.setAttribute('data-action', 'unapply');
+            unapplyBtn.innerHTML = '<i class="fas fa-times" aria-hidden="true"></i> Remove Applied Status';
+            actionsDiv.appendChild(unapplyBtn);
+        } else {
+            // Add apply button
+            const applyBtn = document.createElement('button');
+            applyBtn.className = 'job-action-button btn-apply';
+            applyBtn.setAttribute('data-action', 'apply');
+            applyBtn.innerHTML = '<i class="fas fa-check" aria-hidden="true"></i> Mark as Applied';
+            actionsDiv.appendChild(applyBtn);
+        }
+    }
+}
+
+// New function to render the category switcher buttons
+function renderCategorySwitcher() {
+    const container = document.querySelector('.category-switcher');
+    container.innerHTML = ''; // Clear previous buttons
+
+    for (const category in CATEGORY_API_MAP) {
+        const button = document.createElement('button');
+        button.id = `category${category.charAt(0).toUpperCase() + category.slice(1)}`; // e.g., categoryHiring
+        button.className = 'category-btn';
+        button.textContent = CATEGORY_API_MAP[category].label; // Use predefined label
+        button.dataset.category = category;
+
+        // Set active class for the current category
+        if (category === currentCategory) {
+            button.classList.add('active');
+        }
+
+        button.addEventListener('click', async () => {
+            if (currentCategory !== category) {
+                currentCategory = category;
+                // Update active category button
+                document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+
+                // Reset selectedYear to the latest for the new category
+
+                const latestThreadForNewCategory = allThreads[currentCategory][0];
+                if (latestThreadForNewCategory) {
+                    const match = latestThreadForNewCategory.title.match(/\b(\d{4})\b/);
+                    selectedYear = match ? parseInt(match[1]) : null;
+                } else {
+                    selectedYear = null;
+                }
+
+                // Re-render month switcher for the newly selected category
+                renderThreadSwitcher();
+                // Load the latest thread for the new category
+                if (latestThreadForNewCategory) {
+                    await loadThread(latestThreadForNewCategory.objectID);
+                } else {
+                    document.getElementById('jobs').innerHTML = `<div class="loading"><i class="fas fa-info-circle"></i> No threads found for this category.</div>`;
+                    currentThreadId = null; // Reset currentThreadId if no threads
+                    document.getElementById('load-time-info').textContent = '';
+                }
+                // document.getElementById('search').placeholder = CATEGORY_API_MAP[category].example_query;
+            }
+        });
+        container.appendChild(button);
+    }
+}
+
+// New helper to extract year and month from thread title
+function getYearAndMonthFromTitle(title) {
+    const lowerTitle = title.toLowerCase();
+    let yearMatch = lowerTitle.match(/\b(\d{4})\b/);
+    let year = yearMatch ? parseInt(yearMatch[1]) : null;
+
+    let month = null;
+    for (let i = 0; i < MONTH_NAMES.length; i++) {
+        if (lowerTitle.includes(MONTH_NAMES[i].toLowerCase())) {
+            month = MONTH_NAMES[i];
+            break;
+        }
+    }
+    return { year, month };
+}
+
+// Modified renderThreadSwitcher to use threads from the current category
+function renderThreadSwitcher() {
+    const yearSelector = document.querySelector('.switcher .year-selector');
+    const monthSelector = document.querySelector('.switcher .month-selector');
+    yearSelector.innerHTML = '';
+    monthSelector.innerHTML = '';
+
+    const currentCategoryThreads = allThreads[currentCategory];
+
+    if (!currentCategoryThreads || currentCategoryThreads.length === 0) {
+        return;
+    }
+
+    // Group threads by year and month
+    const threadsByYearMonth = new Map(); // year -> Map<month, thread>
+    currentCategoryThreads.forEach(t => {
+        const { year, month } = getYearAndMonthFromTitle(t.title);
+        if (year && month) {
+            if (!threadsByYearMonth.has(year)) {
+                threadsByYearMonth.set(year, new Map());
+            }
+            threadsByYearMonth.get(year).set(month, t);
+        }
+    });
+
+    const years = Array.from(threadsByYearMonth.keys()).sort((a, b) => b - a); // Sort years descending
+
+    // If no year is pre-selected, default to the latest year
+    if (selectedYear === null && years.length > 0) {
+        selectedYear = years[0];
+    }
+
+    // Render year buttons
+    years.forEach(year => {
+        const yearBtn = document.createElement('button');
+        yearBtn.textContent = year;
+        yearBtn.dataset.year = year;
+        yearBtn.classList.add('year-btn');
+        if (year === selectedYear) {
+            yearBtn.classList.add('active');
+        }
+        yearBtn.addEventListener('click', () => {
+            if (selectedYear !== year) {
+                selectedYear = year;
+                renderThreadSwitcher(); // Re-render to show months for new year
+                // Automatically load the first month of the newly selected year
+                const monthsForYear = Array.from(threadsByYearMonth.get(selectedYear).keys())
+                                        .sort((a, b) => MONTH_NAMES.indexOf(MONTH_NAMES.find(m => m.toLowerCase() === b.toLowerCase())) - MONTH_NAMES.indexOf(MONTH_NAMES.find(m => m.toLowerCase() === a.toLowerCase()))); // Sort months descending
+                if (monthsForYear.length > 0) {
+                    const latestMonthThread = threadsByYearMonth.get(selectedYear).get(monthsForYear[0]);
+                    if (latestMonthThread) {
+                        loadThread(latestMonthThread.objectID);
+                    }
+                }
+            }
+        });
+        yearSelector.appendChild(yearBtn);
+    });
+
+    // Render month buttons for the selected year
+    if (selectedYear && threadsByYearMonth.has(selectedYear)) {
+        const monthsMap = threadsByYearMonth.get(selectedYear);
+        const months = Array.from(monthsMap.keys())
+                            .sort((a, b) => MONTH_NAMES.indexOf(MONTH_NAMES.find(m => m.toLowerCase() === b.toLowerCase())) - MONTH_NAMES.indexOf(MONTH_NAMES.find(m => m.toLowerCase() === a.toLowerCase()))); // Sort months descending
+
+        months.forEach(month => {
+            const thread = monthsMap.get(month);
+            if (thread) {
+                const monthBtn = document.createElement('button');
+                monthBtn.textContent = month;
+                monthBtn.dataset.month = month;
+                monthBtn.dataset.year = selectedYear; // Store year for activation
+                monthBtn.dataset.threadId = thread.objectID;
+                monthBtn.classList.add('month-btn');
+
+                if (String(thread.objectID) === String(currentThreadId)) {
+                    monthBtn.classList.add('active');
+                }
+                monthBtn.addEventListener('click', () => loadThread(thread.objectID));
+                monthSelector.appendChild(monthBtn);
+            }
+        });
+    }
+}
+
+function setupHelpModal() {
+  var openBtn = document.getElementById('openHelpModal');
+  var modal = document.getElementById('helpModal');
+  var closeBtn = document.getElementById('closeHelpModal');
+  if (openBtn && modal && closeBtn) {
+    openBtn.onclick = function() { modal.style.display = 'flex'; };
+    closeBtn.onclick = function() { modal.style.display = 'none'; };
+    window.addEventListener('click', function(e) {
+      if (e.target === modal) modal.style.display = 'none';
+    });
+    window.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') modal.style.display = 'none';
+    });
+  }
+  }
+
+setupHelpModal();
+
+// Add filter buttons for favorites, applied, notes, and hidden
+const controlButtons = document.querySelector('.control-buttons');
+controlButtons.classList.add('filter-row');
+
+// Favorites button
+const favBtn = document.createElement('button');
+favBtn.id = 'showFavorites';
+favBtn.className = 'filter-btn';
+favBtn.innerHTML = '<i class="fas fa-star"></i> Favorites';
+
+// Show Notes button
+const notesBtn = document.createElement('button');
+notesBtn.id = 'showNotes';
+notesBtn.className = 'filter-btn';
+notesBtn.innerHTML = '<i class="fas fa-sticky-note"></i> Show Notes';
+
+// Show Applied button
+const appliedBtn = document.createElement('button');
+appliedBtn.id = 'showApplied';
+appliedBtn.className = 'filter-btn';
+appliedBtn.innerHTML = '<i class="fas fa-check"></i> Show Applied';
+
+// Hide Applied toggle button (not a label+checkbox)
+const hideAppliedBtn = document.createElement('button');
+hideAppliedBtn.id = 'hideAppliedBtn';
+hideAppliedBtn.className = 'filter-btn';
+hideAppliedBtn.innerHTML = '<i class="fas fa-eye-slash"></i> Hide Applied';
+let hideApplied = false;
+
+// Add Reset Defaults button
+const resetBtn = document.createElement('button');
+resetBtn.id = 'resetDefaultsBtn';
+resetBtn.className = 'filter-btn reset-btn';
+resetBtn.innerHTML = '<i class="fas fa-trash-alt"></i> Reset Everything';
+resetBtn.title = 'Clear all applied statuses, notes, and favorites';
+
+// Add highlight class
+const highlightClass = 'active';
+
+// There should be one filter active at a time, allow deselecting by clicking again
+function setActiveFilter(btn) {
+  const isActive = btn.classList.contains(highlightClass);
+  [favBtn, notesBtn, appliedBtn, hideAppliedBtn, showHiddenBtn].forEach(b => b.classList.remove(highlightClass));
+  if (!isActive) {
+    btn.classList.add(highlightClass);
+  }
+  renderJobs(allComments);
+}
+
+favBtn.onclick = () => setActiveFilter(favBtn);
+notesBtn.onclick = () => setActiveFilter(notesBtn);
+appliedBtn.onclick = () => setActiveFilter(appliedBtn);
+hideAppliedBtn.onclick = () => setActiveFilter(hideAppliedBtn);
+
+// Show Excluded button
+const showHiddenBtn = document.createElement('button');
+showHiddenBtn.id = 'showHidden';
+showHiddenBtn.className = 'filter-btn';
+showHiddenBtn.innerHTML = '<i class="fas fa-xmark"></i> Show Excluded';
+
+showHiddenBtn.onclick = () => setActiveFilter(showHiddenBtn);
+
+// Reset button click handler
+resetBtn.onclick = () => {
+    if (window.confirm('Are you sure you want to clear all applied statuses, notes, favorites, hidden jobs, AND caches? This cannot be undone.')) {
+        // Clear user data
+        applied = {};
+        favorites = {};
+        notes = {};
+        hidden = {};
+        localStorage.removeItem(appliedKey);
+        localStorage.removeItem(favoriteKey);
+        localStorage.removeItem(notesKey);
+        localStorage.removeItem(hiddenKey);
+        localStorage.removeItem(themekey);
+
+        // Clear all thread and comment caches
+        try {
+            // Removing all hn_thread_comments_ and hn_category_threads as per instructions
+            const removedCount = removeLocalStorageKeysWithPrefix(['hn_thread_comments_', CATEGORY_CACHE_KEY]);
+            console.log(`Removed ${removedCount} cached items from localStorage.`);
+        } catch (e) {
+            console.error("Error clearing caches from localStorage", e);
+        }
+
+        // Reset UI
+        [favBtn, notesBtn, appliedBtn, hideAppliedBtn, showHiddenBtn].forEach(b => b.classList.remove(highlightClass));
+        showToast('All data cleared. Reloading...');
+
+        // Reload the page
+        window.location.reload();
+    }
+};
+
+controlButtons.appendChild(favBtn);
+controlButtons.appendChild(notesBtn);
+controlButtons.appendChild(appliedBtn);
+controlButtons.appendChild(hideAppliedBtn);
+controlButtons.appendChild(showHiddenBtn);
+controlButtons.appendChild(resetBtn);
+
+// New parseQuery function - Treats single words as words, multi-word as phrases
+function parseQuery(queryString) {
+    const tokens = [];
+    // Convert to lowercase FIRST
+    const lowerQuery = queryString.toLowerCase().trim();
+    // Regex to split by operators (&, |), negation (~), and quotes ("), keeping delimiters
+    const parts = lowerQuery.split(/(\s*[&|~]\s*|"[^"]*")/g);
+
+    let i = 0;
+    while (i < parts.length) {
+        let part = parts[i];
+        if (!part || /^\s*$/.test(part)) { // Skip empty or whitespace-only parts
+            i++;
+            continue;
+        }
+
+        part = part.trim(); // Trim whitespace from the current part
+
+        if (part === '&' || part === '|') {
+            tokens.push(part); // Add operator token
+            i++;
+        } else if (part === '~') {
+            // Handle negation: look ahead for the term/phrase to negate
+            let j = i + 1;
+            while (j < parts.length && (!parts[j] || /^\s*$/.test(parts[j]))) { j++; } // Skip whitespace
+
+            if (j < parts.length) {
+                let termToNegate = parts[j].trim();
+                if (termToNegate.startsWith('"') && termToNegate.endsWith('"')) {
+                    // Explicitly negated phrase: ~"..."
+                    tokens.push(`~${termToNegate}`);
+                } else {
+                    // Check if it's a single word or multiple words
+                    if (termToNegate.includes(' ')) {
+                        // Implicitly negated phrase (multiple words)
+                        tokens.push(`~"${termToNegate}"`);
+                    } else {
+                        // Negated single word (treat as word, not phrase)
+                        tokens.push(`~${termToNegate}`); // No quotes added
+                    }
+                }
+                i = j + 1; // Move index past the negated term/phrase
+            } else {
+                i++; // Dangling ~
+            }
+        } else if (part.startsWith('"') && part.endsWith('"')) {
+            // Explicitly quoted phrase: "..."
+            tokens.push(part);
+            i++;
+        } else {
+            // Term(s) not explicitly quoted
+            if (part.includes(' ')) {
+                // Implicit phrase (multiple words)
+                tokens.push(`"${part}"`);
+            } else {
+                // Single word (treat as word, not phrase)
+                tokens.push(part); // No quotes added
+            }
+            i++;
+        }
+    }
+    // Filter out potentially empty tokens
+    return tokens.filter(token => token && token !== '""' && token !== '~' && token !== '~""');
+}
+
+// Update renderParsedQuery to handle non-phrases correctly
+function renderParsedQuery(tokens) {
+    const displayContainer = document.getElementById('parsed-query-display');
+    displayContainer.innerHTML = ''; // Clear previous display
+
+    tokens.forEach(token => {
+        const span = document.createElement('span');
+        span.classList.add('query-token');
+        let textContent = token;
+                                          let isNegated = false;
+        let isPhrase = false; // Track if it's a phrase
+
+        if (token === '|' || token === '&') {
+            span.classList.add('token-operator');
+        } else {
+              if (token.startsWith('~')) {
+                isNegated = true;
+                span.classList.add('token-negated');
+                textContent = token.substring(1); // Remove ~ for display text
+            }
+
+            // Check if the remaining textContent indicates a phrase
+            if (textContent.startsWith('"') && textContent.endsWith('"')) {
+                isPhrase = true;
+                span.classList.add('token-phrase');
+                // Remove quotes for display text
+                textContent = textContent.substring(1, textContent.length - 1);
+            }
+            // Add specific styling if it's just a negated word (not phrase)
+            else if (isNegated) {
+                  span.classList.add('token-word'); // Add class for single words
+            } else {
+                // Regular word (not phrase, not operator, not negated)
+                  span.classList.add('token-word'); // Add class for single words
+            }
+        }
+
+          // Ensure empty phrases don't display weirdly
+        if (isPhrase && !textContent) {
+              textContent = '""'; // Show empty quotes if the phrase was empty
+        }
+
+        span.textContent = textContent; // Set the text content
+        displayContainer.appendChild(span);
+    });
+}
+
+// Simplified checkTerm: Returns true if the token's condition is met by the text.
+// Handles negation directly based on the token prefix.
+function checkTerm(token, commentText, author, noteText) {
+    let isNegated = false;
+    let actualTerm = token;
+    let isPhrase = false;
+
+    // 1. Determine Negation and Actual Term
+    if (actualTerm.startsWith('~')) {
+        isNegated = true;
+        actualTerm = actualTerm.substring(1);
+    }
+
+    // 2. Determine if it's a Phrase
+    if (actualTerm.startsWith('"') && actualTerm.endsWith('"')) {
+        isPhrase = true;
+        actualTerm = actualTerm.substring(1, actualTerm.length - 1);
+    }
+
+    // Handle empty terms/phrases after stripping ~, ""
+    if (!actualTerm) {
+        // An empty positive term "" or word doesn't match anything.
+        // An empty negative term ~"" or ~word matches everything.
+        return isNegated;
+    }
+
+    // 3. Check for Presence
+    let termFound = false;
+    if (isPhrase) {
+        // Exact phrase match
+        termFound = commentText.includes(actualTerm) || author.includes(actualTerm) || noteText.includes(actualTerm);
+    } else {
+        // Whole word match (using regex)
+        try {
+            // Escape special regex characters in the term
+            const escapedTerm = actualTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            // \b ensures matching whole words
+            const regex = new RegExp(`\\b${escapedTerm}\\b`);
+            termFound = regex.test(commentText) || regex.test(author) || regex.test(noteText);
+        } catch (e) {
+            // Fallback to simple includes if regex fails (e.g., invalid pattern)
+            console.error(`Regex error for term "${actualTerm}":`, e);
+            termFound = commentText.includes(actualTerm) || regex.test(author) || regex.test(noteText);
+        }
+    }
+
+    // 4. Return final result based on negation
+    return isNegated ? !termFound : termFound;
+}
+
+// Updated evaluateQuery for standard boolean logic (left-to-right)
+function evaluateQuery(commentText, author, noteText, tokens) {
+    // Ensure inputs are lowercase
+    commentText = (commentText || '').toLowerCase();
+    author = (author || '').toLowerCase();
+    noteText = (noteText || '').toLowerCase();
+
+    if (!tokens || tokens.length === 0) return true; // No query means match all
+
+    let currentResult = null; // Stores the evaluated result so far
+    let nextOperator = '&';   // Default operator between terms is AND
+
+    for (const token of tokens) {
+        if (token === '&' || token === '|') {
+            // Store the explicit operator for the *next* term evaluation
+            nextOperator = token;
+        } else {
+            // It's a term (word, phrase, potentially negated)
+            const termResult = checkTerm(token, commentText, author, noteText); // Check if this term's condition is met
+
+            if (currentResult === null) {
+                // This is the first term in the expression (or sub-expression)
+                currentResult = termResult;
+            } else {
+                // Apply the stored operator between the previous result and the current term's result
+                if (nextOperator === '|') {
+                    currentResult = currentResult || termResult;
+                } else { // Operator is '&' (or the default AND)
+                    currentResult = currentResult && termResult;
+                }
+                // Reset the operator to default AND for the next pair of terms unless an explicit | or & is found
+                nextOperator = '&';
+            }
+        }
+    }
+
+    // If the query consisted only of operators (e.g., "& |"), currentResult would be null.
+    // In this case, or if the evaluation resulted in true, return true. Otherwise false.
+    // A null result implies no terms were actually evaluated, which shouldn't block results.
+
+    return currentResult === null ? true : currentResult;
+}
+
+// Update renderJobs function
+function renderJobs(comments) {
+    const container = document.getElementById('jobs');
+    const query = document.getElementById('search').value; // Get raw query
+    const showFavs = favBtn.classList.contains(highlightClass);
+    const showApplied = appliedBtn.classList.contains(highlightClass);
+    const showNotes = notesBtn.classList.contains(highlightClass);
+    const hideAppliedActive = hideAppliedBtn.classList.contains(highlightClass); // Check button state directly
+    const showHidden = showHiddenBtn.classList.contains(highlightClass);
+
+    container.innerHTML = '';
+
+    let filteredComments = comments; // Start with all comments
+
+    const getJobId = (comment) =>  comment.id
+
+    // Apply the single active filter
+    if (showFavs) {
+      // Only show favorites that are NOT excluded
+      filteredComments = filteredComments.filter(c => favorites[currentThreadId]?.[getJobId(c)] && !hidden[currentThreadId]?.[getJobId(c)]);
+    } else if (showApplied) {
+      // Only show applied that are NOT excluded
+      filteredComments = filteredComments.filter(c => applied[currentThreadId]?.[getJobId(c)] && !hidden[currentThreadId]?.[getJobId(c)]);
+    } else if (hideAppliedActive) { // Use the button's active state
+      // Only show jobs that are NOT applied and NOT excluded
+      filteredComments = filteredComments.filter(c => !applied[currentThreadId]?.[getJobId(c)] && !hidden[currentThreadId]?.[getJobId(c)]);
+    } else if (showNotes) {
+      // Only show jobs with notes that are NOT excluded
+      filteredComments = filteredComments.filter(c => {
+        const jobId = getJobId(c);
+        return notes[currentThreadId]?.[jobId] && notes[currentThreadId][jobId].trim().length > 0 && !hidden[currentThreadId]?.[jobId];
+      });
+    } else if (showHidden) {
+      // Only show excluded jobs
+      filteredComments = filteredComments.filter(c => hidden[currentThreadId]?.[getJobId(c)]);
+    } else {
+      // By default, hide excluded jobs
+      filteredComments = filteredComments.filter(c => !hidden[currentThreadId]?.[getJobId(c)]);
+    }
+
+    // Apply search query filter (runs after the main filter)
+    const queryTokens = parseQuery(query); // Parse the raw query
+
+    // Update the visual display of the parsed query
+    renderParsedQuery(queryTokens); // <-- Call the new render function
+
+    if (queryTokens.length > 0) { // Only filter if query is not empty
+        filteredComments = filteredComments.filter(c => {
+            const jobId = getJobId(c); // Use consistent ID getter here too
+            return evaluateQuery(
+                (c.text || '').toLowerCase(),
+                (c.author || '').toLowerCase(),
+                (notes[currentThreadId]?.[jobId] || '').toLowerCase(), // Use jobId here
+                queryTokens
+            );
+        });
+    }
+
+    if (filteredComments.length === 0) {
+      let message = 'No matching jobs found.';
+      if (showFavs) {
+        message = "You haven't added any jobs to favorites.";
+      } else if (showApplied) {
+        message = "You haven't marked any jobs as applied.";
+      } else if (showNotes) {
+        message = "You haven't added any notes to any jobs.";
+      } else if (hideAppliedActive) {
+        message = "All jobs are marked as applied. Try showing applied jobs.";
+      } else if (queryTokens.length > 0) {
+        message = 'I dont find any matching jobs for your current search rn.';
+      }
+      container.innerHTML = `
+        <div class="loading fade-in">
+          <i class="far fa-meh" style="margin-right: 0.5rem;"></i> ${message}
+        </div>`;
+      return;
+    }
+
+    filteredComments.forEach(c => {
+        const jobId = getJobId(c);
+        const appliedStatus = applied[currentThreadId]?.[jobId];
+        const note = notes[currentThreadId]?.[jobId] || '';
+        const date = appliedStatus ? new Date(appliedStatus).toLocaleString() : '';
+        const isFav = favorites[currentThreadId]?.[jobId];
+        const isHidden = hidden[currentThreadId]?.[jobId];
+        let postedTime = '';
+        if (c.created_at) {
+          const d = new Date(c.created_at);
+          const formattedDate = d.toLocaleString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+          });
+
+          // Calculate time ago to show with posted date
+          const now = new Date();
+          const diffMs = now - d;
+          const diffSecs = Math.floor(diffMs / 1000);
+          const diffMins = Math.floor(diffSecs / 60);
+          const diffHours = Math.floor(diffMins / 60);
+          const diffDays = Math.floor(diffHours / 24);
+
+          let timeAgo = '';
+          if (diffDays > 0) {
+            timeAgo = `${diffDays} ${diffDays === 1 ? 'day' : 'days'} ago`;
+          } else if (diffHours > 0) {
+            timeAgo = `${diffHours} ${diffHours === 1 ? 'hour' : 'hours'} ago`;
+          } else if (diffMins > 0) {
+            timeAgo = `${diffMins} ${diffMins === 1 ? 'minute' : 'minutes'} ago`;
+          } else {
+            timeAgo = 'just now';
+          }
+
+          postedTime = `${formattedDate} <span title="${d.toLocaleString()}">(${timeAgo})</span>`;
+        }
+
+        const commentTextHTML = c.text || '[No comment text]';
+        const authorName = c.author || '[unknown author]';
+
+        // Extract job title from first line of comment text and parse for pipe character
+        const plainTextComment = (commentTextHTML).replace(/<[^>]+>/g, '');
+        const firstLine = plainTextComment.split('\n')[0].trim();
+
+        // Extract title up to first pipe character (if it exists)
+        let jobTitle = '';
+        // Using a more robust regex to find the first line (up to first newline, if any)
+        // and then splitting by the first `|` if present.
+        const titleLineMatch = plainTextComment.match(/^.*?(?=\n|$)/); // Matches until newline or end of string
+        const rawTitleLine = titleLineMatch ? titleLineMatch[0].trim() : '';
+
+        if (rawTitleLine.includes('|')) {
+            jobTitle = rawTitleLine.split('|')[0].trim();
+        } else {
+            jobTitle = rawTitleLine;
+        }
+
+        // Fallback for title being too short or too long - if not extracted properly, default.
+        if (jobTitle.length < 2 || jobTitle.length > 80) {
+            // Set a different default job title for each thread type
+            let defaultTitle = 'Job Post';
+            if (CATEGORY_API_MAP[currentCategory]?.label) {
+              if (currentCategory === 'hiring') defaultTitle = 'Job Opening';
+              else if (currentCategory === 'hired') defaultTitle = 'Candidate Profile';
+              else if (currentCategory === 'freelancer') defaultTitle = 'Title not Found';
+            }
+            jobTitle = defaultTitle;
+        }
+
+
+        const article = document.createElement('article');
+        article.className = 'job-card fade-in';
+        article.tabIndex = 0;
+        article.setAttribute('data-job-id', jobId);
+        if (appliedStatus) article.classList.add('applied');
+        // Render actions based on hidden state
+        let hideOrUnhideBtn = '';
+        if (showHidden) {
+          // Show Restore button with undo icon
+          hideOrUnhideBtn = `<button class="job-action-button btn-unhide" data-action="unhide" title="Restore" style="margin-right: auto;">
+            <i class="fas fa-undo" aria-hidden="true"></i> Restore
+          </button>`;
+        } else {
+          // Show Exclude button with ban icon
+          hideOrUnhideBtn = `<button class="job-action-button btn-remove" data-action="remove" title="Exclude" style="margin-right: auto;">
+            <i class="fas fa-xmark" aria-hidden="true"></i> Exclude
+          </button>`;
+        }
+        article.innerHTML = `
+<div class="job-header">
+<div class="job-header-top" style="width:100%;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+  <div class="job-header-status" style="display:flex;align-items:center;gap:0.5rem;">
+    ${appliedStatus ?
+      `<span class="badge" style="font-weight:bold;letter-spacing:0.5px;">Applied</span>
+      <div class="meta">
+        <i class="far fa-calendar"></i> ${new Date(appliedStatus).toLocaleString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true
+        })}
+      </div>`
+      : ''}
+  </div>
+  <div style="font-weight:normal; color:#999; font-size:0.9em;">
+    ${postedTime ? `${postedTime}` : ''}
+  </div>
+</div>
+
+<div style="display:flex;align-items:flex-start;margin-bottom:0.75rem;gap:0.75rem;">
+  <button class="action-btn star-btn${isFav ? '' : ' inactive'}" data-action="star" title="Add to Favorite" aria-label="Star job">
+    <i class="fas fa-star"></i>
+  </button>
+  <div class="job-title" style="font-weight:bold;font-size:1.25rem;flex-grow:1;color:var(--primary);line-height:1.3;">${jobTitle}</div>
+</div>
+
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border); width: 100%;">
+  <div class="job-author" style="color:var(--on-surface);opacity:0.8;font-size:1.1em;font-weight:bold; display:flex; align-items:center; gap: 0.5rem;">
+    <span class="job-author-main">Posted by: ${authorName}</span>
+
+    <a href="https://news.ycombinator.com/item?id=${jobId}" class="action-btn" target="_blank" rel="noopener noreferrer" title="Open on Hacker News" aria-label="Open on Hacker News">
+      <i class="fas fa-external-link-alt"></i>
+    </a>
+    <button class="action-btn" data-action="copy-link" title="Copy link" aria-label="Copy link">
+      <i class="fas fa-copy"></i>
+    </button>
+  </div>
+</div>
+</div>
+
+<div class="job-content">
+<div class="job-description" style="margin-bottom:1rem;">${commentTextHTML.replace(firstLine, '')}</div>
+</div>
+
+<div class="job-notes" style="margin-bottom:1rem;">
+<textarea class="note" placeholder="Add notes about this position..." style="width:100%;min-height:80px;resize:vertical;">${note}</textarea>
+</div>
+
+<div class="job-actions" style="display:flex;gap:0.75rem;flex-wrap:wrap;padding-top:0.75rem;border-top:1px solid var(--border);">
+${hideOrUnhideBtn}
+<button class="job-action-button btn-save-note" data-action="save-note" title="Update Note">
+  <i class="fas fa-edit" aria-hidden="true"></i> Update Note
+</button>
+
+${appliedStatus ?
+  `<button class="btn-unapply" data-action="unapply">
+      <i class="fas fa-times" aria-hidden="true"></i> Remove Applied Status
+    </button>`
+  :
+  `<button class="job-action-button btn-apply" data-action="apply">
+      <i class="fas fa-check" aria-hidden="true"></i> Mark as Applied
+    </button>`
+}
+</div>
+`;
+container.appendChild(article);
+});
+}
+
+function handleJobCardClick(event) {
+    const target = event.target;
+    const jobCard = target.closest('.job-card');
+
+    if (!jobCard) return;
+
+    const jobId = jobCard.dataset.jobId;
+    if (!jobId) return;
+
+    const actionTarget = target.closest('[data-action]');
+    if (!actionTarget) return;
+
+    const action = actionTarget.dataset.action;
+    const noteEl = jobCard.querySelector('.note');
+    const showFavs = favBtn.classList.contains(highlightClass);
+
+    // Ensure thread-specific objects exist
+    if (!applied[currentThreadId]) applied[currentThreadId] = {};
+    if (!notes[currentThreadId]) notes[currentThreadId] = {};
+    if (!favorites[currentThreadId]) favorites[currentThreadId] = {};
+    if (!hidden[currentThreadId]) hidden[currentThreadId] = {};
+
+    if (action === 'star') {
+        const starButton = actionTarget; // Get the button that was clicked
+
+        if (favorites[currentThreadId]?.[jobId]) { // Check if it IS currently a favorite
+            delete favorites[currentThreadId][jobId];
+            starButton.classList.add('inactive'); // Make it inactive visually
+        } else { // If it's NOT currently a favorite
+            favorites[currentThreadId][jobId] = true;
+            starButton.classList.remove('inactive'); // Make it active visually
+        }
+        localStorage.setItem(favoriteKey, JSON.stringify(favorites));
+        // Only re-render the whole list if the 'Favorites' filter is active
+        if (showFavs) {
+            renderJobs(allComments);
+        }
+    }
+    else if (action === 'copy-link') {
+        const url = `https://news.ycombinator.com/item?id=${jobId}`;
+        navigator.clipboard.writeText(url)
+          .then(() => showToast('Link copied!'))
+          .catch(err => showToast('Failed to copy link.'));
+    }
+    else if (action === 'save-note') {
+        const noteText = noteEl ? noteEl.value.trim() : '';
+        if (noteText) {
+            notes[currentThreadId][jobId] = noteText;
+        } else {
+            if (notes[currentThreadId]?.[jobId]) {
+                delete notes[currentThreadId][jobId];
+            }
+        }
+        localStorage.setItem(notesKey, JSON.stringify(notes));
+        showToast('Note saved!');
+        if (notesBtn.classList.contains(highlightClass)) {
+            renderJobs(allComments);
+        }
+    }
+    else if (action === 'apply') {
+        applied[currentThreadId][jobId] = new Date().toISOString();
+        localStorage.setItem(appliedKey, JSON.stringify(applied));
+        showToast('Marked as applied!');
+        // Only re-render if a filter that depends on applied status is active
+        if (
+            appliedBtn.classList.contains(highlightClass) ||
+            notesBtn.classList.contains(highlightClass) ||
+            hideAppliedBtn.classList.contains(highlightClass)
+        ) {
+            renderJobs(allComments);
+        } else {
+            updateJobCardInPlace(jobId, applied[currentThreadId][jobId]);
+        }
+    }
+    else if (action === 'unapply') {
+        if (applied[currentThreadId]?.[jobId]) {
+            delete applied[currentThreadId][jobId];
+            localStorage.setItem(appliedKey, JSON.stringify(applied));
+            showToast('Removed applied status');
+            // Only re-render if a filter that depends on applied status is active
+            if (
+                appliedBtn.classList.contains(highlightClass) ||
+                notesBtn.classList.contains(highlightClass) ||
+                hideAppliedBtn.classList.contains(highlightClass)
+            ) {
+                renderJobs(allComments);
+            } else {
+                updateJobCardInPlace(jobId, false);
+            }
+        }
+    }
+    else if (action === 'remove') {
+        hidden[currentThreadId][jobId] = true;
+        localStorage.setItem(hiddenKey, JSON.stringify(hidden));
+        showToast('Excluded!');
+        renderJobs(allComments);
+    }
+    else if (action === 'unhide') {
+        if (hidden[currentThreadId]?.[jobId]) {
+            delete hidden[currentThreadId][jobId];
+            localStorage.setItem(hiddenKey, JSON.stringify(hidden));
+            showToast('Restored!');
+            renderJobs(allComments);
+        }
+    }
+}
+
+document.getElementById('jobs').addEventListener('click', handleJobCardClick);
+
+function updateThemeIcon() {
+  const themeToggle = document.getElementById('themeToggle');
+  const icon = themeToggle.querySelector('i');
+  if (document.body.classList.contains('dark')) {
+    // Show moon icon in dark mode
+    icon.className = 'fas fa-moon';
+    themeToggle.setAttribute('aria-label', 'Switch to light mode');
+  } else {
+    // Show sun icon in light mode
+    icon.className = 'fas fa-sun';
+    themeToggle.setAttribute('aria-label', 'Switch to dark mode');
+  }
+}
+
+function toggleDark() {
+  document.body.classList.toggle('dark');
+  updateThemeIcon();
+  if (document.body.classList.contains('dark')) {
+    localStorage.removeItem(themekey);
+    showToast('Dark mode enabled');
+  } else {
+    localStorage.setItem(themekey, 'disabled');
+    showToast('Light mode enabled');
+  }
+}
+
+// On page load, call updateThemeIcon to sync the icon and label
+updateThemeIcon();
+
+// Apply saved theme preference on initial load
+if (localStorage.getItem(themekey) === 'disabled') {
+  document.body.classList.remove('dark');
+  updateThemeIcon(); // Ensure icon is correct after applying theme
+} else {
+  document.body.classList.add('dark'); // Default to dark if no preference or preference is dark
+  updateThemeIcon(); // Ensure icon is correct
+}
+
+// Initialize clear search button
+setupClearSearchButton(); // Call the setup function
+
+// Event listeners
+// Debounce the search input listener (e.g., 300ms delay)
+const debouncedRender = debounce(() => {
+    renderJobs(allComments);
+}, searchDebounceTimeout);
+document.getElementById('search').addEventListener('input', debouncedRender);
+
+// Add listeners for Operator Buttons
+document.querySelectorAll('.op-btn').forEach(button => {
+    button.addEventListener('click', (e) => {
+        e.preventDefault(); // Prevent potential form submission if wrapped
+        const searchInput = document.getElementById('search');
+        const operator = button.dataset.op; // Get operator from data attribute (includes spaces)
+        const currentPos = searchInput.selectionStart;
+        const currentValue = searchInput.value;
+
+        // Insert operator at cursor position
+        searchInput.value = currentValue.substring(0, currentPos) + operator + currentValue.substring(currentPos);
+
+        // Move cursor after the inserted operator
+        searchInput.focus();
+        searchInput.setSelectionRange(currentPos + operator.length, currentPos + operator.length);
+
+        // Trigger the debounced search function immediately
+        debouncedRender();
+    });
+});
+
+document.getElementById('themeToggle').addEventListener('click', toggleDark);
+
+// Add event listener for the 'Try example' link
+document.getElementById('try-example-search').addEventListener('click', (event) => {
+  event.preventDefault(); // Prevent default link behavior
+  const searchInput = document.getElementById('search');
+
+  if (searchInput) {
+    let exampleQuery = CATEGORY_API_MAP[currentCategory].example_query;
+    searchInput.value = exampleQuery;
+    searchInput.focus();
+    if (typeof clearSearchBtn !== 'undefined' && clearSearchBtn) {
+      clearSearchBtn.style.display = exampleQuery.length > 0 ? 'inline-block' : 'none';
+    }
+    renderJobs(allComments);
+  }
+});
+
+// Keyboard navigation
+document.addEventListener('keydown', (e) => {
+  // Skip if user is typing in an input or textarea
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+    if (e.key === 'Escape') {
+      e.target.blur();
+    }
+    return;
+  }
+
+  const shortcut = keyboardShortcuts[e.key];
+  if (shortcut) {
+    e.preventDefault();
+    shortcut();
+  }
+});
+
+// Go to top functionality
+const goToTopButton = document.getElementById('goToTop');
+
+// Show button when page is scrolled down
+window.addEventListener('scroll', () => {
+  const toast = document.getElementById('toast');
+  if (window.pageYOffset > 300 && (!toast || !toast.classList.contains('show'))) {
+    goToTopButton.classList.add('visible');
+  } else {
+    goToTopButton.classList.remove('visible');
+  }
+});
+
+// Scroll to top when button is clicked
+goToTopButton.addEventListener('click', () => {
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth'
+  });
+});
+
+// Add keyboard shortcut for "Go to Top"
+keyboardShortcuts['g'] = () => {
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth'
+  });
+};
+
+function minimizeCommentObject(comment) {
+  return {
+    id: comment.id,
+    text: comment.text,
+    author: comment.author,
+    created_at: comment.created_at,
+    created_at_i: comment.created_at_i,
+    parent_id: comment.parent_id
+  };
+}
+
+// Initialize the application by fetching all threads for all categories
+fetchAndStoreThreads();
+
