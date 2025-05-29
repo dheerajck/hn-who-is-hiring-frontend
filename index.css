@@ -41,7 +41,7 @@ html {
   --button-hover: #3a3a3a;     /* Darker Button Hover */
   --input-bg: #282828;         /* Darker Input Background */
   --card-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-  --transition: all 0.3s ease;
+  --transition: all 0.3s ease-in-out; /* MODIFIED: Changed from ease to ease-in-out */
 }
 
 /* Light Mode */
@@ -77,7 +77,7 @@ body:not(.dark) {
   --button-hover: #c8c8c5;     /* Button hover state */
   --input-bg: #f0f0ed;         /* Light, natural input */
   --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.04); /* Minimal elevation */
-  --transition: all 0.2s ease-in-out;
+  --transition: all 0.2s ease-in-out; /* KEPT AS IS */
 }
 
 body {
@@ -557,25 +557,18 @@ button:active,
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
-  margin-bottom: 1rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid var(--border);
-  position: relative; /* Ensures ::after is positioned relative to this */
-  overflow: visible !important; /* Attempt to prevent clipping of the ::after pseudo-element */
+  position: relative;
+  width: fit-content; /* Make the container only as wide as its content */
 }
 
-.category-switcher::after {
-  content: '';
-  display: block;
-  position: absolute;
-  bottom: 0; /* Positions the line at the bottom of .category-switcher's padding box */
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100%; /* Makes the line full viewport width */
-  /* height: 1px; */
-  background-color: var(--border); /* Or your specific border color */
-  z-index: 1; /* Ensure it's visible, adjust if needed */
-  box-sizing: content-box; /* Be explicit that width is content width */
+/* New HR styles for category divider */
+hr.category-divider {
+  border: none; /* Remove default HR border */
+  height: 1px; /* Set thickness of the line */
+  background-color: var(--border); /* Use your border color variable */
+  margin-top: 0.75rem; /* Space above the line (adjust as needed) */
+  margin-bottom: 1rem; /* Space below the line (adjust as needed) */
+  width: 100%; /* Make HR take full width of its container (.controls) */
 }
 
 .category-btn {
@@ -608,8 +601,19 @@ button:active,
   flex-direction: column; /* Stack year and month selectors */
   gap: 1rem; /* Space between year and month selectors */
   margin-bottom: 1rem;
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 1rem;
+  padding-bottom: 1rem; /* Adjust padding as needed for the line */
+  position: relative; /* Needed for the pseudo-element */
+  width: 100%; /* Ensure it takes full width */
+}
+
+.switcher::after {
+  content: '';
+  position: absolute;
+  bottom: 0; /* Position at the bottom of the padding-box */
+  left: 0;
+  right: 0;
+  height: 1px;
+  background-color: var(--border); /* Or your desired line color */
 }
 
 .year-selector, .month-selector {
@@ -621,7 +625,7 @@ button:active,
     -webkit-overflow-scrolling: touch; /* smooth scrolling for iOS */
     scrollbar-width: thin; /* Firefox */
     scrollbar-color: var(--primary) var(--button-bg); /* Firefox */
-    padding-bottom: 0.5rem; /* Space for scrollbar on desktop */
+    padding: 0.5rem; /* Space for scrollbar on desktop */
 }
 
 .year-selector::-webkit-scrollbar,
@@ -649,6 +653,7 @@ button:active,
   font-size: 1rem;
   border: 1px solid var(--border);
   color: var(--on-surface);
+  font-weight: bold; /* MODIFIED: Added bold here to keep size consistent */
   cursor: pointer;
   transition: var(--transition);
   flex-shrink: 0; /* Prevent buttons from shrinking below content */
@@ -659,8 +664,8 @@ button:active,
 .month-selector button.active {
   background-color: var(--primary);
   color: #000;
-  border-color: var(--primary);
-  font-weight: bold;
+  border: 1px solid var(--primary); /* MODIFIED: Made border explicit and consistent */
+  /* font-weight: bold; */ /* REMOVED: Now inherited from the base style above */
 }
 
 .year-selector button:not(.active):hover,
@@ -737,7 +742,7 @@ body:not(.dark) .icon-link-button i.fa-sun {
 }
 
 .fade-in {
-  animation: fadeInSlideUp 0.6s cubic-bezier(0.25, 0.8, 0.25, 1) forwards; /* Slightly longer, smoother easing */
+  animation: fadeInSlideUp 0.6s cubic-bezier(0.215, 0.61, 0.355, 1) forwards; /* MODIFIED: Smoother cubic-bezier (easeOutCubic) */
 }
 
 @keyframes fadeInSlideUp {
