@@ -243,21 +243,25 @@ function setupFilterButtons() {
       setFavorites({});
       setNotes({});
       setHidden({});
-      localStorage.removeItem(appliedKey);
-      localStorage.removeItem(favoriteKey);
-      localStorage.removeItem(notesKey);
-      localStorage.removeItem(hiddenKey);
-      localStorage.removeItem(themekey);
 
-      try {
-        const removedCount = removeLocalStorageKeysWithPrefix([
-          "hn_thread_comments_",
-          CATEGORY_CACHE_KEY,
-        ]);
-        console.log(`Removed ${removedCount} cached items from localStorage.`);
-      } catch (e) {
-        console.error("Error clearing caches from localStorage", e);
-      }
+      // localStorage.removeItem(appliedKey);
+      // localStorage.removeItem(favoriteKey);
+      // localStorage.removeItem(notesKey);
+      // localStorage.removeItem(hiddenKey);
+      // localStorage.removeItem(themekey);
+
+      // try {
+      //   const removedCount = removeLocalStorageKeysWithPrefix([
+      //     "hn_thread_comments_",
+      //     CATEGORY_CACHE_KEY,
+      //   ]);
+      //   console.log(`Removed ${removedCount} cached items from localStorage.`);
+      // } catch (e) {
+      //   console.error("Error clearing caches from localStorage", e);
+      // }
+
+      // // Remove all localStorage keys for this origin
+      localStorage.clear();
 
       allFilterButtons.forEach((b) => b.classList.remove(highlightClass));
       showToast("All data cleared. Reloading...");
