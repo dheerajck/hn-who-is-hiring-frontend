@@ -3,43 +3,48 @@ html {
 }
 
 /* Add box-sizing globally for consistent layout */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
 /* Dark Mode (Default) */
 :root {
   /* Primary Colors */
-  --primary: #82aaff;          /* Soft Blue */
-  --surface: #1e1e1e;          /* Darker Surface */
-  --background: #121212;       /* Very Dark Background (Near Black) */
-  --on-surface: #c9d1d9;       /* Light Gray Text (Kept for readability) */
-  --border: #333333;           /* Darker Border */
+  --primary: #82aaff; /* Soft Blue */
+  --surface: #1e1e1e; /* Darker Surface */
+  --background: #121212; /* Very Dark Background (Near Black) */
+  --on-surface: #c9d1d9; /* Light Gray Text (Kept for readability) */
+  --border: #333333; /* Darker Border */
 
   /* Status Colors */
-  --danger: #c0392b;           /* Darker Red */
-  --danger-hover: #962d22;     /* Darker on hover */
-  --danger-text: #ffffff;      /* White text */
+  --danger: #c0392b; /* Darker Red */
+  --danger-hover: #962d22; /* Darker on hover */
+  --danger-text: #ffffff; /* White text */
 
   /* Token Colors (Dark) */
   --token-phrase-bg: #3d3d3d; /* Darker gray to match dark mode theme */
   --token-phrase-text: #f0f0f0; /* Light text for readability on dark background */
-  --token-phrase-border: #555;  /* Subtle grey border for better contrast */
-  --token-word-bg: #388E3C;     /* Rich dark green background for word tokens */
-  --token-word-text: #ffffff;   /* White text for high contrast */
-  --token-word-border: #2E7D32; /* Slightly darker green border for emphasis */
-  --token-operator-bg: var(--primary); /* Soft blue for operators, consistent with primary */
+  --token-phrase-border: #555; /* Subtle grey border for better contrast */
+  --token-word-bg: #388e3c; /* Rich dark green background for word tokens */
+  --token-word-text: #ffffff; /* White text for high contrast */
+  --token-word-border: #2e7d32; /* Slightly darker green border for emphasis */
+  --token-operator-bg: var(
+    --primary
+  ); /* Soft blue for operators, consistent with primary */
   --token-operator-text: #ffffff; /* White text for contrast on blue background */
   --token-operator-border: var(--primary); /* Matching blue border */
-  --token-negated-bg: var(--danger); /* Deep red background for negated tokens */
+  --token-negated-bg: var(
+    --danger
+  ); /* Deep red background for negated tokens */
   --token-negated-text: var(--danger-text); /* White text for contrast */
   --token-negated-border: #a03a27; /* Darker red hover for better emphasis */
 
-
   /* UI Elements */
-  --button-bg: #2c2c2c;        /* Darker Button Background */
-  --button-hover: #3a3a3a;     /* Darker Button Hover */
-  --input-bg: #282828;         /* Darker Input Background */
+  --button-bg: #2c2c2c; /* Darker Button Background */
+  --button-hover: #3a3a3a; /* Darker Button Hover */
+  --input-bg: #282828; /* Darker Input Background */
   --card-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
   --transition: all 0.3s ease-in-out; /* MODIFIED: Changed from ease to ease-in-out */
 }
@@ -47,41 +52,46 @@ html {
 /* Light Mode */
 body:not(.dark) {
   /* Primary Colors */
-  --primary: #4c8bf5;          /* Gentle blue accent */
-  --surface: #f5f5f4;          /* Soft warm surface (used on cards, modals) */
-  --background: #eae9e6;       /* Warm light-gray background (no bright white) */
-  --on-surface: #2d2d2d;       /* Comfortable dark-gray text */
-  --border: #d6d5d2;           /* Light warm-gray border */
+  --primary: #4c8bf5; /* Gentle blue accent */
+  --surface: #f5f5f4; /* Soft warm surface (used on cards, modals) */
+  --background: #eae9e6; /* Warm light-gray background (no bright white) */
+  --on-surface: #2d2d2d; /* Comfortable dark-gray text */
+  --border: #d6d5d2; /* Light warm-gray border */
 
   /* Status Colors */
-  --danger: #c0392b;           /* Darker Red */
-  --danger-hover: #962d22;     /* Darker on hover */
-  --danger-text: #ffffff;      /* White text */
+  --danger: #c0392b; /* Darker Red */
+  --danger-hover: #962d22; /* Darker on hover */
+  --danger-text: #ffffff; /* White text */
 
   /* Token Colors (Dark) */
   --token-phrase-bg: #3d3d3d; /* Darker gray to match dark mode theme */
   --token-phrase-text: #f0f0f0; /* Light text for readability on dark background */
-  --token-phrase-border: #555;  /* Subtle grey border for better contrast */
-  --token-word-bg: #4b8c4f;     /* Muted forest green for word tokens */
-  --token-word-text: #ffffff;   /* White text for high contrast */
+  --token-phrase-border: #555; /* Subtle grey border for better contrast */
+  --token-word-bg: #4b8c4f; /* Muted forest green for word tokens */
+  --token-word-text: #ffffff; /* White text for high contrast */
   --token-word-border: #3b7f40; /* Darker green border for emphasis */
-  --token-operator-bg: var(--primary); /* Soft blue for operators, consistent with primary */
+  --token-operator-bg: var(
+    --primary
+  ); /* Soft blue for operators, consistent with primary */
   --token-operator-text: #ffffff; /* White text for contrast on blue background */
   --token-operator-border: var(--primary); /* Matching blue border */
-  --token-negated-bg: var(--danger); /* Deep red background for negated tokens */
+  --token-negated-bg: var(
+    --danger
+  ); /* Deep red background for negated tokens */
   --token-negated-text: var(--danger-text); /* White text for contrast */
   --token-negated-border: #a03a27; /* Darker red hover for better emphasis */
 
   /* UI Elements */
-  --button-bg: #dadad7;        /* Soft neutral button */
-  --button-hover: #c8c8c5;     /* Button hover state */
-  --input-bg: #f0f0ed;         /* Light, natural input */
+  --button-bg: #dadad7; /* Soft neutral button */
+  --button-hover: #c8c8c5; /* Button hover state */
+  --input-bg: #f0f0ed; /* Light, natural input */
   --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.04); /* Minimal elevation */
   --transition: all 0.2s ease-in-out; /* KEPT AS IS */
 }
 
 body {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    sans-serif;
   padding: 1.5rem;
   max-width: 1200px;
   margin: 0 auto;
@@ -101,7 +111,8 @@ header {
   gap: 1rem; /* Add gap between content and theme toggle */
 }
 
-.header-content { /* Keep this for overall alignment */
+.header-content {
+  /* Keep this for overall alignment */
   display: flex;
   align-items: center; /* Vertically center align items */
   gap: 0.75rem;
@@ -132,7 +143,6 @@ header {
   line-height: 1.1;
   top: 0.1rem;
   position: relative; /* Allow manual positioning */
-
 }
 
 @keyframes pulse {
@@ -197,7 +207,7 @@ button:active,
   background-color: var(--surface);
   transform: translateY(-1px);
   color: var(--on-surface);
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .action-btn:active {
@@ -234,27 +244,30 @@ button:active,
   margin-bottom: 0.75rem; /* Add some space below the header */
 }
 
-.job-header-main { /* New container for company/star */
-    display: flex;
-    align-items: center;
-    gap: 0.5em;
-    flex-grow: 1; /* Allow it to take available space */
+.job-header-main {
+  /* New container for company/star */
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  flex-grow: 1; /* Allow it to take available space */
 }
 
-.job-header-status { /* New container for badge/date */
-    display: flex;
-    align-items: flex-start;
-    gap: 0.1rem;
-    flex-basis: 100%;
-    margin-bottom: 0.5rem; /* Space below status block */
+.job-header-status {
+  /* New container for badge/date */
+  display: flex;
+  align-items: flex-start;
+  gap: 0.1rem;
+  flex-basis: 100%;
+  margin-bottom: 0.5rem; /* Space below status block */
 }
 
-@media (min-width: 450px) { /* Adjust breakpoint as needed */
-    .job-header-status {
-        order: 0; /* Reset order on wider screens */
-        flex-basis: auto; /* Allow it side-by-side */
-        margin-bottom: 0; /* Remove margin when side-by-side */
-    }
+@media (min-width: 450px) {
+  /* Adjust breakpoint as needed */
+  .job-header-status {
+    order: 0; /* Reset order on wider screens */
+    flex-basis: auto; /* Allow it side-by-side */
+    margin-bottom: 0; /* Remove margin when side-by-side */
+  }
 }
 
 .job-company {
@@ -273,36 +286,36 @@ button:active,
 
 /* Add these styles for code blocks within job content */
 .job-content code {
-  white-space: pre-wrap;       /* Preserve whitespace but wrap lines */
-  word-wrap: break-word;       /* Break long words/strings if necessary */
-  display: block;              /* Make it block-level for better layout control */
+  white-space: pre-wrap; /* Preserve whitespace but wrap lines */
+  word-wrap: break-word; /* Break long words/strings if necessary */
+  display: block; /* Make it block-level for better layout control */
   background-color: rgba(255, 255, 255, 0.05); /* Subtle background */
-  padding: 0.5em;              /* Add some padding */
-  border-radius: 4px;          /* Rounded corners */
-  margin: 0.5em 0;             /* Add some vertical margin */
-  overflow-x: auto;            /* Add horizontal scroll if still too wide */
-  font-size: 0.9em;            /* Slightly smaller font size for code */
+  padding: 0.5em; /* Add some padding */
+  border-radius: 4px; /* Rounded corners */
+  margin: 0.5em 0; /* Add some vertical margin */
+  overflow-x: auto; /* Add horizontal scroll if still too wide */
+  font-size: 0.9em; /* Slightly smaller font size for code */
 }
 
 /* Style pre tags if they are used */
 .job-content pre {
-    white-space: pre-wrap;
-    word-wrap: break-word;
-    margin: 0.5em 0;
-    overflow-x: auto;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  margin: 0.5em 0;
+  overflow-x: auto;
 }
 
 /* If pre contains code, reset code styles */
 .job-content pre code {
-    display: inline; /* Reset display if inside pre */
-    background-color: transparent;
-    padding: 0;
-    margin: 0;
-    border-radius: 0;
-    font-size: inherit; /* Inherit size from pre */
-    white-space: inherit; /* Inherit wrapping from pre */
-    word-wrap: inherit;
-    overflow-x: initial; /* Let pre handle scrolling */
+  display: inline; /* Reset display if inside pre */
+  background-color: transparent;
+  padding: 0;
+  margin: 0;
+  border-radius: 0;
+  font-size: inherit; /* Inherit size from pre */
+  white-space: inherit; /* Inherit wrapping from pre */
+  word-wrap: inherit;
+  overflow-x: initial; /* Let pre handle scrolling */
 }
 
 .job-actions {
@@ -337,13 +350,13 @@ button:active,
 }
 
 .job-header-status .meta {
-    font-size: 0.95rem;
+  font-size: 0.95rem;
 }
 
 .job-header-status .job-company.meta {
-    font-size: 1.1rem;
-    font-weight: bold;
-    color: var(--on-surface); /* Use main text color */
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: var(--on-surface); /* Use main text color */
 }
 
 .badge {
@@ -371,11 +384,13 @@ button:active,
   margin-bottom: 0.5rem;
 }
 
-.search-field-wrapper { /* New wrapper style */
+.search-field-wrapper {
+  /* New wrapper style */
   position: relative;
 }
 
-.search-icon-main { /* Style for the main search icon */
+.search-icon-main {
+  /* Style for the main search icon */
   position: absolute;
   left: 0.75rem;
   top: 50%; /* Vertically center icon */
@@ -475,17 +490,17 @@ button:active,
   display: inline-flex;
   align-items: center;
   line-height: 1.2;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.1); /* Subtle shadow */
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1); /* Subtle shadow */
   animation: scaleIn 0.3s ease forwards;
   opacity: 0; /* Start hidden */
   transform: scale(0.9); /* Start slightly smaller */
 }
 
 @keyframes scaleIn {
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .token-phrase {
@@ -496,9 +511,9 @@ button:active,
 /* Add quotes visually for phrases */
 .token-phrase::before,
 .token-phrase::after {
-    content: '"';
-    opacity: 0.7;
-    margin: 0 2px;
+  content: '"';
+  opacity: 0.7;
+  margin: 0 2px;
 }
 
 .token-operator {
@@ -516,26 +531,26 @@ button:active,
 /* Add quotes visually for negated phrases */
 .token-negated.token-phrase::before,
 .token-negated.token-phrase::after {
-    content: '"';
-    opacity: 0.7;
-    margin: 0 2px;
+  content: '"';
+  opacity: 0.7;
+  margin: 0 2px;
 }
 /* Add ~ visually for negated terms */
 .token-negated::before {
-    content: '~';
-    margin-right: 3px;
-    font-weight: bold;
+  content: "~";
+  margin-right: 3px;
+  font-weight: bold;
 }
 /* Remove double quotes if ~ is already there */
 .token-negated.token-phrase::before {
-    content: '~"'; /* Combine ~ and opening quote */
-    margin-right: 2px;
-    font-weight: normal; /* Reset weight if needed */
+  content: '~"'; /* Combine ~ and opening quote */
+  margin-right: 2px;
+  font-weight: normal; /* Reset weight if needed */
 }
-  .token-negated.token-phrase::after {
-    content: '"'; /* Keep closing quote */
-    opacity: 0.7;
-    margin: 0 2px;
+.token-negated.token-phrase::after {
+  content: '"'; /* Keep closing quote */
+  opacity: 0.7;
+  margin: 0 2px;
 }
 
 /* Add rule for positive words */
@@ -547,9 +562,9 @@ button:active,
 
 /* Ensure negated styles override word styles if both classes are present */
 .token-negated.token-word {
-    background-color: var(--token-negated-bg);
-    color: var(--token-negated-text);
-    border: 1.5px solid var(--token-negated-border);
+  background-color: var(--token-negated-bg);
+  color: var(--token-negated-text);
+  border: 1.5px solid var(--token-negated-border);
 }
 
 /* New category switcher styles */
@@ -607,7 +622,7 @@ hr.category-divider {
 }
 
 .switcher::after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: 0; /* Position at the bottom of the padding-box */
   left: 0;
@@ -616,33 +631,34 @@ hr.category-divider {
   background-color: var(--border); /* Or your desired line color */
 }
 
-.year-selector, .month-selector {
-    display: flex;
-    flex-wrap: wrap; /* Allow buttons to wrap */
-    gap: 0.5rem;
-    /* Allow horizontal scroll on small screens */
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch; /* smooth scrolling for iOS */
-    scrollbar-width: thin; /* Firefox */
-    scrollbar-color: var(--primary) var(--button-bg); /* Firefox */
-    padding: 0.5rem; /* Space for scrollbar on desktop */
+.year-selector,
+.month-selector {
+  display: flex;
+  flex-wrap: wrap; /* Allow buttons to wrap */
+  gap: 0.5rem;
+  /* Allow horizontal scroll on small screens */
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch; /* smooth scrolling for iOS */
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: var(--primary) var(--button-bg); /* Firefox */
+  padding: 0.5rem; /* Space for scrollbar on desktop */
 }
 
 .year-selector::-webkit-scrollbar,
 .month-selector::-webkit-scrollbar {
-    height: 6px; /* Height of horizontal scrollbar */
+  height: 6px; /* Height of horizontal scrollbar */
 }
 
 .year-selector::-webkit-scrollbar-track,
 .month-selector::-webkit-scrollbar-track {
-    background: var(--button-bg); /* Color of the track */
-    border-radius: 3px;
+  background: var(--button-bg); /* Color of the track */
+  border-radius: 3px;
 }
 
 .year-selector::-webkit-scrollbar-thumb,
 .month-selector::-webkit-scrollbar-thumb {
-    background: var(--primary); /* Color of the scrollbar thumb */
-    border-radius: 3px;
+  background: var(--primary); /* Color of the scrollbar thumb */
+  border-radius: 3px;
 }
 
 .year-selector button,
@@ -670,7 +686,7 @@ hr.category-divider {
 
 .year-selector button:not(.active):hover,
 .month-selector button:not(.active):hover {
-    background-color: var(--button-hover);
+  background-color: var(--button-hover);
 }
 
 .icon-link-button {
@@ -686,13 +702,12 @@ hr.category-divider {
   text-decoration: none; /* Remove underline */
 }
 
-.icon-link-button i{
+.icon-link-button i {
   transition: transform 0.4s ease; /* Add transition for the icon */
 }
 
-
 body:not(.dark) .icon-link-button i.fa-sun {
-    transform: rotate(90deg);
+  transform: rotate(90deg);
 }
 
 /* body.dark .icon-link-button i.fa-sun {
@@ -711,7 +726,7 @@ body:not(.dark) .icon-link-button i.fa-sun {
 }
 
 .loading i:not(.fa-circle-notch) {
-    margin-right: 0.5rem;
+  margin-right: 0.5rem;
 }
 
 .toast {
@@ -722,7 +737,7 @@ body:not(.dark) .icon-link-button i.fa-sun {
   background: var(--primary);
   color: #000;
   border-radius: 4px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   opacity: 0; /* Start fully transparent */
   transform: translateY(10px); /* Start slightly lower */
   transition: opacity 0.3s ease, transform 0.3s ease; /* Animate opacity and transform */
@@ -737,8 +752,12 @@ body:not(.dark) .icon-link-button i.fa-sun {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .fade-in {
@@ -789,7 +808,7 @@ body:not(.dark) .icon-link-button i.fa-sun {
   }
   /* Ensure the last button doesn't have bottom margin */
   .job-actions button:last-child {
-      margin-bottom: 0;
+    margin-bottom: 0;
   }
 
   .category-switcher {
@@ -843,7 +862,7 @@ body:not(.dark) .icon-link-button i.fa-sun {
   }
   /* Remove stretch alignment for filter row items */
   .filter-row > * {
-      align-self: auto;
+    align-self: auto;
   }
 
   .hide-applied-label {
@@ -893,7 +912,7 @@ body:not(.dark) .icon-link-button i.fa-sun {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.3s, visibility 0.3s;
@@ -919,7 +938,7 @@ body:not(.dark) .icon-link-button i.fa-sun {
   }
 }
 
-.star-btn i{
+.star-btn i {
   background: transparent;
   border: none;
   color: gold;
@@ -929,7 +948,7 @@ body:not(.dark) .icon-link-button i.fa-sun {
   line-height: 1;
   transition: color 0.2s;
 }
-.star-btn.inactive i{
+.star-btn.inactive i {
   color: #888;
 }
 .copy-btn {
@@ -977,12 +996,12 @@ body:not(.dark) .icon-link-button i.fa-sun {
   cursor: pointer;
 }
 .reset-btn {
-    background-color: var(--danger);
-    color: var(--danger-text);
-    border-color: var(--danger);
+  background-color: var(--danger);
+  color: var(--danger-text);
+  border-color: var(--danger);
 }
 .reset-btn:hover {
-    background-color: var(--danger-hover); /* Darker hover for danger button */
+  background-color: var(--danger-hover); /* Darker hover for danger button */
 }
 
 /* Style for the 'Try example' link */
@@ -1007,13 +1026,27 @@ border: 1px solid yellow !important;
 
 /* Modal styles */
 .help-modal-overlay {
-  position: fixed; z-index: 1000; left: 0; top: 0; width: 100vw; height: 100vh;
-  background: rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .help-modal-window {
-  background: var(--surface, #fff); color: var(--on-surface, #222); border-radius: 10px;
-  box-shadow: 0 4px 32px rgba(0,0,0,0.18); padding: 2.5rem 2.2rem 2.2rem 2.2rem; max-width: 650px; width: 98vw; position: relative;
+  background: var(--surface, #fff);
+  color: var(--on-surface, #222);
+  border-radius: 10px;
+  box-shadow: 0 4px 32px rgba(0, 0, 0, 0.18);
+  padding: 2.5rem 2.2rem 2.2rem 2.2rem;
+  max-width: 650px;
+  width: 98vw;
+  position: relative;
   font-size: 1.18rem;
 }
 
@@ -1022,13 +1055,28 @@ border: 1px solid yellow !important;
 }
 
 .help-modal-close {
-  position: absolute; top: 0.5rem; right: 0.7rem; background: none; border: none; font-size: 2rem; color: #888; cursor: pointer;
+  position: absolute;
+  top: 0.5rem;
+  right: 0.7rem;
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: #888;
+  cursor: pointer;
 }
 
 .help-modal-btn {
-  background: var(--surface, #fff); color: var(--on-surface, #222); border: 1px solid var(--border); border-radius: 6px; padding: 0.3em 1.1em; font-size: 1rem; cursor: pointer;
+  background: var(--surface, #fff);
+  color: var(--on-surface, #222);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.3em 1.1em;
+  font-size: 1rem;
+  cursor: pointer;
   transition: background 0.15s, border-color 0.15s;
-  display: flex; align-items: center; gap: 0.5em;
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
 }
 
 .help-modal-btn i {
@@ -1044,6 +1092,9 @@ border: 1px solid yellow !important;
 }
 
 @media (max-width: 600px) {
-  .help-modal-window { padding: 1.2rem 0.5rem; font-size: 1.05rem; max-width: 98vw; }
+  .help-modal-window {
+    padding: 1.2rem 0.5rem;
+    font-size: 1.05rem;
+    max-width: 98vw;
+  }
 }
-
