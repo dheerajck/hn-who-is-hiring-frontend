@@ -412,21 +412,29 @@ export function renderJobs(commentsToRender) {
     const authorName = c.author || "[unknown author]";
     const plainTextComment = commentTextHTML.replace(/<[^>]+>/g, "");
     const firstLine = plainTextComment.split("\n")[0].trim();
-    const titleLineMatch = plainTextComment.match(/^.*?(?=\n|$)/);
-    const rawTitleLine = titleLineMatch ? titleLineMatch[0].trim() : "";
-    let jobTitle = rawTitleLine.includes("|")
-      ? rawTitleLine.split("|")[0].trim()
-      : rawTitleLine;
-    if (jobTitle.length < 2 || jobTitle.length > 80) {
-      let defaultTitle = "Job Post";
-      if (CATEGORY_API_MAP[currentCategory]?.label) {
-        if (currentCategory === "hiring") defaultTitle = "Job Opening";
-        else if (currentCategory === "hired")
-          defaultTitle = "Candidate Profile";
-        else if (currentCategory === "freelancer")
-          defaultTitle = "Title not Found";
+
+    let jobTitle = "";
+
+    if (currentCategory === "hiring") {
+      const titleLineMatch = plainTextComment.match(/^.*?(?=\n|$)/);
+      const rawTitleLine = titleLineMatch ? titleLineMatch[0].trim() : "";
+
+      jobTitle = rawTitleLine.includes("|")
+        ? rawTitleLine.split("|")[0].trim()
+        : rawTitleLine;
+      if (jobTitle.length < 2 || jobTitle.length > 80) {
+        jobTitle = "Job Post";
       }
-      jobTitle = defaultTitle;
+    } else if (currentCategory === "hired") {
+      jobTitle = "SEEKING WORK";
+    } else if (currentCategory === "freelancer") {
+      if (plainTextComment.includes("SEEKING WORK")) {
+        jobTitle = "SEEKING WORK";
+      } else if (plainTextComment.includes("SEEKING FREELANCER")) {
+        jobTitle = "SEEKING FREELANCER";
+      }
+    } else {
+      jobTitle = "Title not Found";
     }
 
     const article = document.createElement("article");
