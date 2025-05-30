@@ -176,7 +176,9 @@ export function renderThreadSwitcher() {
     }
   });
 
-  const years = Array.from(threadsByYearMonth.keys()).sort((a, b) => b - a);
+  // Show only the latest two years present in the data
+  const allYears = Array.from(threadsByYearMonth.keys()).sort((a, b) => b - a);
+  const years = allYears.slice(0, 2);
   if (selectedYear === null && years.length > 0) {
     setSelectedYear(years[0]);
   }
