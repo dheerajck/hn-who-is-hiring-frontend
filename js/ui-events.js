@@ -1,4 +1,3 @@
-// ui-events.js
 import {
   appliedKey,
   notesKey,
@@ -9,6 +8,7 @@ import {
   CATEGORY_CACHE_KEY,
   CATEGORY_API_MAP,
 } from "./config.js";
+
 import {
   applied,
   notes,
@@ -255,7 +255,7 @@ function setupFilterButtons() {
           "hn_thread_comments_",
           CATEGORY_CACHE_KEY,
         ]);
-        console.log(`Removed ${removedCount} cached items from localStorage.`);
+        // console.log(`Removed ${removedCount} cached items from localStorage.`);
       } catch (e) {
         console.error("Error clearing caches from localStorage", e);
       }

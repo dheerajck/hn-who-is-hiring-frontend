@@ -2,18 +2,18 @@ import {
   USE_MOCK_DATA,
   CATEGORY_API_MAP,
   CATEGORY_CACHE_KEY,
-  toastTimeout,
-  MOCK_COMMENTS_INITIAL,
-  MOCK_COMMENTS_UPDATE,
+  // toastTimeout,
+  // MOCK_COMMENTS_INITIAL,
+  // MOCK_COMMENTS_UPDATE,
 } from "./config.js";
 import {
   allThreads,
   currentCategory,
   currentThreadId,
   allComments,
-  selectedYear,
+  // selectedYear,
   setAllThreads,
-  setCurrentCategory,
+  // setCurrentCategory,
   setCurrentThreadId,
   setAllComments,
   setSelectedYear,
@@ -29,7 +29,7 @@ import {
   renderJobs,
   renderCategorySwitcher,
   renderThreadSwitcher,
-  showToast as uiShowToast,
+  // showToast as uiShowToast,
 } from "./ui-render.js";
 
 export async function loadThread(id) {
@@ -204,7 +204,7 @@ async function fetchLatestCategoryThreadsInBackground() {
     setCache(CATEGORY_CACHE_KEY, allThreads);
     renderCategorySwitcher();
     renderThreadSwitcher();
-    uiShowToast("✨ Thread lists updated in background!", 3000);
+    // uiShowToast("✨ Thread lists updated in background!", 3000);
   }
 }
 

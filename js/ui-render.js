@@ -1,9 +1,9 @@
 import { CATEGORY_API_MAP, MONTH_NAMES, toastTimeout } from "./config.js";
+
 import {
   allThreads,
   currentCategory,
   currentThreadId,
-  allComments,
   favorites,
   notes,
   applied,
@@ -12,7 +12,6 @@ import {
   selectedYear,
   setSelectedYear,
   setCurrentCategory,
-  setAllComments,
   setActiveToastHideTimerId,
 } from "./state.js";
 import { parseQuery, evaluateQuery } from "./search-logic.js";

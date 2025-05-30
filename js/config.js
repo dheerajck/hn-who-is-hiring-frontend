@@ -1,6 +1,5 @@
 export const USE_MOCK_DATA = false;
 
-// --- START: Mock Data Definitions ---
 export const MOCK_HIRING_THREADS_INITIAL = [
   { objectID: "43884796", title: "Ask HN: Who is hiring? (May 2025 - Mock)" }, // Newest
   { objectID: "43872046", title: "Ask HN: Who is hiring? (April 2025 - Mock)" },
@@ -201,7 +200,6 @@ export const MOCK_INITIAL_ALL_THREADS = {
   hired: MOCK_HIRED_THREADS_INITIAL,
   freelancer: MOCK_FREELANCER_THREADS_INITIAL,
 };
-// --- END: Mock Data Definitions ---
 
 export const appliedKey = "appliedHNv1";
 export const notesKey = "notesHNv1";

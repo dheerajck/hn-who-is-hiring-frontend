@@ -1,4 +1,3 @@
-// app.js - Main application entry point
 import { initUIEventListeners } from "./ui-events.js";
 import { fetchAndStoreThreads } from "./thread-manager.js";
 
@@ -13,7 +12,7 @@ function initializeApp() {
   // as thread-manager.js now directly imports its rendering dependencies from ui-render.js
   fetchAndStoreThreads();
 
-  console.log("Application initialized.");
+  // console.log("Application initialized.");
 }
 
 // Start the application
