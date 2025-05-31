@@ -1,12 +1,12 @@
-# Who's Hiring — Hacker News Job Search
+# Hacker News Job Who is hiring frontend
 
 Try it out: [here](https://dheerajck.github.io/hnwhoishiring/)
 
-An intuitive and easy to use frontend for Hacker News Who's Hiring threads in your browser -- completely local, no data leaves your browser.
+An intuitive and easy to use frontend for Hacker News Who is Hiring threads in your browser -- completely local, no data leaves your browser.
 
 ## Search Query Syntax
 
-Use the following syntax to filter job posts:
+Here are some example search queries you can try right now:
 
 - **`remote`**
   Matches jobs containing the word or substring `remote`.

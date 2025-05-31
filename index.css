@@ -372,10 +372,11 @@ button:active,
 
 .controls {
   display: flex;
+  flex-direction: column;
   flex-wrap: wrap;
   gap: 0.75rem;
-  margin-bottom: 1rem;
-  align-items: center;
+  /* margin-bottom: 0rem; */
+  align-items: stretch;
 }
 
 .search-container {
@@ -415,7 +416,7 @@ button:active,
   padding: 0.2rem; /* Small padding for easier clicking */
   line-height: 1; /* Ensure icon inside is centered */
   z-index: 2; /* Ensure button is above input */
-  display: none; /* Hidden by default */
+  display: inline-block; /* MODIFIED: Was display: none, changed to make it visible by default */
   /* Override general button hover effects */
   box-shadow: none;
 }
@@ -425,6 +426,10 @@ button:active,
   transform: translateY(-50%); /* Keep original transform */
   box-shadow: none; /* Ensure no shadow on hover */
   color: #999; /* Keep color the same, or var(--on-surface) if you want hover color */
+}
+
+.clear-search-btn.hidden {
+  display: none !important; /* Ensure it overrides other display properties if necessary */
 }
 
 #search {
@@ -582,7 +587,7 @@ hr.category-divider {
   height: 1px; /* Set thickness of the line */
   background-color: var(--border); /* Use your border color variable */
   margin-top: 0.75rem; /* Space above the line (adjust as needed) */
-  margin-bottom: 1rem; /* Space below the line (adjust as needed) */
+  margin-bottom: 0.75rem; /* Space below the line (adjust as needed) */
   width: 100%; /* Make HR take full width of its container (.controls) */
 }
 
@@ -969,18 +974,20 @@ body:not(.dark) .icon-link-button i.fa-sun {
   margin-bottom: 20px; /* Increased space below filters */
 }
 .filter-btn {
-  margin: 0;
+  padding: 0.5rem 0.8rem; /* Further reduced padding */
+  border-radius: 6px; /* Slightly more rounded */
   border: 1px solid var(--border);
-  background: var(--button-bg);
+  background-color: var(--button-bg);
   color: var(--on-surface);
   cursor: pointer;
-  padding: 0.6rem 0.85rem;
-  border-radius: 4px;
-  font-size: 1rem;
+  transition: var(--transition);
+  font-family: inherit;
+  font-size: 0.95rem; /* Further reduced font size */
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  transition: var(--transition); /* Add transition */
+  justify-content: center;
+  gap: 0.3rem; /* Further reduced gap */
+  flex: 1; /* Make all filter buttons take equal width */
 }
 .filter-btn.active {
   background-color: var(--primary);
@@ -1096,5 +1103,131 @@ border: 1px solid yellow !important;
     padding: 1.2rem 0.5rem;
     font-size: 1.05rem;
     max-width: 98vw;
+  }
+}
+
+/* Help Modal visibility */
+.help-modal-overlay.visible {
+  display: flex;
+}
+
+/* Applied badge styling */
+.badge-applied {
+  font-weight: bold;
+  letter-spacing: 0.5px;
+}
+
+/* Margin for job header top */
+.job-header-top.with-margin-bottom {
+  margin-bottom: 0.5rem;
+}
+
+/* Job title container */
+.job-title-container {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 0.75rem;
+  gap: 0.75rem;
+}
+
+/* Job title */
+.job-title {
+  font-weight: bold;
+  font-size: 1.5rem;
+  flex-grow: 1;
+  color: var(--primary);
+  line-height: 1.3;
+}
+
+/* Job author container */
+.job-author-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+  width: 100%;
+}
+
+/* Job author */
+.job-author {
+  color: var(--on-surface);
+  opacity: 0.8;
+  font-size: 1.1rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Job description */
+.job-description {
+  margin-bottom: 1rem;
+}
+
+/* Job notes textarea */
+.job-notes textarea.note {
+  width: 100%;
+  min-height: 80px;
+  resize: vertical;
+}
+
+/* Job actions */
+.job-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+}
+
+/* Button to remove margin */
+.btn-remove-margin {
+  margin-right: auto;
+}
+
+/* Job posted time */
+.job-posted-time {
+  font-weight: normal;
+  color: #999;
+  font-size: 0.9em;
+}
+
+/* Ensure job-header-top takes full width and aligns items */
+.job-header-top {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem; /* Default margin, can be overridden by .with-margin-bottom */
+}
+/* Ensure job-header-status is flexible */
+.job-header-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+
+/* Help Modal visibility - ensure it overrides display: none */
+.help-modal-overlay.visible {
+  display: flex !important;
+}
+
+/* Clear search button - ensure it overrides display: none */
+#clearSearchBtn.hidden {
+  display: none !important;
+}
+
+@media (max-width: 768px) {
+  .filter-row {
+    flex-wrap: wrap; /* Allow buttons to wrap to the next line */
+  }
+
+  .filter-btn {
+    flex-basis: calc(50% - 0.5rem); /* Two buttons per row with a small gap */
+    margin-bottom: 0.5rem; /* Add some space between rows of buttons */
   }
 }

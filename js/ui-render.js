@@ -1,9 +1,9 @@
 import { CATEGORY_API_MAP, MONTH_NAMES, toastTimeout } from "./config.js";
+
 import {
   allThreads,
   currentCategory,
   currentThreadId,
-  allComments,
   favorites,
   notes,
   applied,
@@ -12,18 +12,14 @@ import {
   selectedYear,
   setSelectedYear,
   setCurrentCategory,
-  setAllComments,
   setActiveToastHideTimerId,
 } from "./state.js";
+
 import { parseQuery, evaluateQuery } from "./search-logic.js";
 import { getYearAndMonthFromTitle } from "./utils.js";
-import { loadThread } from "./thread-manager.js"; // For month/year button clicks
+import { loadThread } from "./thread-manager.js";
 
-// These will be created and managed by ui-events.js
-export let favBtn, notesBtn, appliedBtn, hideAppliedBtn, showHiddenBtn;
-export const highlightClass = "active"; // Export highlightClass
-
-// _setFilterButtons is removed as filter buttons will be handled by ui-events.js
+export const highlightClass = "active";
 
 export function showToast(message, duration = toastTimeout) {
   const toast = document.getElementById("toast");
@@ -62,7 +58,7 @@ export function updateJobCardInPlace(jobId, appliedStatus) {
   if (statusDiv) {
     if (appliedStatus) {
       statusDiv.innerHTML = `
-                <span class="badge" style="font-weight:bold;letter-spacing:0.5px;">Applied</span>
+                <span class="badge badge-applied">Applied</span>
                 <div class="meta">
                     <i class="far fa-calendar"></i> ${new Date(
                       appliedStatus
@@ -81,7 +77,7 @@ export function updateJobCardInPlace(jobId, appliedStatus) {
 
   const headerTop = jobCard.querySelector(".job-header-top");
   if (headerTop) {
-    headerTop.style.marginBottom = appliedStatus ? "0.5rem" : "0";
+    headerTop.classList.toggle("with-margin-bottom", !!appliedStatus);
   }
 
   const actionsDiv = jobCard.querySelector(".job-actions");
@@ -131,6 +127,12 @@ export function renderCategorySwitcher() {
           .querySelectorAll(".category-btn")
           .forEach((btn) => btn.classList.remove("active"));
         button.classList.add("active");
+
+        // Update search input placeholder
+        const searchInput = document.getElementById("search");
+        if (searchInput && CATEGORY_API_MAP[category].placeholder) {
+          searchInput.placeholder = CATEGORY_API_MAP[category].placeholder;
+        }
 
         const latestThreadForNewCategory = allThreads[currentCategory][0];
         if (latestThreadForNewCategory) {
@@ -368,7 +370,7 @@ export function renderJobs(commentsToRender) {
   }
 
   if (filteredComments.length === 0) {
-    let message = "No matching jobs found.";
+    let message = "No matches found!";
     // ... (message updates based on filters)
     container.innerHTML = `<div class="loading fade-in"><i class="far fa-meh"></i> ${message}</div>`;
     return;
@@ -411,7 +413,6 @@ export function renderJobs(commentsToRender) {
     const commentTextHTML = c.text || "[No comment text]";
     const authorName = c.author || "[unknown author]";
     const plainTextComment = commentTextHTML.replace(/<[^>]+>/g, "");
-    const firstLine = plainTextComment.split("\n")[0].trim();
 
     let jobTitle = "";
 
@@ -432,9 +433,9 @@ export function renderJobs(commentsToRender) {
         jobTitle = "SEEKING WORK";
       } else if (plainTextComment.includes("SEEKING FREELANCER")) {
         jobTitle = "SEEKING FREELANCER";
+      } else {
+        jobTitle = "Title Not Found";
       }
-    } else {
-      jobTitle = "Title not Found";
     }
 
     const article = document.createElement("article");
@@ -445,18 +446,18 @@ export function renderJobs(commentsToRender) {
 
     let hideOrUnhideBtn = "";
     if (showHiddenActive) {
-      hideOrUnhideBtn = `<button class="job-action-button btn-unhide" data-action="unhide" title="Restore" style="margin-right: auto;"><i class="fas fa-undo"></i> Restore</button>`;
+      hideOrUnhideBtn = `<button class="job-action-button btn-unhide btn-remove-margin" data-action="unhide" title="Restore"><i class="fas fa-undo"></i> Restore</button>`;
     } else {
-      hideOrUnhideBtn = `<button class="job-action-button btn-remove" data-action="remove" title="Exclude" style="margin-right: auto;"><i class="fas fa-xmark"></i> Exclude</button>`;
+      hideOrUnhideBtn = `<button class="job-action-button btn-remove btn-remove-margin" data-action="remove" title="Exclude"><i class="fas fa-xmark"></i> Exclude</button>`;
     }
 
     article.innerHTML = `
             <div class="job-header">
-                <div class="job-header-top" style="width:100%;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
-                    <div class="job-header-status" style="display:flex;align-items:center;gap:0.5rem;">
+                <div class="job-header-top">
+                    <div class="job-header-status">
                         ${
                           appliedStatus
-                            ? `<span class="badge" style="font-weight:bold;letter-spacing:0.5px;">Applied</span>
+                            ? `<span class="badge badge-applied">Applied</span>
                             <div class="meta"><i class="far fa-calendar"></i> ${new Date(
                               appliedStatus
                             ).toLocaleString("en-US", {
@@ -469,18 +470,18 @@ export function renderJobs(commentsToRender) {
                             : ""
                         }
                     </div>
-                    <div style="font-weight:normal; color:#999; font-size:0.9em;">${
+                    <div class="job-posted-time">${
                       postedTime ? `${postedTime}` : ""
                     }</div>
                 </div>
-                <div style="display:flex;align-items:flex-start;margin-bottom:0.75rem;gap:0.75rem;">
+                <div class="job-title-container">
                     <button class="action-btn star-btn${
                       isFav ? "" : " inactive"
                     }" data-action="star" title="Add to Favorite" aria-label="Star job"><i class="fas fa-star"></i></button>
-                    <div class="job-title" style="font-weight:bold;font-size:1.25rem;flex-grow:1;color:var(--primary);line-height:1.3;">${jobTitle}</div>
+                    <div class="job-title">${jobTitle}</div>
                 </div>
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border); width: 100%;">
-                    <div class="job-author" style="color:var(--on-surface);opacity:0.8;font-size:1.1em;font-weight:bold; display:flex; align-items:center; gap: 0.5rem;">
+                <div class="job-author-container">
+                    <div class="job-author">
                         <span class="job-author-main">Posted by: ${authorName}</span>
                         <a href="https://news.ycombinator.com/item?id=${jobId}" class="action-btn" target="_blank" rel="noopener noreferrer" title="Open on Hacker News" aria-label="Open on Hacker News"><i class="fas fa-external-link-alt"></i></a>
                         <button class="action-btn" data-action="copy-link" title="Copy link" aria-label="Copy link"><i class="fas fa-copy"></i></button>
@@ -488,15 +489,12 @@ export function renderJobs(commentsToRender) {
                 </div>
             </div>
             <div class="job-content">
-                <div class="job-description" style="margin-bottom:1rem;">${commentTextHTML.replace(
-                  firstLine,
-                  ""
-                )}</div>
+                <div class="job-description">${commentTextHTML}</div>
             </div>
-            <div class="job-notes" style="margin-bottom:1rem;">
-                <textarea class="note" placeholder="Add notes about this position..." style="width:100%;min-height:80px;resize:vertical;">${note}</textarea>
+            <div class="job-notes">
+                <textarea class="note" placeholder="Add notes about this position...">${note}</textarea>
             </div>
-            <div class="job-actions" style="display:flex;gap:0.75rem;flex-wrap:wrap;padding-top:0.75rem;border-top:1px solid var(--border);">
+            <div class="job-actions">
                 ${hideOrUnhideBtn}
                 <button class="job-action-button btn-save-note" data-action="save-note" title="Update Note"><i class="fas fa-edit"></i> Update Note</button>
                 ${

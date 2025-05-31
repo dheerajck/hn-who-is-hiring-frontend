@@ -13,6 +13,8 @@ export let allComments = []; // This will now hold comments for the *currently s
 export let favorites = JSON.parse(localStorage.getItem(favoriteKey) || "{}");
 export let hidden = JSON.parse(localStorage.getItem(hiddenKey) || "{}");
 
+export let initialThreadsLoadingCompleted = false; // Added this line
+
 export let activeToastHideTimerId = null;
 export let selectedYear = null;
 export let hideApplied = false; // Assuming this is a global state based on previous plan
@@ -60,4 +62,8 @@ export function setSelectedYear(newSelectedYear) {
 
 export function setHideApplied(newHideApplied) {
   hideApplied = newHideApplied;
+}
+
+export function setInitialThreadsLoadingCompleted(value) {
+  initialThreadsLoadingCompleted = value;
 }

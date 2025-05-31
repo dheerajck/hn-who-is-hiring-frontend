@@ -1,35 +1,29 @@
-import {
-  USE_MOCK_DATA,
-  CATEGORY_API_MAP,
-  CATEGORY_CACHE_KEY,
-  toastTimeout,
-  MOCK_COMMENTS_INITIAL,
-  MOCK_COMMENTS_UPDATE,
-} from "./config.js";
+import { CATEGORY_API_MAP, CATEGORY_CACHE_KEY } from "./config.js";
+
 import {
   allThreads,
   currentCategory,
   currentThreadId,
   allComments,
-  selectedYear,
   setAllThreads,
-  setCurrentCategory,
   setCurrentThreadId,
   setAllComments,
   setSelectedYear,
+  setInitialThreadsLoadingCompleted,
 } from "./state.js";
+
 import { getCache, setCache, minimizeCommentObject } from "./cache.js";
+
 import {
   fetchLatestThreadListFromApi,
   fetchThreadComments,
   fetchNewerComments,
 } from "./api.js";
-// Import UI render functions
+
 import {
   renderJobs,
   renderCategorySwitcher,
   renderThreadSwitcher,
-  showToast as uiShowToast,
 } from "./ui-render.js";
 
 export async function loadThread(id) {
@@ -39,7 +33,7 @@ export async function loadThread(id) {
   setCurrentThreadId(id);
   document.getElementById(
     "jobs"
-  ).innerHTML = `<div class="loading"><i class="fas fa-circle-notch"></i> Loading thread...</div>`;
+  ).innerHTML = `<div class="loading"><i class="fas fa-circle-notch"></i> Loading...</div>`;
   document.getElementById("load-time-info").textContent = "";
 
   document
@@ -48,10 +42,11 @@ export async function loadThread(id) {
       btn.classList.remove("active");
       if (btn.dataset.threadId === String(requestedIdForThisCall)) {
         btn.classList.add("active");
+
         const yearBtn = document.querySelector(
           `.year-selector button[data-year="${btn.dataset.year}"]`
         );
-        if (yearBtn) yearBtn.classList.add("active");
+        yearBtn.classList.add("active");
       }
     });
 
@@ -79,12 +74,14 @@ export async function loadThread(id) {
         requestedIdForThisCall,
         lastCachedTimestampMs
       );
+
       if (requestedIdForThisCall !== currentThreadId) return;
 
       let newTopLevelComments = fetchedHits.filter(
         (comment) =>
           String(comment.parent_id) === String(requestedIdForThisCall)
       );
+
       newTopLevelComments = newTopLevelComments.map((comment) => ({
         ...comment,
         id: comment.id || comment.objectID,
@@ -126,15 +123,18 @@ export async function loadThread(id) {
       commentsForThisRequest = await fetchThreadComments(
         requestedIdForThisCall
       );
+
       if (requestedIdForThisCall !== currentThreadId) return;
 
       const minimizedCommentsForCache = commentsForThisRequest.map(
         minimizeCommentObject
       );
+
       setCache(cacheKey, {
         comments: minimizedCommentsForCache,
         cachedAt: Date.now(),
       });
+
       setAllComments(commentsForThisRequest);
       renderJobs(allComments);
 
@@ -146,6 +146,7 @@ export async function loadThread(id) {
     }
   } catch (error) {
     if (requestedIdForThisCall !== currentThreadId) return;
+
     document.getElementById("jobs").innerHTML = `
           <div class="loading">
             <i class="fas fa-exclamation-circle"></i>
@@ -160,34 +161,48 @@ export async function loadThread(id) {
 }
 
 async function fetchAllCategoryThreads() {
+  const promises = [];
   for (const category in CATEGORY_API_MAP) {
-    try {
-      const hits = await fetchLatestThreadListFromApi(
-        CATEGORY_API_MAP[category]
-      );
-      allThreads[category] = hits; // Directly update state.js via import
-    } catch (error) {
-      console.error(`Error fetching threads for category ${category}:`, error);
-      allThreads[category] = [];
+    promises.push(
+      fetchLatestThreadListFromApi(CATEGORY_API_MAP[category])
+        .then((hits) => ({ category, hits })) // Store category along with hits
+        .catch((error) => {
+          console.error(
+            `Error fetching threads for category ${category}:`,
+            error
+          );
+          return { category, hits: [] }; // Return category and empty hits on error
+        })
+    );
+  }
+
+  try {
+    const resolvedResults = await Promise.all(promises);
+    for (const result of resolvedResults) {
+      allThreads[result.category] = result.hits;
     }
+  } catch (error) {
+    console.error(
+      "Error fetching one or more category threads in parallel:",
+      error
+    );
   }
   setCache(CATEGORY_CACHE_KEY, allThreads);
 }
 
 async function fetchLatestCategoryThreadsInBackground() {
   let updated = false;
-  if (USE_MOCK_DATA) {
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-  }
 
   const currentCachedThreads = { ...allThreads };
 
   for (const category in CATEGORY_API_MAP) {
     try {
-      const latestHits = await fetchLatestThreadListFromApi(
-        CATEGORY_API_MAP[category],
-        true
+      let latestHits;
+
+      latestHits = await fetchLatestThreadListFromApi(
+        CATEGORY_API_MAP[category]
       );
+
       if (
         latestHits.length > 0 &&
         JSON.stringify(latestHits) !==
@@ -204,15 +219,16 @@ async function fetchLatestCategoryThreadsInBackground() {
     setCache(CATEGORY_CACHE_KEY, allThreads);
     renderCategorySwitcher();
     renderThreadSwitcher();
-    uiShowToast("✨ Thread lists updated in background!", 3000);
   }
 }
 
 export async function fetchAndStoreThreads() {
   const cachedData = getCache(CATEGORY_CACHE_KEY);
+
   if (cachedData) {
     setAllThreads(cachedData);
     renderCategorySwitcher();
+
     const latestThread = allThreads[currentCategory][0];
     if (latestThread) {
       const match = latestThread.title.match(/\b(\d{4})\b/);
@@ -224,11 +240,13 @@ export async function fetchAndStoreThreads() {
         "jobs"
       ).innerHTML = `<div class="loading"><i class="fas fa-info-circle"></i> No threads found in cache for "${CATEGORY_API_MAP[currentCategory].label}". Checking for new ones...</div>`;
     }
+
+    setInitialThreadsLoadingCompleted(true);
     fetchLatestCategoryThreadsInBackground();
   } else {
     document.getElementById(
       "jobs"
-    ).innerHTML = `<div class="loading"><i class="fas fa-circle-notch"></i> Loading all job categories...</div>`;
+    ).innerHTML = `<div class="loading"><i class="fas fa-circle-notch"></i> Loading...</div>`;
     await fetchAllCategoryThreads();
     renderCategorySwitcher();
     const latestThread = allThreads[currentCategory][0];
@@ -242,5 +260,6 @@ export async function fetchAndStoreThreads() {
         "jobs"
       ).innerHTML = `<div class="loading"><i class="fas fa-info-circle"></i> No threads found for "${CATEGORY_API_MAP[currentCategory].label}".</div>`;
     }
+    setInitialThreadsLoadingCompleted(true);
   }
 }

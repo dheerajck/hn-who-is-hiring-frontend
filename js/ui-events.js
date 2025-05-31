@@ -1,4 +1,3 @@
-// ui-events.js
 import {
   appliedKey,
   notesKey,
@@ -9,6 +8,7 @@ import {
   CATEGORY_CACHE_KEY,
   CATEGORY_API_MAP,
 } from "./config.js";
+
 import {
   applied,
   notes,
@@ -24,8 +24,10 @@ import {
   setHidden,
   setActiveToastHideTimerId,
 } from "./state.js";
+
 import { removeLocalStorageKeysWithPrefix } from "./cache.js";
 import { debounce } from "./utils.js";
+
 import {
   renderJobs,
   updateJobCardInPlace,
@@ -33,6 +35,7 @@ import {
   updateThemeIcon,
   renderParsedQuery,
 } from "./ui-render.js";
+
 import { parseQuery } from "./search-logic.js";
 
 // --- START: Element Selectors (cached for performance) ---
@@ -72,8 +75,7 @@ function setupClearSearchButton() {
   if (!searchInput || !clearSearchBtn) return;
 
   function toggleClearButtonVisibility() {
-    clearSearchBtn.style.display =
-      searchInput.value.length > 0 ? "inline-block" : "none";
+    clearSearchBtn.classList.toggle("hidden", searchInput.value.length === 0);
   }
 
   searchInput.addEventListener("input", toggleClearButtonVisibility);
@@ -96,7 +98,7 @@ const keyboardShortcuts = {
   k: () => navigateJobs("prev"),
   "/": () => searchInput && searchInput.focus(),
   Escape: () => document.activeElement && document.activeElement.blur(),
-  a: () => handleJobAction(),
+  a: () => toggleFavoriteJob(),
   g: () => window.scrollTo({ top: 0, behavior: "smooth" }),
 };
 
@@ -129,13 +131,17 @@ function navigateJobs(direction) {
   }
 }
 
-function handleJobAction() {
+function toggleFavoriteJob() {
   const focused = document.activeElement;
   const jobCard = focused ? focused.closest(".job-card") : null;
 
   if (jobCard) {
-    const actionButton = jobCard.querySelector(".job-action-button");
-    if (actionButton) actionButton.click();
+    const favoriteButton = jobCard.querySelector(".star-btn");
+    if (favoriteButton) {
+      favoriteButton.click();
+    } else {
+      console.warn("No favorite button found on the focused job card.");
+    }
   }
 }
 
@@ -255,7 +261,7 @@ function setupFilterButtons() {
           "hn_thread_comments_",
           CATEGORY_CACHE_KEY,
         ]);
-        console.log(`Removed ${removedCount} cached items from localStorage.`);
+        // console.log(`Removed ${removedCount} cached items from localStorage.`);
       } catch (e) {
         console.error("Error clearing caches from localStorage", e);
       }
@@ -463,8 +469,7 @@ function setupSearchAndOperatorButtons() {
       searchInput.value = exampleQuery;
       searchInput.focus();
       if (clearSearchBtn) {
-        clearSearchBtn.style.display =
-          exampleQuery.length > 0 ? "inline-block" : "none";
+        clearSearchBtn.classList.toggle("hidden", exampleQuery.length === 0);
       }
       debouncedRenderJobs();
     });
@@ -495,17 +500,17 @@ function setupGoToTopButton() {
 function setupHelpModal() {
   if (openHelpModalBtn && helpModal && closeHelpModalBtn) {
     openHelpModalBtn.onclick = function () {
-      helpModal.style.display = "flex";
+      helpModal.classList.add("visible");
     };
     closeHelpModalBtn.onclick = function () {
-      helpModal.style.display = "none";
+      helpModal.classList.remove("visible");
     };
     window.addEventListener("click", function (e) {
-      if (e.target === helpModal) helpModal.style.display = "none";
+      if (e.target === helpModal) helpModal.classList.remove("visible");
     });
     window.addEventListener("keydown", function (e) {
-      if (e.key === "Escape" && helpModal.style.display === "flex") {
-        helpModal.style.display = "none";
+      if (e.key === "Escape" && helpModal.classList.contains("visible")) {
+        helpModal.classList.remove("visible");
       }
     });
   }
