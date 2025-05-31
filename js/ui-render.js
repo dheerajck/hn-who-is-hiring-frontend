@@ -476,10 +476,10 @@ export function renderJobs(commentsToRender) {
                     <button class="action-btn star-btn${
                       isFav ? "" : " inactive"
                     }" data-action="star" title="Add to Favorite" aria-label="Star job"><i class="fas fa-star"></i></button>
-                    <div class="job-title" style="font-weight:bold;font-size:1.25rem;flex-grow:1;color:var(--primary);line-height:1.3;">${jobTitle}</div>
+                    <div class="job-title" style="font-weight:bold;font-size:1.5rem;flex-grow:1;color:var(--primary);line-height:1.3;">${jobTitle}</div>
                 </div>
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border); width: 100%;">
-                    <div class="job-author" style="color:var(--on-surface);opacity:0.8;font-size:1.1em;font-weight:bold; display:flex; align-items:center; gap: 0.5rem;">
+                    <div class="job-author" style="color:var(--on-surface);opacity:0.8;font-size:1.1rem;font-weight:bold; display:flex; align-items:center; gap: 0.5rem;">
                         <span class="job-author-main">Posted by: ${authorName}</span>
                         <a href="https://news.ycombinator.com/item?id=${jobId}" class="action-btn" target="_blank" rel="noopener noreferrer" title="Open on Hacker News" aria-label="Open on Hacker News"><i class="fas fa-external-link-alt"></i></a>
                         <button class="action-btn" data-action="copy-link" title="Copy link" aria-label="Copy link"><i class="fas fa-copy"></i></button>

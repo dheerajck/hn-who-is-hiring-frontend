@@ -219,18 +219,18 @@ export const CATEGORY_API_MAP = {
     label: "Who is Hiring?",
     example_query: "python | javascript & remote & ~us-based",
   },
-  hired: {
-    query: '"Ask HN: Who wants to be hired?"',
-    tags: "ask_hn",
-    label: "Who Wants to be Hired?",
-    example_query: "dheerajck18@gmail.com & python",
-  },
-  freelancer: {
-    query: '"Ask HN: Freelancer?"',
-    tags: "ask_hn",
-    label: "Freelancer? Seeking freelancer?",
-    example_query: "dheerajck18@gmail.com & python",
-  },
+  // hired: {
+  //   query: '"Ask HN: Who wants to be hired?"',
+  //   tags: "ask_hn",
+  //   label: "Who Wants to be Hired?",
+  //   example_query: "dheerajck18@gmail.com & python",
+  // },
+  // freelancer: {
+  //   query: '"Ask HN: Freelancer?"',
+  //   tags: "ask_hn",
+  //   label: "Freelancer? Seeking freelancer?",
+  //   example_query: "dheerajck18@gmail.com & python",
+  // },
 };
 
 export const MONTH_NAMES = [

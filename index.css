@@ -372,10 +372,11 @@ button:active,
 
 .controls {
   display: flex;
+  flex-direction: column;
   flex-wrap: wrap;
   gap: 0.75rem;
   margin-bottom: 1rem;
-  align-items: center;
+  align-items: stretch;
 }
 
 .search-container {
