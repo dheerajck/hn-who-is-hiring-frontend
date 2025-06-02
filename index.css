@@ -127,6 +127,10 @@ header {
   margin-right: auto; /* Push theme toggle to the right */
 }
 
+.text-logo a {
+  text-decoration: none; /* Remove underline from links */
+}
+
 .logo-hn {
   font-size: 2.8rem; /* Make HN larger */
   font-weight: bold;
