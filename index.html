@@ -15,38 +15,57 @@
 
   <body class="dark">
     <header>
-      <div class="header-content">
-        <!-- Text Logo Start -->
-        <div class="text-logo">
-          <a
-            href="https://news.ycombinator.com/"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="logo-hn">HN</a
-          >
-          <a
-            href="https://news.ycombinator.com/submitted?id=whoishiring"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="logo-wh">WHO'S<br />HIRING</a
-          >
+
+        <div class="header-content">
+          <!-- Text Logo Start -->
+          <div class="text-logo">
+            <a
+              href="https://news.ycombinator.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="logo-hn"
+              >HN</a
+            >
+            <a
+              href="https://news.ycombinator.com/submitted?id=whoishiring"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="logo-wh"
+              >WHO'S<br />HIRING</a
+            >
+          </div>
+          <!-- Text Logo End -->
         </div>
-        <!-- Text Logo End -->
-      </div>
-      <button
-        class="icon-link-button"
-        aria-label="View source on GitHub"
-        onclick="window.open('https://github.com/dheerajck/hnwhoishiring', '_blank', 'noopener,noreferrer')"
-      >
-        <i class="fab fa-github"></i>
-      </button>
-      <button
-        id="themeToggle"
-        class="icon-link-button"
-        aria-label="Switch theme"
-      >
-        <i class="fas fa-moon"></i>
-      </button>
+        <div
+          class="header-buttons"
+          style="
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+          "
+        >
+          <span
+            class="unofficial-text"
+          >
+            Unofficial project
+          </span>
+          <button
+            class="icon-link-button"
+            aria-label="View source on GitHub"
+            onclick="window.open('https://github.com/dheerajck/hnwhoishiring', '_blank', 'noopener,noreferrer')"
+          >
+            <i class="fab fa-github"></i>
+          </button>
+          <button
+            id="themeToggle"
+            class="icon-link-button"
+            aria-label="Switch theme"
+          >
+            <i class="fas fa-moon"></i>
+          </button>
+        </div>
+
     </header>
 
     <main>
