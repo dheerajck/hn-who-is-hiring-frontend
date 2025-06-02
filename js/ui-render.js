@@ -471,14 +471,14 @@ export function renderJobs(commentsToRender) {
                         }
                     </div>
                     <div class="job-posted-time">${
-                      postedTime ? `${postedTime}` : ""
+                      postedTime ? `<a href="https://news.ycombinator.com/item?id=${jobId}" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: none;">${postedTime}</a>` : ""
                     }</div>
                 </div>
                 <div class="job-title-container">
                     <button class="action-btn star-btn${
                       isFav ? "" : " inactive"
                     }" data-action="star" title="Add to Favorite" aria-label="Star job"><i class="fas fa-star"></i></button>
-                    <div class="job-title">${jobTitle}</div>
+                    <div class="job-title"><a href="https://news.ycombinator.com/item?id=${jobId}" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: none;">${jobTitle}</a></div>
                 </div>
                 <div class="job-author-container">
                     <div class="job-author">
