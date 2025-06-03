@@ -123,6 +123,12 @@ export function renderCategorySwitcher() {
     button.addEventListener("click", async () => {
       if (currentCategory !== category) {
         setCurrentCategory(category);
+        // Update the URL to reflect the new category
+        const params = new URLSearchParams(window.location.search);
+        params.set("category", category);
+        const newUrl = `${window.location.pathname}?${params.toString()}`;
+        window.history.replaceState({}, '', newUrl);
+
         document
           .querySelectorAll(".category-btn")
           .forEach((btn) => btn.classList.remove("active"));
@@ -428,7 +434,7 @@ export function renderJobs(commentsToRender) {
       }
     } else if (currentCategory === "hired") {
       jobTitle = "SEEKING WORK";
-    } else if (currentCategory === "freelancer") {
+    } else if (currentCategory === "freelance") {
       if (plainTextComment.includes("SEEKING WORK")) {
         jobTitle = "SEEKING WORK";
       } else if (plainTextComment.includes("SEEKING FREELANCER")) {

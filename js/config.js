@@ -236,7 +236,7 @@ export const CATEGORY_API_MAP = {
     example_query: "dheerajck18@gmail.com & python",
     placeholder: "dheerajck18@gmail.com & python",
   },
-  freelancer: {
+  freelance: {
     query: '"Ask HN: Freelancer?"',
     tags: "ask_hn",
     label: "Freelancer? Seeking freelancer?",

@@ -5,7 +5,7 @@ export let notes = JSON.parse(localStorage.getItem(notesKey) || "{}");
 export let allThreads = {
   hiring: [],
   hired: [],
-  freelancer: [],
+  freelance: [],
 };
 export let currentCategory = "hiring"; // Default category
 export let currentThreadId = null;
