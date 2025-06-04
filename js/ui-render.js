@@ -127,7 +127,7 @@ export function renderCategorySwitcher() {
         const params = new URLSearchParams(window.location.search);
         params.set("category", category);
         const newUrl = `${window.location.pathname}?${params.toString()}`;
-        window.history.replaceState({}, '', newUrl);
+        window.history.replaceState({}, "", newUrl);
 
         document
           .querySelectorAll(".category-btn")
@@ -313,7 +313,7 @@ export function renderJobs(commentsToRender) {
     false;
   const hideAppliedActive =
     document
-      .getElementById("hideAppliedBtn")
+      .getElementById("hideApplied")
       ?.classList.contains(highlightClass) || false;
   const showHiddenActive =
     document.getElementById("showHidden")?.classList.contains(highlightClass) ||
@@ -477,7 +477,9 @@ export function renderJobs(commentsToRender) {
                         }
                     </div>
                     <div class="job-posted-time">${
-                      postedTime ? `<a href="https://news.ycombinator.com/item?id=${jobId}" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: none;">${postedTime}</a>` : ""
+                      postedTime
+                        ? `<a href="https://news.ycombinator.com/item?id=${jobId}" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: none;">${postedTime}</a>`
+                        : ""
                     }</div>
                 </div>
                 <div class="job-title-container">

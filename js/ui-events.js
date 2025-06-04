@@ -45,7 +45,7 @@ let searchInput,
   favBtn,
   notesBtn,
   appliedBtn,
-  hideAppliedBtn,
+  hideApplied,
   showHiddenBtn,
   resetBtn,
   jobsContainer,
@@ -85,7 +85,6 @@ function setupClearSearchButton() {
     searchInput.dispatchEvent(
       new Event("input", { bubbles: true, cancelable: true })
     );
-    searchInput.focus();
   });
 
   toggleClearButtonVisibility();
@@ -184,6 +183,39 @@ function setActiveFilter(btnToActivate, allFilterButtons) {
   allFilterButtons.forEach((b) => b.classList.remove(highlightClass));
   if (!isActive) {
     btnToActivate.classList.add(highlightClass);
+
+    // Update URL with new filter parameter
+    const filterMap = {
+      showFavorites: "favorites",
+      showNotes: "notes",
+      showApplied: "applied",
+      hideApplied: "hide-applied",
+      showHidden: "hidden",
+    };
+
+    const filterKey = filterMap[btnToActivate.id];
+    const params = new URLSearchParams(window.location.search);
+
+    if (filterKey) {
+      params.set("filter", filterKey);
+    } else {
+      params.delete("filter");
+    }
+
+    window.history.replaceState(
+      {},
+      "",
+      `${window.location.pathname}?${params.toString()}`
+    );
+  } else {
+    // If deactivating, remove filter parameter
+    const params = new URLSearchParams(window.location.search);
+    params.delete("filter");
+    window.history.replaceState(
+      {},
+      "",
+      `${window.location.pathname}?${params.toString()}`
+    );
   }
   renderJobs(allComments);
 }
@@ -207,10 +239,10 @@ function setupFilterButtons() {
   appliedBtn.className = "filter-btn";
   appliedBtn.innerHTML = '<i class="fas fa-check"></i> Show Applied';
 
-  hideAppliedBtn = document.createElement("button");
-  hideAppliedBtn.id = "hideAppliedBtn";
-  hideAppliedBtn.className = "filter-btn";
-  hideAppliedBtn.innerHTML = '<i class="fas fa-eye-slash"></i> Hide Applied';
+  hideApplied = document.createElement("button");
+  hideApplied.id = "hideApplied";
+  hideApplied.className = "filter-btn";
+  hideApplied.innerHTML = '<i class="fas fa-eye-slash"></i> Hide Applied';
 
   showHiddenBtn = document.createElement("button");
   showHiddenBtn.id = "showHidden";
@@ -227,15 +259,14 @@ function setupFilterButtons() {
     favBtn,
     notesBtn,
     appliedBtn,
-    hideAppliedBtn,
+    hideApplied,
     showHiddenBtn,
   ];
 
   favBtn.onclick = () => setActiveFilter(favBtn, allFilterButtons);
   notesBtn.onclick = () => setActiveFilter(notesBtn, allFilterButtons);
   appliedBtn.onclick = () => setActiveFilter(appliedBtn, allFilterButtons);
-  hideAppliedBtn.onclick = () =>
-    setActiveFilter(hideAppliedBtn, allFilterButtons);
+  hideApplied.onclick = () => setActiveFilter(hideApplied, allFilterButtons);
   showHiddenBtn.onclick = () =>
     setActiveFilter(showHiddenBtn, allFilterButtons);
 
@@ -278,7 +309,7 @@ function setupFilterButtons() {
   controlButtonsContainer.appendChild(favBtn);
   controlButtonsContainer.appendChild(notesBtn);
   controlButtonsContainer.appendChild(appliedBtn);
-  controlButtonsContainer.appendChild(hideAppliedBtn);
+  controlButtonsContainer.appendChild(hideApplied);
   controlButtonsContainer.appendChild(showHiddenBtn);
   controlButtonsContainer.appendChild(resetBtn);
 }
@@ -356,7 +387,7 @@ function handleJobCardClick(event) {
     if (
       (appliedBtn && appliedBtn.classList.contains(highlightClass)) ||
       (notesBtn && notesBtn.classList.contains(highlightClass)) ||
-      (hideAppliedBtn && hideAppliedBtn.classList.contains(highlightClass))
+      (hideApplied && hideApplied.classList.contains(highlightClass))
     ) {
       renderJobs(allComments);
     } else {
@@ -371,7 +402,7 @@ function handleJobCardClick(event) {
       if (
         (appliedBtn && appliedBtn.classList.contains(highlightClass)) ||
         (notesBtn && notesBtn.classList.contains(highlightClass)) ||
-        (hideAppliedBtn && hideAppliedBtn.classList.contains(highlightClass))
+        (hideApplied && hideApplied.classList.contains(highlightClass))
       ) {
         renderJobs(allComments);
       } else {
@@ -437,20 +468,37 @@ const debouncedRenderJobs = debounce(() => {
 
 function setupSearchAndOperatorButtons() {
   if (searchInput) {
-    searchInput.addEventListener("input", debouncedRenderJobs);
+    searchInput.addEventListener("input", (e) => {
+      debouncedRenderJobs();
+      // Update URL with new search parameter
+      const params = new URLSearchParams(window.location.search);
+      if (searchInput.value) {
+        params.set("search", searchInput.value);
+      } else {
+        params.delete("search");
+      }
+      window.history.replaceState(
+        {},
+        "",
+        `${window.location.pathname}?${params.toString()}`
+      );
+    });
   }
 
   document.querySelectorAll(".op-btn").forEach((button) => {
     button.addEventListener("click", (e) => {
       e.preventDefault();
       if (!searchInput) return;
+
       const operator = button.dataset.op;
       const currentPos = searchInput.selectionStart;
       const currentValue = searchInput.value;
+
       searchInput.value =
         currentValue.substring(0, currentPos) +
         operator +
         currentValue.substring(currentPos);
+
       searchInput.focus();
       searchInput.setSelectionRange(
         currentPos + operator.length,
@@ -467,11 +515,11 @@ function setupSearchAndOperatorButtons() {
       const exampleQuery =
         CATEGORY_API_MAP[currentCategory]?.example_query || "";
       searchInput.value = exampleQuery;
-      searchInput.focus();
       if (clearSearchBtn) {
         clearSearchBtn.classList.toggle("hidden", exampleQuery.length === 0);
       }
-      debouncedRenderJobs();
+      // Trigger input event so the rest of the logic (URL update, search, etc.) runs
+      searchInput.dispatchEvent(new Event("input", { bubbles: true }));
     });
   }
 }
@@ -518,9 +566,52 @@ function setupHelpModal() {
 // --- END: Help Modal ---
 
 // --- START: Initialization ---
+function applyInitialSearchAndFilterFromURL() {
+  // --- Apply initial search/filter from URL if present ---
+  if (typeof window.__initialSearchParam === "string" && searchInput) {
+    searchInput.value = window.__initialSearchParam;
+    // Ensure clear button is visible if needed
+    if (typeof clearSearchBtn !== "undefined" && clearSearchBtn) {
+      clearSearchBtn.classList.toggle("hidden", searchInput.value.length === 0);
+    }
+  }
+  if (
+    typeof window.__initialFilterParam === "string" &&
+    window.__initialFilterParam
+  ) {
+    // Map filter param to button id
+    const filterMap = {
+      favorites: "showFavorites",
+      notes: "showNotes",
+      applied: "showApplied",
+      "hide-applied": "hideApplied",
+      hidden: "showHidden",
+    };
+    const btnId = filterMap[window.__initialFilterParam.toLowerCase()];
+    if (btnId) {
+      const btn = document.getElementById(btnId);
+      if (btn) {
+        btn.click();
+      } else {
+        // If not yet in DOM, try after a short delay
+        setTimeout(() => {
+          const btn2 = document.getElementById(btnId);
+          if (btn2) btn2.click();
+        }, 100);
+      }
+    }
+  }
+
+  if (searchInput && searchInput.value) {
+    const queryTokens = parseQuery(searchInput.value);
+    renderParsedQuery(queryTokens);
+  } else {
+    renderParsedQuery([]);
+  }
+}
+
 export function initUIEventListeners() {
   cacheDOMElements();
-
   setupClearSearchButton();
   setupGlobalKeyboardShortcuts();
   setupToastScrollListener();
@@ -530,12 +621,6 @@ export function initUIEventListeners() {
   setupSearchAndOperatorButtons();
   setupGoToTopButton();
   setupHelpModal();
-
-  if (searchInput && searchInput.value) {
-    const queryTokens = parseQuery(searchInput.value);
-    renderParsedQuery(queryTokens);
-  } else {
-    renderParsedQuery([]);
-  }
+  applyInitialSearchAndFilterFromURL();
 }
 // --- END: Initialization ---
