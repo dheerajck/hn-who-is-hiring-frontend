@@ -5,9 +5,11 @@ import { setCurrentCategory } from "./state.js";
 import { showToast } from "./ui-render.js";
 
 function initializeApp() {
-  // 0. Check for category in query params and set it if present
+  // 0. Check for category, search, and filter in query parameters and set them if present
   const params = new URLSearchParams(window.location.search);
   const categoryParam = params.get("category");
+  const searchParam = params.get("search") || "";
+  const filterParam = params.get("filter") || "";
   let selectedCategory = "hiring";
   let invalidCategory = false;
   if (categoryParam) {
@@ -17,15 +19,17 @@ function initializeApp() {
       invalidCategory = true;
     }
   }
-
   setCurrentCategory(selectedCategory);
-
   if (invalidCategory) {
     showToast(
       `Invalid category: '${categoryParam}'. Showing 'hiring' instead.`,
       4000
     );
   }
+
+  // Set search input and filter button if present in URL
+  window.__initialSearchParam = searchParam;
+  window.__initialFilterParam = filterParam;
 
   // 1. Initialize all UI event listeners
   // This also handles initial renderParsedQuery if search input has value
