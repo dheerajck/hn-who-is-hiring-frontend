@@ -85,7 +85,6 @@ function setupClearSearchButton() {
     searchInput.dispatchEvent(
       new Event("input", { bubbles: true, cancelable: true })
     );
-    searchInput.focus();
   });
 
   toggleClearButtonVisibility();
@@ -490,13 +489,16 @@ function setupSearchAndOperatorButtons() {
     button.addEventListener("click", (e) => {
       e.preventDefault();
       if (!searchInput) return;
+
       const operator = button.dataset.op;
       const currentPos = searchInput.selectionStart;
       const currentValue = searchInput.value;
+
       searchInput.value =
         currentValue.substring(0, currentPos) +
         operator +
         currentValue.substring(currentPos);
+
       searchInput.focus();
       searchInput.setSelectionRange(
         currentPos + operator.length,
@@ -513,23 +515,11 @@ function setupSearchAndOperatorButtons() {
       const exampleQuery =
         CATEGORY_API_MAP[currentCategory]?.example_query || "";
       searchInput.value = exampleQuery;
-      searchInput.focus();
       if (clearSearchBtn) {
         clearSearchBtn.classList.toggle("hidden", exampleQuery.length === 0);
       }
-      // Update URL with new search parameter
-      const params = new URLSearchParams(window.location.search);
-      if (exampleQuery) {
-        params.set("search", exampleQuery);
-      } else {
-        params.delete("search");
-      }
-      window.history.replaceState(
-        {},
-        "",
-        `${window.location.pathname}?${params.toString()}`
-      );
-      debouncedRenderJobs();
+      // Trigger input event so the rest of the logic (URL update, search, etc.) runs
+      searchInput.dispatchEvent(new Event("input", { bubbles: true }));
     });
   }
 }
