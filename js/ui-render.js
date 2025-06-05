@@ -103,6 +103,14 @@ export function updateJobCardInPlace(jobId, appliedStatus) {
   }
 }
 
+// Remove a job card from the DOM by jobId
+export function removeJobCardInPlace(jobId) {
+  const jobCard = document.querySelector(`.job-card[data-job-id="${jobId}"]`);
+  if (jobCard && jobCard.parentNode) {
+    jobCard.parentNode.removeChild(jobCard);
+  }
+}
+
 export function renderCategorySwitcher() {
   const container = document.querySelector(".category-switcher");
   container.innerHTML = "";

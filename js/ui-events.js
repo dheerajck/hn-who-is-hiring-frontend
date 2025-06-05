@@ -34,6 +34,7 @@ import {
   showToast,
   updateThemeIcon,
   renderParsedQuery,
+  removeJobCardInPlace,
 } from "./ui-render.js";
 
 import { parseQuery } from "./search-logic.js";
@@ -401,7 +402,8 @@ function handleStarAction(jobId, actionTarget) {
   const currentFavoritesState = { ...favorites };
   const threadFavorites = getStateForThread(currentFavoritesState);
 
-  if (threadFavorites[jobId]) {
+  const wasFavorite = !!threadFavorites[jobId];
+  if (wasFavorite) {
     delete threadFavorites[jobId];
     actionTarget.classList.add("inactive");
   } else {
@@ -412,12 +414,16 @@ function handleStarAction(jobId, actionTarget) {
   setFavorites(currentFavoritesState);
   localStorage.setItem(favoriteKey, JSON.stringify(favorites));
 
-  if (
-    document
-      .getElementById("showFavorites")
-      ?.classList.contains(HIGHLIGHT_CLASS)
-  ) {
-    renderJobs(allComments);
+  // If "Favorites" filter is active and we removed favorite, remove card from DOM
+  const showFavoritesActive = document.getElementById("showFavorites")?.classList.contains(HIGHLIGHT_CLASS);
+  if (showFavoritesActive && wasFavorite) {
+    removeJobCardInPlace(jobId);
+  }
+
+  if (!wasFavorite) {
+    showToast("Added to favorites!");
+  } else {
+    showToast("Removed from favorites!");
   }
 }
 
@@ -435,6 +441,7 @@ function handleSaveNoteAction(jobId, actionTarget, jobCard) {
 
   const currentNotesState = { ...notes };
   const threadNotes = getStateForThread(currentNotesState);
+  const hadNote = !!threadNotes[jobId];
 
   if (noteText) {
     threadNotes[jobId] = noteText;
@@ -444,12 +451,17 @@ function handleSaveNoteAction(jobId, actionTarget, jobCard) {
 
   setNotes(currentNotesState);
   localStorage.setItem(notesKey, JSON.stringify(notes));
-  showToast("Note saved!");
 
-  if (
-    document.getElementById("showNotes")?.classList.contains(HIGHLIGHT_CLASS)
-  ) {
-    renderJobs(allComments);
+  const showNotesActive = document.getElementById("showNotes")?.classList.contains(HIGHLIGHT_CLASS);
+  if (showNotesActive && !noteText && hadNote) {
+    removeJobCardInPlace(jobId);
+    showToast("Note removed!");
+  } else if (!noteText && hadNote) {
+    showToast("Note removed!");
+  } else if (!noteText && !hadNote) {
+    showToast("What are you doing!");
+  } else if (noteText) {
+    showToast("Note saved!");
   }
 }
 
@@ -462,8 +474,10 @@ function handleApplyAction(jobId) {
   localStorage.setItem(appliedKey, JSON.stringify(applied));
   showToast("Marked as applied!");
 
-  if (shouldRerenderJobs()) {
-    renderJobs(allComments);
+  // If "Hide Applied" filter is active, remove card from DOM, else update in place
+  const hideAppliedActive = document.getElementById("hideApplied")?.classList.contains(HIGHLIGHT_CLASS);
+  if (hideAppliedActive) {
+    removeJobCardInPlace(jobId);
   } else {
     updateJobCardInPlace(jobId, applied[currentThreadId][jobId]);
   }
@@ -477,10 +491,11 @@ function handleUnapplyAction(jobId) {
     delete threadApplied[jobId];
     setApplied(currentAppliedState);
     localStorage.setItem(appliedKey, JSON.stringify(applied));
-    showToast("Removed applied status");
-
-    if (shouldRerenderJobs()) {
-      renderJobs(allComments);
+    showToast("Removed applied status!");
+    // If "Show Applied" filter is active, remove card from DOM, else update in place
+    const showAppliedActive = document.getElementById("showApplied")?.classList.contains(HIGHLIGHT_CLASS);
+    if (showAppliedActive) {
+      removeJobCardInPlace(jobId);
     } else {
       updateJobCardInPlace(jobId, false);
     }
@@ -495,7 +510,9 @@ function handleRemoveAction(jobId) {
   setHidden(currentHiddenState);
   localStorage.setItem(hiddenKey, JSON.stringify(hidden));
   showToast("Excluded!");
-  renderJobs(allComments);
+
+  // Never re-render, always remove in place
+  removeJobCardInPlace(jobId);
 }
 
 function handleUnhideAction(jobId) {
@@ -507,7 +524,7 @@ function handleUnhideAction(jobId) {
     setHidden(currentHiddenState);
     localStorage.setItem(hiddenKey, JSON.stringify(hidden));
     showToast("Restored!");
-    renderJobs(allComments);
+    removeJobCardInPlace(jobId); // Remove from excluded list in place
   }
 }
 
@@ -540,10 +557,10 @@ function toggleTheme() {
 
   if (document.body.classList.contains("dark")) {
     localStorage.removeItem(themekey);
-    showToast("Dark mode enabled");
+    showToast("Dark mode enabled!");
   } else {
     localStorage.setItem(themekey, "disabled");
-    showToast("Light mode enabled");
+    showToast("Light mode enabled!");
   }
 }
 
