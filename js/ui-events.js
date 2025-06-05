@@ -415,7 +415,9 @@ function handleStarAction(jobId, actionTarget) {
   localStorage.setItem(favoriteKey, JSON.stringify(favorites));
 
   // If "Favorites" filter is active and we removed favorite, remove card from DOM
-  const showFavoritesActive = document.getElementById("showFavorites")?.classList.contains(HIGHLIGHT_CLASS);
+  const showFavoritesActive = document
+    .getElementById("showFavorites")
+    ?.classList.contains(HIGHLIGHT_CLASS);
   if (showFavoritesActive && wasFavorite) {
     removeJobCardInPlace(jobId);
   }
@@ -452,7 +454,9 @@ function handleSaveNoteAction(jobId, actionTarget, jobCard) {
   setNotes(currentNotesState);
   localStorage.setItem(notesKey, JSON.stringify(notes));
 
-  const showNotesActive = document.getElementById("showNotes")?.classList.contains(HIGHLIGHT_CLASS);
+  const showNotesActive = document
+    .getElementById("showNotes")
+    ?.classList.contains(HIGHLIGHT_CLASS);
   if (showNotesActive && !noteText && hadNote) {
     removeJobCardInPlace(jobId);
     showToast("Note removed!");
@@ -475,7 +479,9 @@ function handleApplyAction(jobId) {
   showToast("Marked as applied!");
 
   // If "Hide Applied" filter is active, remove card from DOM, else update in place
-  const hideAppliedActive = document.getElementById("hideApplied")?.classList.contains(HIGHLIGHT_CLASS);
+  const hideAppliedActive = document
+    .getElementById("hideApplied")
+    ?.classList.contains(HIGHLIGHT_CLASS);
   if (hideAppliedActive) {
     removeJobCardInPlace(jobId);
   } else {
@@ -493,7 +499,9 @@ function handleUnapplyAction(jobId) {
     localStorage.setItem(appliedKey, JSON.stringify(applied));
     showToast("Removed applied status!");
     // If "Show Applied" filter is active, remove card from DOM, else update in place
-    const showAppliedActive = document.getElementById("showApplied")?.classList.contains(HIGHLIGHT_CLASS);
+    const showAppliedActive = document
+      .getElementById("showApplied")
+      ?.classList.contains(HIGHLIGHT_CLASS);
     if (showAppliedActive) {
       removeJobCardInPlace(jobId);
     } else {

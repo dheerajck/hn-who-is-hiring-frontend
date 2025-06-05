@@ -110,15 +110,15 @@ export function removeJobCardInPlace(jobId) {
     // Always prefer the next card (down), only use previous if no next exists
     let nextCard = jobCard.nextElementSibling;
     jobCard.parentNode.removeChild(jobCard);
-    if (nextCard && nextCard.classList.contains('job-card')) {
+    if (nextCard && nextCard.classList.contains("job-card")) {
       // Scroll so the next card is at the top of the viewport
-      nextCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      nextCard.scrollIntoView({ behavior: "smooth", block: "start" });
       nextCard.focus();
     } else {
       // If no next, try previous
       let prevCard = jobCard.previousElementSibling;
-      if (prevCard && prevCard.classList.contains('job-card')) {
-        prevCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (prevCard && prevCard.classList.contains("job-card")) {
+        prevCard.scrollIntoView({ behavior: "smooth", block: "start" });
         prevCard.focus();
       }
     }
