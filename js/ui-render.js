@@ -107,7 +107,20 @@ export function updateJobCardInPlace(jobId, appliedStatus) {
 export function removeJobCardInPlace(jobId) {
   const jobCard = document.querySelector(`.job-card[data-job-id="${jobId}"]`);
   if (jobCard && jobCard.parentNode) {
+    // Always prefer the next card (down), only use previous if no next exists
+    let nextCard = jobCard.nextElementSibling;
     jobCard.parentNode.removeChild(jobCard);
+    if (nextCard && nextCard.classList.contains('job-card')) {
+      nextCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      nextCard.focus();
+    } else {
+      // If no next, try previous
+      let prevCard = jobCard.previousElementSibling;
+      if (prevCard && prevCard.classList.contains('job-card')) {
+        prevCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        prevCard.focus();
+      }
+    }
   }
 }
 
