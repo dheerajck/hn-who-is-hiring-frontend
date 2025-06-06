@@ -21,6 +21,45 @@ import { loadThread } from "./thread-manager.js";
 
 export const highlightClass = "active";
 
+// Helper function to highlight search terms
+// We even include ~token but it will not be highlighted anyway as it shouldnt be in the job results right now
+function highlightSearchTerms(text, queryTokens) {
+  if (!queryTokens || queryTokens.length === 0) {
+    return text;
+  }
+
+  // Extract actual search terms, ignoring operators and modifiers for highlighting
+  const termsToHighlight = queryTokens
+    .filter((token) => !["|", "&"].includes(token))
+    .map((token) => {
+      let term = token;
+      if (term.startsWith("~")) {
+        term = term.substring(1);
+      }
+      if (term.startsWith('"') && term.endsWith('"')) {
+        term = term.substring(1, term.length - 1);
+      }
+      return term.toLowerCase();
+    })
+    .filter((term) => term.length > 0);
+
+  if (termsToHighlight.length === 0) {
+    return text;
+  }
+
+  // Create a regex to find all occurrences of the terms, case-insensitive
+  // Escape special characters in terms for regex
+  const escapedTerms = termsToHighlight.map((term) =>
+    term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+  );
+  const regex = new RegExp(`(${escapedTerms.join("|")})`, "gi");
+
+  return text.replace(
+    regex,
+    (match) => `<span class="search-match">${match}</span>`
+  );
+}
+
 export function showToast(message, duration = toastTimeout) {
   const toast = document.getElementById("toast");
   const goToTopButton = document.getElementById("goToTop");
@@ -438,7 +477,10 @@ export function renderJobs(commentsToRender) {
       postedTime = `${formattedDate} <span title="${d.toLocaleString()}">(${timeAgo})</span>`;
     }
 
-    const commentTextHTML = c.text || "[No comment text]";
+    let commentTextHTML = c.text || "[No comment text]";
+    if (queryTokens.length > 0) {
+      commentTextHTML = highlightSearchTerms(commentTextHTML, queryTokens);
+    }
     const authorName = c.author || "[unknown author]";
     const plainTextComment = commentTextHTML.replace(/<[^>]+>/g, "");
 
