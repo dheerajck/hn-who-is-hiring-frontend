@@ -1246,3 +1246,17 @@ border: 1px solid yellow !important;
     margin-bottom: 0.5rem; /* Add some space between rows of buttons */
   }
 }
+
+.search-match {
+  background: var(--primary);
+  color: var(--background);
+  border-radius: 3px;
+  padding: 0 2px;
+  font-weight: bold;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+body:not(.dark) .search-match {
+  background: var(--primary);
+  color: var(--surface);
+}
