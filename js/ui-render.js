@@ -21,8 +21,10 @@ import { loadThread } from "./thread-manager.js";
 
 export const highlightClass = "active";
 
-// Helper function to highlight search terms
-// We even include ~token but it will not be highlighted anyway as it shouldnt be in the job results right now
+// Highlights search terms in visible text only, preserving HTML structure
+// - Uses DOMParser to parse the HTML string into a DOM tree
+// - Walks the tree, applying regex-based highlighting only to text nodes
+// - Leaves HTML tags and attributes untouched, so links and markup are never broken
 function highlightSearchTerms(text, queryTokens) {
   if (!queryTokens || queryTokens.length === 0) {
     return text;
@@ -33,9 +35,7 @@ function highlightSearchTerms(text, queryTokens) {
     .filter((token) => !["|", "&"].includes(token))
     .map((token) => {
       let term = token;
-      if (term.startsWith("~")) {
-        term = term.substring(1);
-      }
+      // Remove quotes for phrase tokens
       if (term.startsWith('"') && term.endsWith('"')) {
         term = term.substring(1, term.length - 1);
       }
@@ -47,17 +47,51 @@ function highlightSearchTerms(text, queryTokens) {
     return text;
   }
 
-  // Create a regex to find all occurrences of the terms, case-insensitive
-  // Escape special characters in terms for regex
-  const escapedTerms = termsToHighlight.map((term) =>
-    term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
-  );
-  const regex = new RegExp(`(${escapedTerms.join("|")})`, "gi");
+  // Parse the HTML string into a DOM tree
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(`<div>${text}</div>`, "text/html");
+  const root = doc.body.firstChild;
 
-  return text.replace(
-    regex,
-    (match) => `<span class="search-match">${match}</span>`
-  );
+  // Recursively walk the DOM tree, highlighting matches in text nodes only
+  function walk(node) {
+    if (node.nodeType === Node.TEXT_NODE) {
+      let replaced = node.nodeValue;
+      if (replaced.trim() !== "") {
+        // Regex to escape special characters in terms for regex
+        const escapedTerms = termsToHighlight.map((term) =>
+          term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+        );
+
+        // Regex for all search terms (case-insensitive)
+        const regex = new RegExp(`(${escapedTerms.join("|")})`, "gi");
+
+        // Replace matches with <span class="search-match">
+        replaced = replaced.replace(
+          regex,
+          (match) => `<span class=\"search-match\">${match}</span>`
+        );
+        
+        // If any replacements, update the DOM
+        if (replaced !== node.nodeValue) {
+          const frag = doc.createElement("span");
+          frag.innerHTML = replaced;
+          while (frag.firstChild) {
+            node.parentNode.insertBefore(frag.firstChild, node);
+          }
+          node.parentNode.removeChild(node);
+        }
+      }
+    } else if (node.nodeType === Node.ELEMENT_NODE) {
+      // Don't highlight inside script/style tags
+      if (["SCRIPT", "STYLE"].includes(node.tagName)) return;
+      for (let i = node.childNodes.length - 1; i >= 0; i--) {
+        walk(node.childNodes[i]);
+      }
+    }
+  }
+  walk(root);
+  // Return the updated HTML string
+  return root.innerHTML;
 }
 
 export function showToast(message, duration = toastTimeout) {
