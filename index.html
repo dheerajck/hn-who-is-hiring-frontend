@@ -15,57 +15,51 @@
 
   <body class="dark">
     <header>
-
-        <div class="header-content">
-          <!-- Text Logo Start -->
-          <div class="text-logo">
-            <a
-              href="https://news.ycombinator.com/"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="logo-hn"
-              >HN</a
-            >
-            <a
-              href="https://news.ycombinator.com/submitted?id=whoishiring"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="logo-wh"
-              >WHO'S<br />HIRING</a
-            >
-          </div>
-          <!-- Text Logo End -->
+      <div class="header-content">
+        <!-- Text Logo Start -->
+        <div class="text-logo">
+          <a
+            href="https://news.ycombinator.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="logo-hn"
+            >HN</a
+          >
+          <a
+            href="https://news.ycombinator.com/submitted?id=whoishiring"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="logo-wh"
+            >WHO'S<br />HIRING</a
+          >
         </div>
-        <div
-          class="header-buttons"
-          style="
-            position: relative;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-          "
+        <!-- Text Logo End -->
+      </div>
+      <div
+        class="header-buttons"
+        style="
+          position: relative;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+        "
+      >
+        <span class="unofficial-text"> Unofficial project </span>
+        <button
+          class="icon-link-button"
+          aria-label="View source on GitHub"
+          onclick="window.open('https://github.com/dheerajck/hnwhoishiring', '_blank', 'noopener,noreferrer')"
         >
-          <span
-            class="unofficial-text"
-          >
-            Unofficial project
-          </span>
-          <button
-            class="icon-link-button"
-            aria-label="View source on GitHub"
-            onclick="window.open('https://github.com/dheerajck/hnwhoishiring', '_blank', 'noopener,noreferrer')"
-          >
-            <i class="fab fa-github"></i>
-          </button>
-          <button
-            id="themeToggle"
-            class="icon-link-button"
-            aria-label="Switch theme"
-          >
-            <i class="fas fa-moon"></i>
-          </button>
-        </div>
-
+          <i class="fab fa-github"></i>
+        </button>
+        <button
+          id="themeToggle"
+          class="icon-link-button"
+          aria-label="Switch theme"
+        >
+          <i class="fas fa-moon"></i>
+        </button>
+      </div>
     </header>
 
     <main>
@@ -129,32 +123,49 @@
                 <h2 style="margin-top: 0">Search Help</h2>
                 <ul style="padding-left: 1.2em">
                   <li>
-                    <b><code>remote</code></b><br />
+                    <b><code>remote</code></b
+                    ><br />
                     Find jobs containing the word <code>remote</code>.
                   </li>
                   <li>
-                    <b><code>"@gmail.com"</code></b><br />
-                    Find jobs containing the exact string <code>"@gmail.com"</code>.
+                    <b><code>"@gmail.com"</code></b
+                    ><br />
+                    Find jobs containing the exact string
+                    <code>"@gmail.com"</code>.
                   </li>
                   <li>
-                    <b><code>rust &amp; backend</code></b><br />
-                    Find jobs that contain both <code>rust</code> and <code>backend</code>.
+                    <b><code>rust &amp; backend</code></b
+                    ><br />
+                    Find jobs that contain both <code>rust</code> and
+                    <code>backend</code>.
                   </li>
                   <li>
-                    <b><code>react | flutter</code></b><br />
-                    Find jobs that contain either <code>react</code> or <code>flutter</code>.
+                    <b><code>react | flutter</code></b
+                    ><br />
+                    Find jobs that contain either <code>react</code> or
+                    <code>flutter</code>.
                   </li>
                   <li>
-                    <b><code>~us-based</code></b><br />
+                    <b><code>~us-based</code></b
+                    ><br />
                     Find jobs that do <b>not</b> contain <code>us-based</code>.
                   </li>
                   <li>
-                    <b><code>~relocate &amp; ~"no equity"</code></b><br />
-                    Find jobs that do <b>not</b> contain both the word <code>relocate</code> and the exact string <code>"no equity"</code>.
+                    <b><code>~relocate &amp; ~"no equity"</code></b
+                    ><br />
+                    Find jobs that do <b>not</b> contain both the word
+                    <code>relocate</code> and the exact string
+                    <code>"no equity"</code>.
                   </li>
                   <li>
-                    <b><code>python | javascript &amp; remote &amp; ~us-based</code></b><br />
-                    Find jobs that contain <code>python</code> or <code>javascript</code>, and <code>remote</code>, but not <code>us-based</code>.
+                    <b
+                      ><code
+                        >python | javascript &amp; remote &amp; ~us-based</code
+                      ></b
+                    ><br />
+                    Find jobs that contain <code>python</code> or
+                    <code>javascript</code>, and <code>remote</code>, but not
+                    <code>us-based</code>.
                   </li>
                 </ul>
               </div>
