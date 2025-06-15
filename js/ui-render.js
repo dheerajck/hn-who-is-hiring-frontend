@@ -31,17 +31,22 @@ function highlightSearchTerms(text, queryTokens) {
   }
 
   // Extract actual search terms, ignoring operators and modifiers for highlighting
+  // Build an array of objects: { term, isExactMatch }
   const termsToHighlight = queryTokens
-    .filter((token) => !["|", "&"].includes(token))
+    .filter((token) => {
+      // Ignore operators and tokens starting with ~
+      return !["|", "&"].includes(token) && !token.startsWith("~");
+    })
     .map((token) => {
+      let isExactMatch = false;
       let term = token;
-      // Remove quotes for phrase tokens
       if (term.startsWith('"') && term.endsWith('"')) {
+        isExactMatch = true;
         term = term.substring(1, term.length - 1);
       }
-      return term.toLowerCase();
+      return { term: term.toLowerCase(), isExactMatch };
     })
-    .filter((term) => term.length > 0);
+    .filter((obj) => obj.term.length > 0);
 
   if (termsToHighlight.length === 0) {
     return text;
@@ -57,20 +62,19 @@ function highlightSearchTerms(text, queryTokens) {
     if (node.nodeType === Node.TEXT_NODE) {
       let replaced = node.nodeValue;
       if (replaced.trim() !== "") {
-        // Regex to escape special characters in terms for regex
-        const escapedTerms = termsToHighlight.map((term) =>
-          term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
-        );
+        // Build regex for each term: exact match = substring, else = whole word
+        const regexParts = termsToHighlight.map(({ term, isExactMatch }) => {
+          const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+          return isExactMatch ? escaped : `\\b${escaped}\\b`;
+        });
+        if (regexParts.length === 0) return;
+        const regex = new RegExp(`(${regexParts.join("|")})`, "gi");
 
-        // Regex for all search terms (case-insensitive)
-        const regex = new RegExp(`(${escapedTerms.join("|")})`, "gi");
-
-        // Replace matches with <span class="search-match">
+        // Replace matches with <span class=\"search-match\">
         replaced = replaced.replace(
           regex,
           (match) => `<span class=\"search-match\">${match}</span>`
         );
-        
         // If any replacements, update the DOM
         if (replaced !== node.nodeValue) {
           const frag = doc.createElement("span");
